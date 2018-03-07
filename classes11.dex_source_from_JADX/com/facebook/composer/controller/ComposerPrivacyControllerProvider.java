@@ -1,0 +1,23 @@
+package com.facebook.composer.controller;
+
+import com.facebook.common.android.ResourcesMethodAutoProvider;
+import com.facebook.composer.activity.ComposerFragment.AnonymousClass35;
+import com.facebook.composer.activity.ComposerFragment.AnonymousClass37;
+import com.facebook.composer.privacy.common.ComposerAlbumPrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerDisabledPrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerEventPrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerGroupPrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerMarketplacePrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerPageAdminPrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerPagePrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerSelectablePrivacyDelegateProvider;
+import com.facebook.composer.privacy.common.ComposerTimelinePrivacyDelegateProvider;
+import com.facebook.config.application.Boolean_IsWorkBuildMethodAutoProvider;
+import com.facebook.inject.AbstractAssistedProvider;
+
+/* compiled from: hsi */
+public class ComposerPrivacyControllerProvider extends AbstractAssistedProvider<ComposerPrivacyController> {
+    public final ComposerPrivacyController m7725a(AnonymousClass37 anonymousClass37, AnonymousClass35 anonymousClass35) {
+        return new ComposerPrivacyController(anonymousClass37, anonymousClass35, (ComposerAlbumPrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerAlbumPrivacyDelegateProvider.class), (ComposerPageAdminPrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerPageAdminPrivacyDelegateProvider.class), (ComposerSelectablePrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerSelectablePrivacyDelegateProvider.class), (ComposerEventPrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerEventPrivacyDelegateProvider.class), (ComposerGroupPrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerGroupPrivacyDelegateProvider.class), (ComposerTimelinePrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerTimelinePrivacyDelegateProvider.class), (ComposerPagePrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerPagePrivacyDelegateProvider.class), (ComposerMarketplacePrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerMarketplacePrivacyDelegateProvider.class), (ComposerDisabledPrivacyDelegateProvider) getOnDemandAssistedProviderForStaticDi(ComposerDisabledPrivacyDelegateProvider.class), ResourcesMethodAutoProvider.a(this), Boolean_IsWorkBuildMethodAutoProvider.a(this));
+    }
+}

@@ -1,0 +1,29 @@
+package com.facebook.pages.common.surface.cards.interfaces;
+
+/* compiled from: review_image_height */
+public enum PageCardType {
+    ACTION_BAR(2131565444),
+    CONTEXT_ITEMS_HEADER(2131565448),
+    CONTEXT_ITEMS_INFO_CARD(2131565454),
+    CHILD_LOCATIONS(2131565458),
+    ADMIN_SOCIAL_CONTEXT(2131565481),
+    CRITIC_REVIEWS(2131565460),
+    REVIEW_NEEDY_PLACE_CARD(2131565452),
+    REVIEWS(2131565462),
+    PHOTOS(2131565470),
+    VIDEOS(2131565468),
+    EVENTS(2131565472),
+    COMMERCE(2131565464),
+    SERVICE(2131565466),
+    POST_BY_OTHERS(2131565474),
+    ADMIN_POST_BY_OTHERS(2131565483),
+    VERTEX_ATTRIBUTION(2131565476),
+    WELCOME_HOME(2131565456),
+    PAGE_NUX(2131565450);
+    
+    public final int viewStubId;
+
+    private PageCardType(int i) {
+        this.viewStubId = i;
+    }
+}

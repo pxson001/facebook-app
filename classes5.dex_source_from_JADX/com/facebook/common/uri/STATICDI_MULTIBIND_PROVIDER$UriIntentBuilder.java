@@ -1,0 +1,436 @@
+package com.facebook.common.uri;
+
+import android.support.v7.widget.LinearLayoutCompat;
+import com.facebook.adinterfaces.AdInterfacesUriIntentBuilder;
+import com.facebook.adpreview.activity.AdPreviewUriIntentBuilder;
+import com.facebook.adsexperiencetool.AdsExperienceUriIntentBuilder;
+import com.facebook.adsmanager.deeplinking.uri.AdsManagerRedirectUriIntentBuilder;
+import com.facebook.aplacefor.activity.APlaceForUriIntentBuilder;
+import com.facebook.appdiscovery.appfeed.activity.AppFeedUriIntentBuilder;
+import com.facebook.appdiscovery.lite.LiteUriIntentBuilder;
+import com.facebook.appinvites.activity.AppInvitesUriIntentBuilder;
+import com.facebook.backgroundlocation.nux.BackgroundLocationNuxUriIntentBuilder;
+import com.facebook.backstage.entry.BackstageReplyUriIntentBuilder;
+import com.facebook.backstage.entry.BackstageStackUriIntentBuilder;
+import com.facebook.checkin.socialsearch.conversion.SocialSearchConversionUriIntentBuilder;
+import com.facebook.checkin.socialsearch.map.SocialSearchMapFragmentAndUriIntentBuilder;
+import com.facebook.commerce.productdetails.intent.ProductDetailsUriIntentBuilder;
+import com.facebook.commerce.publishing.CommercePublishingUriIntentBuilder;
+import com.facebook.commerce.storefront.intent.StorefrontUriIntentBuilder;
+import com.facebook.composer.shareintent.ComposerShareUriIntentBuilder;
+import com.facebook.composer.topics.uri.ComposerTopicsUriIntentBuilder;
+import com.facebook.confirmation.uri.AccountConfirmationUriIntentBuilder;
+import com.facebook.crowdsourcing.suggestedits.intent.SuggestEditsUriIntentBuilder;
+import com.facebook.dialtone.DialtoneIntentUriBuilder;
+import com.facebook.events.dashboard.birthdays.BirthdaysUriIntentBuilder;
+import com.facebook.events.permalink.messagefriends.EventMessageFriendsUriIntentBuilder;
+import com.facebook.events.reaction.EventsReactionUriIntentBuilder;
+import com.facebook.events.uri.EventsInviteFriendsUriIntentBuilder;
+import com.facebook.events.uri.EventsPagesPermalinkUriIntentBuilder;
+import com.facebook.events.uri.EventsPermalinkUriIntentBuilder;
+import com.facebook.events.uri.EventsUriIntentBuilder;
+import com.facebook.fbreact.navigation.FbReactNavigationUriIntentBuilder;
+import com.facebook.feed.NewsFeedIntentUriBuilder;
+import com.facebook.feed.awesomizer.ui.FeedAwesomizerUriIntentBuilder;
+import com.facebook.feed.threadedcomments.uri.CommentUriIntentBuilder;
+import com.facebook.feedplugins.prompts.SocialPromptInviteFriendsUriIntentBuilder;
+import com.facebook.friending.center.uri.FriendsCenterUriIntentBuilder;
+import com.facebook.friending.jewel.FriendRequestsPrivacySettingUriIntentBuilder;
+import com.facebook.friending.profileshare.uri.ProfileShareUriIntentBuilder;
+import com.facebook.friending.suggestion.uri.FriendingSuggestionUriIntentBuilder;
+import com.facebook.friendlist.intent.FriendListUriIntentBuilder;
+import com.facebook.friendsnearby.FriendsNearbyUriIntentBuilder;
+import com.facebook.goodwill.GoodwillUriIntentBuilder;
+import com.facebook.groupcommerce.landingpage.uri.SaleGroupsLandingPageUriIntentBuilder;
+import com.facebook.groups.fb4a.addtogroups.FB4AAddToGroupsIntentUriBuilder;
+import com.facebook.groups.fb4a.create.FB4AGroupsCreateIntentUriBuilder;
+import com.facebook.groups.fb4a.createrpanel.FB4AGroupsCreateTabUriIntentBuilder;
+import com.facebook.groups.fb4a.discover.FB4AGroupsDiscoverUriIntentBuilder;
+import com.facebook.groups.fb4a.docsandfiles.intent.GroupsDocsAndFilesUriIntentBuilder;
+import com.facebook.groups.fb4a.events.FB4AGroupEventsUriIntentBuilder;
+import com.facebook.groups.fb4a.info.FB4AGroupMembershipUriIntentBuilder;
+import com.facebook.groups.fb4a.info.FB4AGroupSubscriptionUriIntentBuilder;
+import com.facebook.groups.fb4a.pendingposts.PendingPostsIntentUriBuilder;
+import com.facebook.groups.fb4a.photos.FB4APhotosUriIntentBuilder;
+import com.facebook.groups.fb4a.react.FB4AGroupsReactUriIntentBuilder;
+import com.facebook.groups.feed.integration.CrossGroupForSalePostsFeedIntentUriBuilder;
+import com.facebook.groups.feed.integration.GroupFeedIntentUriBuilder;
+import com.facebook.groups.feed.integration.GroupFeedYourPostsIntentUriBuilder;
+import com.facebook.groups.memberpicker.MemberPickerIntentUriBuilder;
+import com.facebook.groups.memberrequests.MemberRequestsIntentUriBuilder;
+import com.facebook.growth.uri.GrowthUriIntentBuilder;
+import com.facebook.hashtag.uri.HashtagUriIntentBuilder;
+import com.facebook.http.prefs.delaybasedqp.DelayBasedHttpQPRequestUriIntentBuilder;
+import com.facebook.inject.IdBasedProvider;
+import com.facebook.inject.Injector;
+import com.facebook.inject.InjectorLike;
+import com.facebook.inject.MultiBindIndexedProvider;
+import com.facebook.inject.MultiBinderSet;
+import com.facebook.instantarticles.RichDocumentUriIntentBuilder;
+import com.facebook.instantshopping.InstantShoppingUriIntentBuilder;
+import com.facebook.katana.activity.media.VideoUriIntentBuilder;
+import com.facebook.katana.activity.nearby.NearbyPlacesFallbackUriIntentBuilder;
+import com.facebook.katana.activity.nearby.NearbyPlacesUriIntentBuilder;
+import com.facebook.katana.activity.nearby.SubcategorySelectionUriIntentBuilder;
+import com.facebook.katana.activity.photos.PhotosUriIntentBuilder;
+import com.facebook.katana.login.OtpUriIntentBuilder;
+import com.facebook.katana.urimap.AppcenterUriIntentBuilder;
+import com.facebook.katana.urimap.BookmarkIntentUriBuilder;
+import com.facebook.katana.urimap.DataSavingsModeUriIntentBuilder;
+import com.facebook.katana.urimap.ExternalLinkUriIntentBuilder;
+import com.facebook.katana.urimap.FacewebUriIntentBuilder;
+import com.facebook.katana.urimap.FriendsUriIntentBuilder;
+import com.facebook.katana.urimap.NotificationsUriIntentBuilder;
+import com.facebook.katana.urimap.PlatformUriIntentBuilder;
+import com.facebook.katana.urimap.SelfUpdateUriIntentBuilder;
+import com.facebook.katana.urimap.TermsAndPoliciesIntentUriBuilder;
+import com.facebook.katana.urimap.ZeroDialogUriIntentBuilder;
+import com.facebook.localcontent.menus.AddPhotoMenuUriIntentBuilder;
+import com.facebook.localcontent.menus.PagePhotoMenuUriIntentBuilder;
+import com.facebook.localcontent.menus.admin.manager.PageMenuManagementUriIntentBuilder;
+import com.facebook.localcontent.menus.structured.StructuredMenuUriIntentBuilder;
+import com.facebook.localcontent.photos.PhotosByCategoryUriIntentBuilder;
+import com.facebook.looknow.LookNowUriIntentBuilder;
+import com.facebook.maps.GenericMapsFragmentAndUriIntentBuilder;
+import com.facebook.messaging.business.commerceui.uri.CommerceUriIntentBuilder;
+import com.facebook.messaging.business.nativesignup.helpers.DefaultNativeSignUpResultHandler;
+import com.facebook.messaging.business.nativesignup.uri.NativeSignUpSecureUriIntentBuilder;
+import com.facebook.messaging.business.nativesignup.uri.NativeSignUpUriIntentBuilder;
+import com.facebook.messaging.payment.uri.PaymentUriIntentBuilder;
+import com.facebook.messaging.payment.value.input.checkout.MessengerPayCheckoutIntentHelper;
+import com.facebook.neko.getgamesneko.GetGamesNekoUriIntentBuilder;
+import com.facebook.notes.NotesUriIntentBuilder;
+import com.facebook.notifications.notificationsfriending.NotificationsFriendingUriIntentBuilder;
+import com.facebook.offers.uri.OffersUriIntentBuilder;
+import com.facebook.pages.browser.intent.uri.PagesBrowserUriIntentBuilder;
+import com.facebook.pages.common.editpage.EditPageUriIntentBuilder;
+import com.facebook.pages.common.friendinviter.uri.PageInviterUriIntentBuilder;
+import com.facebook.pages.deeplinking.uri.ManagedPageUriIntentBuilder;
+import com.facebook.pages.fb4a.uri.PagesFb4aMessagingUriIntentBuilder;
+import com.facebook.pages.identity.intent.uri.DefaultPageUriIntentBuilder;
+import com.facebook.pages.identity.intent.uri.PageIdentityUriIntentBuilder;
+import com.facebook.pages.launchpoint.uri.PagesLaunchpointUriIntentBuilder;
+import com.facebook.photos.mediagallery.ui.MediaGalleryUriIntentBuilder;
+import com.facebook.placetips.settings.ui.PlaceTipsSettingsUriIntentBuilder;
+import com.facebook.placetips.upsell.PlaceTipsUriIntentBuilder;
+import com.facebook.privacy.checkup.PrivacyCheckupUriIntentBuilder;
+import com.facebook.profile.inforequest.InfoRequestUriIntentBuilder;
+import com.facebook.quickpromotion.uri.QuickPromotionUriIntentBuilder;
+import com.facebook.rapidfeedback.debug.DebugRapidFeedbackUriIntentBuilder;
+import com.facebook.reaction.ui.uri.ReactionUriIntentBuilder;
+import com.facebook.reviews.intent.ReviewsUriIntentBuilder;
+import com.facebook.reviews.intent.UserReviewsUriIntentBuilder;
+import com.facebook.reviews.intent.ViewReviewUriIntentBuilder;
+import com.facebook.saved.intent.SavedUriIntentBuilder;
+import com.facebook.search.uri.SearchResultUriIntentBuilder;
+import com.facebook.search.uri.SearchUriIntentBuilder;
+import com.facebook.search.uri.TrendingSportsUriIntentBuilder;
+import com.facebook.socialgood.SocialGoodUriIntentBuilder;
+import com.facebook.socialgood.inviter.FundraiserPageInviterUriIntentBuilder;
+import com.facebook.storelocator.StoreLocatorUriIntentBuilder;
+import com.facebook.timeline.ProfileVideoUriIntentBuilder;
+import com.facebook.timeline.aboutpage.CollectionsUriIntentBuilder;
+import com.facebook.ui.browser.BrowserUriIntentBuilder;
+import com.facebook.universalfeedback.debug.DebugUniversalFeedbackUriIntentBuilder;
+import com.facebook.vault.momentsupsell.uri.MomentsUpsellUriIntentBuilder;
+import com.facebook.video.channelfeed.uri.ChannelFeedUriIntentBuilder;
+import com.facebook.video.videohome.uri.VideoHomeUriIntentBuilder;
+import com.facebook.zero.carrier.fragment.CarrierManagerIntentUriBuilder;
+import com.facebook.zero.fb4a.ZeroInterstitialIntentUriBuilder;
+import com.facebook.zero.settings.DialtoneInfoScreenUriIntentBuilder;
+import com.facebook.zero.settings.FreeFacebookSettingsUriIntentBuilder;
+import com.facebook.zero.upsell.activity.ZeroUpsellUriIntentBuilder;
+import java.util.Set;
+import javax.inject.Provider;
+
+/* compiled from: transaction_status_display */
+public final class STATICDI_MULTIBIND_PROVIDER$UriIntentBuilder implements MultiBindIndexedProvider<UriIntentBuilder>, Provider<Set<UriIntentBuilder>> {
+    private final InjectorLike f11182a;
+
+    private STATICDI_MULTIBIND_PROVIDER$UriIntentBuilder(InjectorLike injectorLike) {
+        this.f11182a = injectorLike;
+    }
+
+    public final Object get() {
+        return new MultiBinderSet(this.f11182a.getScopeAwareInjector(), this);
+    }
+
+    public static Provider<Set<UriIntentBuilder>> m19135a(InjectorLike injectorLike) {
+        return new STATICDI_MULTIBIND_PROVIDER$UriIntentBuilder(injectorLike.getScopeAwareInjector());
+    }
+
+    public final int size() {
+        return 132;
+    }
+
+    public final Object provide(Injector injector, int i) {
+        switch (i) {
+            case 0:
+                return AdInterfacesUriIntentBuilder.a(injector);
+            case 1:
+                return AdPreviewUriIntentBuilder.a(injector);
+            case LinearLayoutCompat.SHOW_DIVIDER_MIDDLE /*2*/:
+                return AdsExperienceUriIntentBuilder.a(injector);
+            case 3:
+                return AdsManagerRedirectUriIntentBuilder.m14194a((InjectorLike) injector);
+            case LinearLayoutCompat.SHOW_DIVIDER_END /*4*/:
+                return APlaceForUriIntentBuilder.a(injector);
+            case 5:
+                return AppFeedUriIntentBuilder.a(injector);
+            case 6:
+                return LiteUriIntentBuilder.a(injector);
+            case 7:
+                return AppInvitesUriIntentBuilder.a(injector);
+            case 8:
+                return BackgroundLocationNuxUriIntentBuilder.a(injector);
+            case 9:
+                return BackstageReplyUriIntentBuilder.a(injector);
+            case 10:
+                return BackstageStackUriIntentBuilder.a(injector);
+            case 11:
+                return SocialSearchConversionUriIntentBuilder.a(injector);
+            case 12:
+                return SocialSearchMapFragmentAndUriIntentBuilder.a(injector);
+            case 13:
+                return ProductDetailsUriIntentBuilder.a(injector);
+            case 14:
+                return CommercePublishingUriIntentBuilder.a(injector);
+            case 15:
+                return StorefrontUriIntentBuilder.a(injector);
+            case 16:
+                return ComposerShareUriIntentBuilder.a(injector);
+            case 17:
+                return ComposerTopicsUriIntentBuilder.a(injector);
+            case 18:
+                return AccountConfirmationUriIntentBuilder.a(injector);
+            case 19:
+                return SuggestEditsUriIntentBuilder.a(injector);
+            case 20:
+                return DialtoneIntentUriBuilder.m19826a(injector);
+            case 21:
+                return BirthdaysUriIntentBuilder.b(injector);
+            case 22:
+                return EventMessageFriendsUriIntentBuilder.a(injector);
+            case 23:
+                return EventsReactionUriIntentBuilder.a(injector);
+            case 24:
+                return EventsInviteFriendsUriIntentBuilder.a(injector);
+            case 25:
+                return EventsPagesPermalinkUriIntentBuilder.a(injector);
+            case 26:
+                return EventsPermalinkUriIntentBuilder.a(injector);
+            case 27:
+                return EventsUriIntentBuilder.a(injector);
+            case 28:
+                return FbReactNavigationUriIntentBuilder.a(injector);
+            case 29:
+                return NewsFeedIntentUriBuilder.a(injector);
+            case 30:
+                return FeedAwesomizerUriIntentBuilder.a(injector);
+            case 31:
+                return CommentUriIntentBuilder.a(injector);
+            case 32:
+                return SocialPromptInviteFriendsUriIntentBuilder.a(injector);
+            case 33:
+                return FriendsCenterUriIntentBuilder.a(injector);
+            case 34:
+                return new FriendRequestsPrivacySettingUriIntentBuilder();
+            case 35:
+                return ProfileShareUriIntentBuilder.a(injector);
+            case 36:
+                return FriendingSuggestionUriIntentBuilder.a(injector);
+            case 37:
+                return FriendListUriIntentBuilder.a(injector);
+            case 38:
+                return FriendsNearbyUriIntentBuilder.a(injector);
+            case 39:
+                return GoodwillUriIntentBuilder.a(injector);
+            case 40:
+                return SaleGroupsLandingPageUriIntentBuilder.a(injector);
+            case 41:
+                return FB4AAddToGroupsIntentUriBuilder.a(injector);
+            case 42:
+                return FB4AGroupsCreateIntentUriBuilder.a(injector);
+            case 43:
+                return FB4AGroupsCreateTabUriIntentBuilder.a(injector);
+            case 44:
+                return FB4AGroupsDiscoverUriIntentBuilder.a(injector);
+            case 45:
+                return GroupsDocsAndFilesUriIntentBuilder.a(injector);
+            case 46:
+                return FB4AGroupEventsUriIntentBuilder.a(injector);
+            case 47:
+                return FB4AGroupMembershipUriIntentBuilder.a(injector);
+            case 48:
+                return FB4AGroupSubscriptionUriIntentBuilder.a(injector);
+            case 49:
+                return PendingPostsIntentUriBuilder.a(injector);
+            case 50:
+                return FB4APhotosUriIntentBuilder.a(injector);
+            case 51:
+                return FB4AGroupsReactUriIntentBuilder.a(injector);
+            case 52:
+                return CrossGroupForSalePostsFeedIntentUriBuilder.a(injector);
+            case 53:
+                return GroupFeedIntentUriBuilder.a(injector);
+            case 54:
+                return GroupFeedYourPostsIntentUriBuilder.a(injector);
+            case 55:
+                return MemberPickerIntentUriBuilder.a(injector);
+            case 56:
+                return MemberRequestsIntentUriBuilder.a(injector);
+            case 57:
+                return GrowthUriIntentBuilder.a(injector);
+            case 58:
+                return HashtagUriIntentBuilder.a(injector);
+            case 59:
+                return DelayBasedHttpQPRequestUriIntentBuilder.a(injector);
+            case 60:
+                return RichDocumentUriIntentBuilder.a(injector);
+            case 61:
+                return InstantShoppingUriIntentBuilder.a(injector);
+            case 62:
+                return VideoUriIntentBuilder.a(injector);
+            case 63:
+                return NearbyPlacesFallbackUriIntentBuilder.a(injector);
+            case 64:
+                return NearbyPlacesUriIntentBuilder.a(injector);
+            case 65:
+                return SubcategorySelectionUriIntentBuilder.a(injector);
+            case 66:
+                return PhotosUriIntentBuilder.a(injector);
+            case 67:
+                return OtpUriIntentBuilder.a(injector);
+            case 68:
+                return AppcenterUriIntentBuilder.a(injector);
+            case 69:
+                return BookmarkIntentUriBuilder.a(injector);
+            case 70:
+                return DataSavingsModeUriIntentBuilder.a(injector);
+            case 71:
+                return ExternalLinkUriIntentBuilder.a(injector);
+            case 72:
+                return FacewebUriIntentBuilder.a(injector);
+            case 73:
+                return FriendsUriIntentBuilder.a(injector);
+            case 74:
+                return NotificationsUriIntentBuilder.a(injector);
+            case 75:
+                return PlatformUriIntentBuilder.a(injector);
+            case 76:
+                return SelfUpdateUriIntentBuilder.a(injector);
+            case 77:
+                return TermsAndPoliciesIntentUriBuilder.a(injector);
+            case 78:
+                return ZeroDialogUriIntentBuilder.a(injector);
+            case 79:
+                return AddPhotoMenuUriIntentBuilder.a(injector);
+            case 80:
+                return PagePhotoMenuUriIntentBuilder.a(injector);
+            case 81:
+                return PageMenuManagementUriIntentBuilder.a(injector);
+            case 82:
+                return StructuredMenuUriIntentBuilder.a(injector);
+            case 83:
+                return PhotosByCategoryUriIntentBuilder.a(injector);
+            case 84:
+                return LookNowUriIntentBuilder.a(injector);
+            case 85:
+                return GenericMapsFragmentAndUriIntentBuilder.a(injector);
+            case 86:
+                return new CommerceUriIntentBuilder(IdBasedProvider.a(injector, 4115));
+            case 87:
+                return new NativeSignUpSecureUriIntentBuilder(IdBasedProvider.a(injector, 4442), DefaultNativeSignUpResultHandler.b(injector));
+            case 88:
+                return new NativeSignUpUriIntentBuilder(IdBasedProvider.a(injector, 4442), DefaultNativeSignUpResultHandler.b(injector));
+            case 89:
+                return new PaymentUriIntentBuilder(MessengerPayCheckoutIntentHelper.b(injector), IdBasedProvider.a(injector, 4180));
+            case 90:
+                return GetGamesNekoUriIntentBuilder.a(injector);
+            case 91:
+                return NotesUriIntentBuilder.b(injector);
+            case 92:
+                return NotificationsFriendingUriIntentBuilder.a(injector);
+            case 93:
+                return OffersUriIntentBuilder.a(injector);
+            case 94:
+                return PagesBrowserUriIntentBuilder.a(injector);
+            case 95:
+                return EditPageUriIntentBuilder.a(injector);
+            case 96:
+                return PageInviterUriIntentBuilder.a(injector);
+            case 97:
+                return ManagedPageUriIntentBuilder.a(injector);
+            case 98:
+                return PagesFb4aMessagingUriIntentBuilder.a(injector);
+            case 99:
+                return DefaultPageUriIntentBuilder.a(injector);
+            case 100:
+                return PageIdentityUriIntentBuilder.a(injector);
+            case 101:
+                return PagesLaunchpointUriIntentBuilder.a(injector);
+            case 102:
+                return MediaGalleryUriIntentBuilder.a(injector);
+            case 103:
+                return PlaceTipsSettingsUriIntentBuilder.a(injector);
+            case 104:
+                return PlaceTipsUriIntentBuilder.a(injector);
+            case 105:
+                return PrivacyCheckupUriIntentBuilder.a(injector);
+            case 106:
+                return InfoRequestUriIntentBuilder.a(injector);
+            case 107:
+                return QuickPromotionUriIntentBuilder.a(injector);
+            case 108:
+                return DebugRapidFeedbackUriIntentBuilder.a(injector);
+            case 109:
+                return ReactionUriIntentBuilder.a(injector);
+            case 110:
+                return ReviewsUriIntentBuilder.a(injector);
+            case 111:
+                return UserReviewsUriIntentBuilder.a(injector);
+            case 112:
+                return ViewReviewUriIntentBuilder.a(injector);
+            case 113:
+                return SavedUriIntentBuilder.a(injector);
+            case 114:
+                return SearchResultUriIntentBuilder.a(injector);
+            case 115:
+                return SearchUriIntentBuilder.a(injector);
+            case 116:
+                return TrendingSportsUriIntentBuilder.a(injector);
+            case 117:
+                return SocialGoodUriIntentBuilder.a(injector);
+            case 118:
+                return FundraiserPageInviterUriIntentBuilder.a(injector);
+            case 119:
+                return StoreLocatorUriIntentBuilder.a(injector);
+            case 120:
+                return ProfileVideoUriIntentBuilder.a(injector);
+            case 121:
+                return CollectionsUriIntentBuilder.a(injector);
+            case 122:
+                return BrowserUriIntentBuilder.a(injector);
+            case 123:
+                return DebugUniversalFeedbackUriIntentBuilder.a(injector);
+            case 124:
+                return MomentsUpsellUriIntentBuilder.a(injector);
+            case 125:
+                return ChannelFeedUriIntentBuilder.a(injector);
+            case 126:
+                return VideoHomeUriIntentBuilder.a(injector);
+            case 127:
+                return CarrierManagerIntentUriBuilder.a(injector);
+            case 128:
+                return ZeroInterstitialIntentUriBuilder.a(injector);
+            case 129:
+                return DialtoneInfoScreenUriIntentBuilder.a(injector);
+            case 130:
+                return FreeFacebookSettingsUriIntentBuilder.a(injector);
+            case 131:
+                return ZeroUpsellUriIntentBuilder.a(injector);
+            default:
+                throw new IllegalArgumentException("Invalid binding index");
+        }
+    }
+}

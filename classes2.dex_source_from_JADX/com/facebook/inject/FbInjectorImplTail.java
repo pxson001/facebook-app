@@ -1,0 +1,17588 @@
+package com.facebook.inject;
+
+import android.content.Context;
+import android.content.res.Resources;
+import com.facebook.abtest.qe.cache.QuickExperimentMemoryCacheFuture;
+import com.facebook.abtest.qe.db.QuickExperimentDeserializer;
+import com.facebook.abtest.qe.framework.QuickExperimentControllerImpl;
+import com.facebook.abtest.qe.service.ViewerConfigurationMethod;
+import com.facebook.account.recovery.protocol.AccountRecoverySearchAccountMethod;
+import com.facebook.account.recovery.protocol.AccountRecoverySendConfirmationCodeMethod;
+import com.facebook.account.recovery.protocol.AccountRecoveryValidateCodeMethod;
+import com.facebook.actionbar.AppCompatActivityOverrider;
+import com.facebook.actionbar.AppCompatFragmentOverrider;
+import com.facebook.adinterfaces.AdInterfacesSavedButtonSpecProvider;
+import com.facebook.adinterfaces.component.BoostEventEditTargetingComponent;
+import com.facebook.adinterfaces.component.EditTargetingComponent;
+import com.facebook.adinterfaces.component.EditTargetingFooterComponent;
+import com.facebook.adinterfaces.component.EditTargetingInfoCardComponent;
+import com.facebook.adinterfaces.objective.BoostEventEditTargetingObjective;
+import com.facebook.adinterfaces.objective.BoostEventObjective;
+import com.facebook.adinterfaces.objective.BoostPostBoostedComponentObjective;
+import com.facebook.adinterfaces.objective.BoostPostEditTargetingObjective;
+import com.facebook.adinterfaces.objective.BoostPostInsightsObjective;
+import com.facebook.adinterfaces.objective.BoostPostObjective;
+import com.facebook.adinterfaces.objective.BoostedComponentEditBudgetObjective;
+import com.facebook.adinterfaces.objective.BoostedComponentEditCreativeObjective;
+import com.facebook.adinterfaces.objective.BoostedComponentEditDurationObjective;
+import com.facebook.adinterfaces.objective.BoostedComponentEditTargetingObjective;
+import com.facebook.adinterfaces.objective.LocalAwarenessObjective;
+import com.facebook.adinterfaces.objective.PageLikePromotionObjective;
+import com.facebook.adinterfaces.objective.PromoteCTAObjective;
+import com.facebook.adinterfaces.objective.PromoteProductObjective;
+import com.facebook.adinterfaces.objective.PromoteWebsiteObjective;
+import com.facebook.adinterfaces.protocol.AdInterfacesQueryBuilder;
+import com.facebook.adinterfaces.protocol.EditBoostedComponentMethod;
+import com.facebook.adinterfaces.protocol.FetchAccountsMethod;
+import com.facebook.adinterfaces.protocol.FetchInsightsMethod;
+import com.facebook.adinterfaces.ui.AdInterfacesBoostEventTargetingViewConroller;
+import com.facebook.adinterfaces.ui.AdInterfacesBoostPostTargetingViewController;
+import com.facebook.adinterfaces.ui.AdInterfacesSaveFooterViewController;
+import com.facebook.adinterfaces.ui.AdInterfacesScheduleViewController;
+import com.facebook.adinterfaces.ui.BoostedComponentBudgetViewController;
+import com.facebook.adspayments.AdsPaymentsPickerScreenDataFetcher;
+import com.facebook.adspayments.AdsPaymentsPickerScreenDataMutator;
+import com.facebook.adspayments.AdsPaymentsPickerScreenOnActivityResultHandler;
+import com.facebook.adspayments.AdsPaymentsPickerScreenSubScreenParamsGenerator;
+import com.facebook.adspayments.AdsPaymentsRowItemViewFactory;
+import com.facebook.adspayments.AdsPaymentsSectionOrganizer;
+import com.facebook.adspayments.AdsPaymentsSimpleRowItemsGenerator;
+import com.facebook.adspayments.adinterfaces.abtest.AdsPaymentsExperimentsHelper;
+import com.facebook.adspayments.protocol.PostBusinessAddressMethod;
+import com.facebook.aldrin.protocol.FetchAldrinLoggedOutStatusMethod;
+import com.facebook.aldrin.service.FetchAldrinUserStatusClient;
+import com.facebook.aldrin.transition.AldrinTransitionLauncher;
+import com.facebook.analytics.AnalyticsLoggerMethodAutoProvider;
+import com.facebook.analytics.MemoryAnalyticsCounters;
+import com.facebook.analytics.analyticsmodule.BatteryStatusPeriodicReporter;
+import com.facebook.analytics.analyticsmodule.DBSizePeriodicReporter;
+import com.facebook.analytics.anrwatchdog.ANRDetector;
+import com.facebook.analytics.anrwatchdog.ANRDetectorRunnable;
+import com.facebook.analytics.anrwatchdog.ANRReport;
+import com.facebook.analytics.reporters.periodic.ClassInstancesPeriodicReporter;
+import com.facebook.analytics.reporters.periodic.PistolFirePeriodicReporter;
+import com.facebook.analytics.reporters.periodic.ProcessStatusPeriodicReporter;
+import com.facebook.analytics.tagging.CurrentModuleHolder;
+import com.facebook.api.feed.DeleteStoryMethod;
+import com.facebook.api.feed.HideFeedStoryMethod;
+import com.facebook.api.feed.NegativeFeedbackActionOnFeedMethod;
+import com.facebook.api.feed.SubmitResearchPollResponseMethod;
+import com.facebook.api.feed.SubmitSurveyResponseMethod;
+import com.facebook.api.feed.service.GraphPostService;
+import com.facebook.api.feedcache.FeedUnitUpdateReceivedCallback;
+import com.facebook.api.feedcache.VpvUpdateReceivedCallback;
+import com.facebook.api.feedcache.db.DbFeedHomeStoriesHandler;
+import com.facebook.api.feedcache.db.FeedDbCacheCleaner;
+import com.facebook.api.feedcache.memory.FeedMemoryCacheCleaner;
+import com.facebook.api.feedcache.memory.FeedUnitCache;
+import com.facebook.api.feedcache.mutator.FeedUnitCacheMutator;
+import com.facebook.api.feedcache.omnistore.FeedUnitUpdateHandler;
+import com.facebook.api.feedcache.omnistore.VpvUpdateHandler;
+import com.facebook.api.feedcache.resync.NewsFeedCacheSyncPreRunChecker;
+import com.facebook.api.feedcache.resync.NewsFeedCacheSynchonizerHelper;
+import com.facebook.api.growth.UserSetContactInfoMethod;
+import com.facebook.api.growth.contactimporter.UsersInviteMethod;
+import com.facebook.api.growth.profile.SetNativeNameMethod;
+import com.facebook.api.growth.profile.SetProfilePhotoMethod;
+import com.facebook.api.negative_feedback.NegativeFeedbackPostService;
+import com.facebook.api.ufiservices.DeleteCommentMethod;
+import com.facebook.api.ufiservices.EditCommentMethod;
+import com.facebook.api.ufiservices.SetNotifyMeMethod;
+import com.facebook.api.ufiservices.ToggleLikeMethod;
+import com.facebook.api.ufiservices.UFIServicesHandler;
+import com.facebook.api.ufiservices.common.GraphQLActorCacheImpl;
+import com.facebook.aplacefor.reaction.partdefinitions.ReactionAPlaceForFooterCardPartDefinition;
+import com.facebook.aplacefor.reaction.partdefinitions.ReactionAPlaceForHeaderCardPartDefinition;
+import com.facebook.aplacefor.reaction.partdefinitions.ReactionAPlaceForStoryCardPartDefinition;
+import com.facebook.appdiscovery.lite.ui.rows.AppDiscoveryRootPartDefinition;
+import com.facebook.appirater.DefaultAppiraterDialogMaker;
+import com.facebook.appirater.ratingdialog.screencontroller.ProvideFeedbackScreenController;
+import com.facebook.appirater.ratingdialog.screencontroller.RateOnPlayStoreScreenController;
+import com.facebook.appirater.ratingdialog.screencontroller.StarRatingScreenController;
+import com.facebook.appirater.ratingdialog.screencontroller.ThanksForFeedbackScreenController;
+import com.facebook.assetdownload.background.AssetDownloadConditionalWorker;
+import com.facebook.assetdownload.logging.AssetDownloadPeriodicEventReporter;
+import com.facebook.attachments.angora.actionbutton.AddFriendActionButton;
+import com.facebook.attachments.angora.actionbutton.AppOpenActionButton;
+import com.facebook.attachments.angora.actionbutton.ClaimCouponActionButton;
+import com.facebook.attachments.angora.actionbutton.CollectionSaveActionButton;
+import com.facebook.attachments.angora.actionbutton.LeadGenActionButton;
+import com.facebook.attachments.angora.actionbutton.MessagePageActionButton;
+import com.facebook.attachments.photos.PostpostTaggingUtil;
+import com.facebook.attachments.photos.launcherhelper.PhotoGalleryLauncherHelper;
+import com.facebook.auth.component.persistent.RecentUserIdsManager;
+import com.facebook.auth.login.SsoLoginUtilMethodAutoProvider;
+import com.facebook.auth.module.String_LoggedInUserIdMethodAutoProvider;
+import com.facebook.auth.module.String_ViewerContextUserIdMethodAutoProvider;
+import com.facebook.auth.module.ViewerContextManagerProvider;
+import com.facebook.auth.module.ViewerContextMethodAutoProvider;
+import com.facebook.backgroundlocation.nux.BackgroundLocationNuxInterstitialController;
+import com.facebook.backgroundlocation.reporting.GeofenceLocationTracker;
+import com.facebook.backstage.entry.BackstageFragmentInitializer;
+import com.facebook.backstage.entry.BackstageOnboardInterstitialController;
+import com.facebook.base.broadcast.LocalFbBroadcastManager;
+import com.facebook.base.userscope.UserScopedComponentManager;
+import com.facebook.base.userscope.UserScopedCrossProcessBroadcastManager;
+import com.facebook.bitmaps.ImageResizerMethodAutoProvider;
+import com.facebook.bitmaps.ImageResizingModeMethodAutoProvider;
+import com.facebook.bitmaps.JavaImageResizer;
+import com.facebook.bitmaps.NativeImageProcessor;
+import com.facebook.bitmaps.NativeImageResizer;
+import com.facebook.bitmaps.WebpTranscoder;
+import com.facebook.bookmark.client.BookmarkClient;
+import com.facebook.bookmark.nux.MessengerBookmarkNuxInterstitialController;
+import com.facebook.bugreporter.BugReporter;
+import com.facebook.bugreporter.scheduler.BugReportRetryInvoker;
+import com.facebook.captcha.protocol.RequestCaptchaMethod;
+import com.facebook.captcha.protocol.SolveCaptchaMethod;
+import com.facebook.caspian.ui.standardheader.ProfileVideoIconBinder;
+import com.facebook.checkin.socialsearch.feed.SocialSearchAttachmentPartDefinition;
+import com.facebook.checkin.socialsearch.map.SocialSearchMapFragmentAndUriIntentBuilder;
+import com.facebook.checkin.socialsearch.utils.AddPlaceListItemToCommentMutationHelper;
+import com.facebook.commerce.core.event.CommerceEventBus;
+import com.facebook.commerce.core.util.CommerceNavigationUtil;
+import com.facebook.commerce.invoices.xma.InvoicesSnippetCreator;
+import com.facebook.commerce.invoices.xma.InvoicesStyleRenderer;
+import com.facebook.commerce.invoices.xma.InvoicesXMAClickHandler;
+import com.facebook.commerce.invoices.xma.InvoicesXMAModelCreator;
+import com.facebook.commerce.productdetails.api.ProductDetailsFetcher;
+import com.facebook.commerce.productdetails.api.SubmitItemForCheckoutMethod;
+import com.facebook.commerce.productdetails.fragments.ProductGroupFragmentFactory;
+import com.facebook.commerce.publishing.fragments.AdminAddShopFragmentFactory;
+import com.facebook.commerce.publishing.fragments.AdminEditShopFragmentFactory;
+import com.facebook.commerce.publishing.fragments.AdminProductFragmentFactory;
+import com.facebook.commerce.publishing.ui.nux.FBAlertDialogBuilderWrapper;
+import com.facebook.commerce.storefront.api.MerchantSubscriptionStatusUpdateMethod;
+import com.facebook.commerce.storefront.fragments.AdCollectionViewFragmentFactory;
+import com.facebook.commerce.storefront.fragments.CollectionViewFragmentFactory;
+import com.facebook.commerce.storefront.fragments.StorefrontFragmentFactory;
+import com.facebook.common.android.AccountManagerMethodAutoProvider;
+import com.facebook.common.android.ActivityMethodAutoProvider;
+import com.facebook.common.android.ApplicationInfoMethodAutoProvider;
+import com.facebook.common.android.ConnectivityManagerMethodAutoProvider;
+import com.facebook.common.android.ContentResolverMethodAutoProvider;
+import com.facebook.common.android.FbLocalBroadcastManagerMethodAutoProvider;
+import com.facebook.common.android.InputMethodManagerMethodAutoProvider;
+import com.facebook.common.android.LayoutInflaterMethodAutoProvider;
+import com.facebook.common.android.LocationManagerMethodAutoProvider;
+import com.facebook.common.android.NotificationManagerMethodAutoProvider;
+import com.facebook.common.android.PackageManagerMethodAutoProvider;
+import com.facebook.common.android.ResourcesMethodAutoProvider;
+import com.facebook.common.android.TelephonyManagerMethodAutoProvider;
+import com.facebook.common.appchoreographer.DefaultAppChoreographer;
+import com.facebook.common.appstate.AppStateManager;
+import com.facebook.common.errorreporting.FbErrorReporterImpl;
+import com.facebook.common.executors.C0055x2995691a;
+import com.facebook.common.executors.C0061x63d21d68;
+import com.facebook.common.executors.C0087xd695ba9d;
+import com.facebook.common.executors.C0115xfdf5bd2;
+import com.facebook.common.executors.C0275x5d33d28;
+import com.facebook.common.executors.ConstrainedListeningExecutorServiceFactory;
+import com.facebook.common.executors.DefaultAndroidThreadUtil;
+import com.facebook.common.executors.FbHandlerThreadFactory;
+import com.facebook.common.executors.Handler_ForNonUiThreadMethodAutoProvider;
+import com.facebook.common.executors.Handler_ForUiThreadMethodAutoProvider;
+import com.facebook.common.executors.ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider;
+import com.facebook.common.file.StatFsHelperMethodAutoProvider;
+import com.facebook.common.hardware.SystemBatteryStateManager;
+import com.facebook.common.i18n.RTLUtil;
+import com.facebook.common.identifiers.UniqueIdGenerator;
+import com.facebook.common.idleexecutor.IdleExecutor_DefaultIdleExecutorMethodAutoProvider;
+import com.facebook.common.init.AppInitLockFuture;
+import com.facebook.common.internalprefhelpers.GkRefresherTask;
+import com.facebook.common.json.FbObjectMapperMethodAutoProvider;
+import com.facebook.common.json.JsonFactoryMethodAutoProvider;
+import com.facebook.common.locale.Locales;
+import com.facebook.common.manifest.AppBuildInfoMethodAutoProvider;
+import com.facebook.common.market.GooglePlayIntentHelper;
+import com.facebook.common.network.FbNetworkManager;
+import com.facebook.common.shortcuts.InstallShortcutHelper;
+import com.facebook.common.tempfile.TempFileManager;
+import com.facebook.common.time.AwakeTimeSinceBootClockMethodAutoProvider;
+import com.facebook.common.time.SystemClockMethodAutoProvider;
+import com.facebook.common.udppriming.service.EncryptChannelRequestMethod;
+import com.facebook.common.udppriming.service.UDPPrimingServiceHandler;
+import com.facebook.common.uri.FbUriIntentHandler;
+import com.facebook.composer.activity.AlbumsListControllerFactory;
+import com.facebook.composer.activity.ComposerLauncherImpl;
+import com.facebook.composer.activity.InlinePrivacySurveyController;
+import com.facebook.composer.analytics.ComposerAnalyticsLogger;
+import com.facebook.composer.analytics.PhotoSequences;
+import com.facebook.composer.analytics.WithTagPerformanceLogger;
+import com.facebook.composer.attachments.AttachmentsValidator;
+import com.facebook.composer.attachments.MediaItemMetaDataExtractor;
+import com.facebook.composer.attachments.PhotoTagExtractor;
+import com.facebook.composer.capability.ComposerAlbumCapability;
+import com.facebook.composer.capability.ComposerCheckinCapability;
+import com.facebook.composer.capability.ComposerCustomPublishModeCapability;
+import com.facebook.composer.capability.ComposerFacecastCapability;
+import com.facebook.composer.capability.ComposerHeaderCapability;
+import com.facebook.composer.capability.ComposerImplicitLocationCapability;
+import com.facebook.composer.capability.ComposerMinutiaeCapability;
+import com.facebook.composer.capability.ComposerMultimediaCapability;
+import com.facebook.composer.capability.ComposerPhotoCapability;
+import com.facebook.composer.capability.ComposerPostCompositionViewCapability;
+import com.facebook.composer.capability.ComposerRedSpaceCapability;
+import com.facebook.composer.capability.ComposerSlideshowCapability;
+import com.facebook.composer.capability.ComposerSouvenirCapability;
+import com.facebook.composer.capability.ComposerTagPeopleCapability;
+import com.facebook.composer.capability.ComposerTargetMenuCapability;
+import com.facebook.composer.capability.ComposerTransliterationCapability;
+import com.facebook.composer.controller.ComposerContentTypeController;
+import com.facebook.composer.controller.compost.ComposerCompostDraftController;
+import com.facebook.composer.feedattachment.ComposerFeedAttachmentViewBinder;
+import com.facebook.composer.feedattachment.minutiae.EventComposerAttachmentController;
+import com.facebook.composer.feedattachment.minutiae.MinutiaeSimplePageComposerAttachmentController;
+import com.facebook.composer.inlinesprouts.ComposerInlineSproutsCapability;
+import com.facebook.composer.inlinesprouts.InlineSproutsQeWrapper;
+import com.facebook.composer.lifeevent.protocol.PublishLifeEventMethod;
+import com.facebook.composer.minutiae.analytics.ActivityPickerAnalyticsLogger;
+import com.facebook.composer.minutiae.analytics.RidgeAnalyticsLogger;
+import com.facebook.composer.minutiae.iconpicker.MinutiaeIconPickerIntentHelper;
+import com.facebook.composer.minutiae.interstitial.RidgeInterstitialController;
+import com.facebook.composer.minutiae.interstitial.RidgeNewIntroScreenController;
+import com.facebook.composer.minutiae.perf.MinutiaeVerbPickerPerformanceLogger;
+import com.facebook.composer.minutiae.protocol.MinutiaeConditionalWorker;
+import com.facebook.composer.minutiae.protocol.MinutiaeVerbsFetcher;
+import com.facebook.composer.minutiae.util.RidgeOptInController;
+import com.facebook.composer.plugininternal.ComposerPluginRegistry;
+import com.facebook.composer.protocol.ComposerService;
+import com.facebook.composer.protocol.FetchReviewInBatchMethod;
+import com.facebook.composer.protocol.PostReviewMethod;
+import com.facebook.composer.publish.ComposerPublishServiceHandler;
+import com.facebook.composer.publish.ComposerPublishServiceHelper;
+import com.facebook.composer.publish.compost.store.CompostDraftStoryStore;
+import com.facebook.composer.publish.compost.store.RecentlyUploadedStoryStore;
+import com.facebook.composer.publish.protocol.EditPostMethod;
+import com.facebook.composer.publish.protocol.PollUploadMethod;
+import com.facebook.composer.publish.protocol.PublishPostMethod;
+import com.facebook.composer.publish.protocol.PublishShareMethod;
+import com.facebook.composer.publish.protocol.SimplePhotoUploadMethod;
+import com.facebook.composer.savedsession.ComposerInstanceTracker;
+import com.facebook.composer.savedsession.ComposerSavedSessionController;
+import com.facebook.composer.savedsession.ComposerSavedSessionServiceHandler;
+import com.facebook.composer.sell.GroupCommerceSellComposerIntercept;
+import com.facebook.composer.textstyle.ComposerDynamicTextStyleController;
+import com.facebook.composer.tip.FeedOnlyPostInterstitialController;
+import com.facebook.composer.tip.MinutiaeNuxBubbleInterstitialController;
+import com.facebook.composer.tip.RidgeNuxBubbleInterstitialController;
+import com.facebook.composer.tip.TopicComposerNuxInterstitialController;
+import com.facebook.composer.topics.ComposerTopicSelectorFragmentFactory;
+import com.facebook.composer.ui.publishmode.PublishModeTitleGenerator;
+import com.facebook.composer.ui.underwood.UnderwoodController;
+import com.facebook.composer.ui.underwood.UnderwoodLogger;
+import com.facebook.composer.util.ComposerScreenSizeUtil;
+import com.facebook.config.application.FbAppType;
+import com.facebook.config.application.ProductMethodAutoProvider;
+import com.facebook.config.versioninfo.module.AppVersionInfoMethodAutoProvider;
+import com.facebook.config.versioninfo.module.VersionStringComparatorMethodAutoProvider;
+import com.facebook.confirmation.interstitial.AccountConfirmationInterstitialController;
+import com.facebook.confirmation.protocol.ConfirmContactpointMethod;
+import com.facebook.confirmation.protocol.OpenIDConnectEmailConfirmationMethod;
+import com.facebook.confirmation.service.AccountConfirmationServiceHandler;
+import com.facebook.contactlogs.protocol.MatchTopSMSContactsMethod;
+import com.facebook.contactlogs.protocol.SetContactLogsUploadSettingMethod;
+import com.facebook.contactlogs.protocol.StartJourneysMethod;
+import com.facebook.contactlogs.upload.ContactLogsUploadSettings;
+import com.facebook.contacts.background.ContactsReliabilityCheckConditionalWorker;
+import com.facebook.contacts.background.FetchContactsCoefficientConditionalWorker;
+import com.facebook.contacts.cache.DynamicContactDataCache;
+import com.facebook.contacts.ccu.ContactsUploadConditionalWorker;
+import com.facebook.contacts.iterator.ContactIterators;
+import com.facebook.contacts.iterator.ContactsOmnistoreQuery;
+import com.facebook.contacts.iterator.PhoneContactFacebookUserDeduper;
+import com.facebook.contacts.iterator.PhoneUserIterators;
+import com.facebook.contacts.iterator.UserIterators;
+import com.facebook.contacts.module.ContactLinkType_ContactLinkQueryTypeMethodAutoProvider;
+import com.facebook.contacts.omnistore.CollectionIndexingFunction_ContactsCollectionMethodAutoProvider;
+import com.facebook.contacts.omnistore.ContactsCollectionHolder;
+import com.facebook.contacts.omnistore.OmnistoreInsertContactHandler;
+import com.facebook.contacts.omnistore.UserTranscription;
+import com.facebook.contacts.picker.SuggestionsCache;
+import com.facebook.contacts.promotion.qpfilter.CIContinuousSyncUserConsentFilterPredicate;
+import com.facebook.contacts.promotion.qpfilter.CIUserConsentFilterPredicate;
+import com.facebook.contacts.service.ContactChatContextRefresher;
+import com.facebook.contacts.upload.prefs.ContactUploadStatusHelper;
+import com.facebook.content.DefaultExternalIntentHandler;
+import com.facebook.content.DefaultSecureContextHelper;
+import com.facebook.content.IntentSanitizer;
+import com.facebook.controller.mutation.FeedbackMutationHelper;
+import com.facebook.controller.mutation.RawLikeHelper;
+import com.facebook.controller.mutation.util.FeedStoryMutator;
+import com.facebook.crowdsourcing.friendvote.fragment.FriendVoteInviteFragmentFactory;
+import com.facebook.crowdsourcing.picker.hours.HoursPickerFragmentFactory;
+import com.facebook.crowdsourcing.placequestion.PlaceQuestionViewController;
+import com.facebook.crowdsourcing.suggestedits.fragment.SuggestEditsFragmentFactory;
+import com.facebook.datasensitivity.confirmation.DataSavingsConfirmationDialogBuilder;
+import com.facebook.debug.dumpsys.DumpsysDumper;
+import com.facebook.debug.feed.HomeStoriesViewController;
+import com.facebook.deeplinking.logging.DeepLinkLoggingUtils;
+import com.facebook.device.DeviceConditionHelper;
+import com.facebook.device.MemInfoReaderMethodAutoProvider;
+import com.facebook.device.PreJellyBeanDeviceMemoryInfoReader;
+import com.facebook.device.ScreenUtil;
+import com.facebook.device_id.UniqueIdForDeviceHolderMethodAutoProvider;
+import com.facebook.devicebasedlogin.nux.DeviceBasedLoginNuxEligibilityController;
+import com.facebook.devicebasedlogin.nux.DeviceBasedLoginNuxInterstitialController;
+import com.facebook.devicebasedlogin.nux.DeviceBasedLoginNuxV2InterstitialController;
+import com.facebook.dialtone.DialtoneControllerImpl;
+import com.facebook.dialtone.DialtoneNewsFeedIntentUriBuilder;
+import com.facebook.dialtone.DialtoneUiFeaturesAccessor;
+import com.facebook.dialtone.cachemanager.DialtoneCacheManager;
+import com.facebook.dialtone.filter.DialtoneActiveFilterPredicate;
+import com.facebook.dialtone.filter.DialtoneAvailableFilterPredicate;
+import com.facebook.directinstall.DirectInstallIntentHelper;
+import com.facebook.directinstall.experiments.DirectInstallConfig;
+import com.facebook.directinstall.logging.DirectInstallLogger;
+import com.facebook.divebar.AbsentNowFragmentInitializer;
+import com.facebook.divebar.DivebarControllerDelegate;
+import com.facebook.divebar.DivebarFragmentInitializer;
+import com.facebook.drawee.fbpipeline.FbDraweeControllerBuilder;
+import com.facebook.entitycards.contextitems.ui.ContextItemsAdapter;
+import com.facebook.entitycardsplugins.person.PersonCardActivityResultHandler;
+import com.facebook.events.EventsExtendedInviteTypeaheadSuggestionDeduper;
+import com.facebook.events.cancelevent.EventsCancelEventFragmentFactory;
+import com.facebook.events.create.EventCreationCategorySelectionFragmentFactory;
+import com.facebook.events.create.EventCreationHostSelectionFragmentFactory;
+import com.facebook.events.dashboard.EventsDashboardEarlyFetcher;
+import com.facebook.events.dashboard.EventsDashboardFragmentFactory;
+import com.facebook.events.dashboard.EventsDiscoveryUpcomingEventsFragmentFactory;
+import com.facebook.events.dashboard.EventsPager;
+import com.facebook.events.dashboard.birthdays.EventsUpcomingBirthdaysFragmentFactory;
+import com.facebook.events.dashboard.multirow.EventsBirthdayRowPartDefinition;
+import com.facebook.events.dashboard.multirow.EventsDashboardDateBucketHeaderPartDefinition;
+import com.facebook.events.dashboard.multirow.EventsDashboardEventRowPartDefinition;
+import com.facebook.events.dashboard.multirow.EventsDashboardLoadingRowPartDefinition;
+import com.facebook.events.dashboard.multirow.EventsDashboardNullStateRowPartDefinition;
+import com.facebook.events.dashboard.multirow.EventsDashboardPromptRowPartDefinition;
+import com.facebook.events.dashboard.multirow.EventsDashboardRootPartSelector;
+import com.facebook.events.dashboard.multirow.EventsDashboardViewAllEventsRowPartDefinition;
+import com.facebook.events.dashboard.multirow.EventsDashboardViewMoreEventsRowPartDefinition;
+import com.facebook.events.dashboard.multirow.environment.HasEventDashboardFilterTypeImpl;
+import com.facebook.events.dashboard.subscriptions.EventsSubscriptionsFragmentFactory;
+import com.facebook.events.dashboard.subscriptions.EventsSubscriptionsPager;
+import com.facebook.events.dashboard.suggestions.EventsSuggestionsFragmentFactory;
+import com.facebook.events.dashboard.suggestions.EventsSuggestionsPager;
+import com.facebook.events.data.EventAdminStatusRecord;
+import com.facebook.events.data.EventsDatabaseSupplier;
+import com.facebook.events.dateformatter.EventsDashboardTimeFormatUtil;
+import com.facebook.events.eventsdiscovery.EventsDiscoveryFragmentFactory;
+import com.facebook.events.eventsdiscovery.EventsDiscoveryLocationPickerFragmentFactory;
+import com.facebook.events.feed.protocol.FetchEventFeedMethod;
+import com.facebook.events.feed.ui.EventFeedStoryModerationHelper;
+import com.facebook.events.feed.ui.EventPermalinkStoriesExtractor;
+import com.facebook.events.gating.EventPermalinkBazingaHelper;
+import com.facebook.events.invite.CaspianFriendSelectorFragmentFactory;
+import com.facebook.events.invite.EventsExtendedInviteAddContactsButtonInterstitialController;
+import com.facebook.events.invite.EventsExtendedInviteTypeaheadDispatchStrategy;
+import com.facebook.events.invite.InviteeReviewModeFragmentFactory;
+import com.facebook.events.logging.EventEventLogger;
+import com.facebook.events.mutators.EventsRsvpMutator;
+import com.facebook.events.mutators.PrivateEventsRsvpMutator;
+import com.facebook.events.mutators.PublicEventsRsvpMutator;
+import com.facebook.events.notificationsettings.EventsNotificationSettingsFragmentFactory;
+import com.facebook.events.permalink.EventPermalinkEarlyFetcher;
+import com.facebook.events.permalink.EventsPermalinkFragmentFactory;
+import com.facebook.events.permalink.PublicEventsActionBarGoingButtonSelector;
+import com.facebook.events.permalink.guestlist.EventGuestListFragmentFactory;
+import com.facebook.events.permalink.hostsinfo.EventHostsFragmentFactory;
+import com.facebook.events.permalink.messagefriends.EventCreateGroupHandler;
+import com.facebook.events.permalink.messagefriends.EventMessageFriendsFragmentFactory;
+import com.facebook.events.permalink.messageguests.EventMessageGuestsFragmentFactory;
+import com.facebook.events.permalink.multirow.EventFeedComposerRootPartDefinition;
+import com.facebook.events.permalink.multirow.EventPermalinkRootPartSelector;
+import com.facebook.events.permalink.multirow.PostingStoryProgressBarRootPartDefinition;
+import com.facebook.events.permalink.pinnedpost.PinnedPostGroupPartDefinition;
+import com.facebook.events.permalink.pinnedpost.PinnedPostHeaderPartDefinition;
+import com.facebook.events.permalink.reactioncomponents.EventDetailsUnitComponentPartDefinition;
+import com.facebook.events.permalink.reactioncomponents.EventGuestHScrollFacepileUnitComponentDefinition;
+import com.facebook.events.photoreminder.EventPhotoReminderRequestSender;
+import com.facebook.events.photoreminder.EventPhotoReminderUtil;
+import com.facebook.events.ui.location.LocationPickerLauncher;
+import com.facebook.facecast.protocol.AnswerCopyrightViolationMethod;
+import com.facebook.facecast.protocol.DeleteLiveVideoMethod;
+import com.facebook.facecast.protocol.VideoBroadcastCalculateStatsMethod;
+import com.facebook.facecast.protocol.VideoBroadcastSealMethod;
+import com.facebook.facecast.protocol.VideoBroadcastUpdateMethod;
+import com.facebook.facecastdisplay.LiveCommentsMenuHelper;
+import com.facebook.facecastdisplay.LiveEventsStore;
+import com.facebook.facecastdisplay.StreamingCommentsModel;
+import com.facebook.facecastdisplay.VodEventsStore;
+import com.facebook.facecastdisplay.analytics.FacecastDisplayLogger;
+import com.facebook.facecastdisplay.protocol.LiveCommentDelayLoggingMethod;
+import com.facebook.facecastdisplay.protocol.LiveVideoInviteFriendsMethod;
+import com.facebook.facecastdisplay.protocol.LiveVideosWatchingEventsLoggingMethod;
+import com.facebook.facecastdisplay.protocol.MutateLiveScribeMethod;
+import com.facebook.facecastdisplay.streamingreactions.LiveStreamingReactionsModel;
+import com.facebook.facecastdisplay.streamingreactions.StreamingReactionsFireworkExplosionDrawable;
+import com.facebook.facecastdisplay.streamingreactions.VodStreamingReactionsModel;
+import com.facebook.facedetection.detector.MacerFaceDetector;
+import com.facebook.facedetection.module.NativeFaceDetectorMethodAutoProvider;
+import com.facebook.facerec.manager.ImagePipelineFaceBoxPrioritizer;
+import com.facebook.facerec.manager.ImagePipelineFaceRecManager;
+import com.facebook.facerec.manager.LegacyFaceBoxPrioritizer;
+import com.facebook.facerec.manager.LegacyFaceRecManager;
+import com.facebook.facerec.module.FaceRecognitionModule;
+import com.facebook.fbreact.fb4a.Fb4aReactInstanceHolderSpec;
+import com.facebook.fbreact.fragment.ImmersiveReactFragmentFactory;
+import com.facebook.fbreact.instance.FbReactInstanceHolder;
+import com.facebook.fbreact.jscperf.JSCPerfPeriodicReporter;
+import com.facebook.fbreactmodules.network.FbRelayConfigModule;
+import com.facebook.fbservice.ops.BlueServiceOperation;
+import com.facebook.fbservice.ops.DefaultBlueServiceOperationFactory;
+import com.facebook.fbui.glyph.GlyphColorizer;
+import com.facebook.fbui.tinyclicks.MasterTouchDelegateController;
+import com.facebook.fbuploader.fbcommon.FbUploaderSingletonWrapper;
+import com.facebook.feed.NewsFeedIntentUriBuilder;
+import com.facebook.feed.activity.ProfileListFragmentFactory;
+import com.facebook.feed.activity.ReactorsListFragmentFactory;
+import com.facebook.feed.analytics.NewsFeedAnalyticsEventBuilder;
+import com.facebook.feed.analytics.vpvlogging.debugger.VpvLoggingToastDebugger;
+import com.facebook.feed.awesomizer.ui.AwesomizerFragmentFactory;
+import com.facebook.feed.awesomizer.ui.DiscoverFragmentFactory;
+import com.facebook.feed.awesomizer.ui.DiscoverTopicFragmentFactory;
+import com.facebook.feed.awesomizer.ui.RefollowAdapter;
+import com.facebook.feed.awesomizer.ui.RefollowFragmentFactory;
+import com.facebook.feed.awesomizer.ui.SeefirstFragmentFactory;
+import com.facebook.feed.awesomizer.ui.UnfollowFragmentFactory;
+import com.facebook.feed.bugreporter.FeedLoadingDebugInfo;
+import com.facebook.feed.data.FeedStorySubscriber;
+import com.facebook.feed.data.followup.FollowUpFeedUnitFetcher;
+import com.facebook.feed.data.followup.cache.FollowUpStateCache;
+import com.facebook.feed.diode.nux.FeedDiodeSwitcherInterstitialController;
+import com.facebook.feed.fragment.FeedDebugWriter;
+import com.facebook.feed.history.EditHistoryFragmentFactory;
+import com.facebook.feed.inlinecomposer.multirow.v3.PromptTombstonePartDefinition;
+import com.facebook.feed.module.IProvidePreferences_ForNewsfeedMethodAutoProvider;
+import com.facebook.feed.module.NewsFeedModule;
+import com.facebook.feed.permalink.CommentPermalinkFragmentFactory;
+import com.facebook.feed.photoreminder.MediaReminderPromptsPromptPartDefinition;
+import com.facebook.feed.photoreminder.v3.MediaReminderPromptLargePartDefinition;
+import com.facebook.feed.photoreminder.v3.MediaReminderPromptSelector;
+import com.facebook.feed.photoreminder.v3.MediaReminderPromptSmallPartDefinition;
+import com.facebook.feed.photos.FeedImagesCacheStateSynchronizer;
+import com.facebook.feed.protocol.FetchFeedQueryUtil;
+import com.facebook.feed.protocol.FetchFollowUpFeedUnitMethod;
+import com.facebook.feed.protocol.FetchFriendListFeedMethod;
+import com.facebook.feed.protocol.FetchGoodFriendsFeedMethod;
+import com.facebook.feed.protocol.FetchHashtagFeedMethod;
+import com.facebook.feed.protocol.FetchPageFeedMethod;
+import com.facebook.feed.protocol.FetchPaginatedRelatedStoryMethod;
+import com.facebook.feed.protocol.FetchReactionFeedMethod;
+import com.facebook.feed.protocol.FetchStoriesAboutPageFeedMethod;
+import com.facebook.feed.protocol.FetchTopicFeedMethod;
+import com.facebook.feed.protocol.PlaceSaveMethod;
+import com.facebook.feed.protocol.PlaceUnsaveMethod;
+import com.facebook.feed.protocol.UpdateTimelineAppCollectionMethod;
+import com.facebook.feed.protocol.coupons.ClaimCouponMethod;
+import com.facebook.feed.renderer.spannable.NativeThirdPartyUriClickHandler;
+import com.facebook.feed.rows.permalink.DefaultPermalinkTextPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkAggregatedStoryGroupPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkBasicGroupPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkEdgeStoryGroupPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkGraphQLStorySelectorPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkRootPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkSeeFirstTextHeaderPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkSharedStoryPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkTextComponentPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkTextHeaderPartDefinition;
+import com.facebook.feed.rows.permalink.PermalinkTextPartDefinition;
+import com.facebook.feed.rows.photosfeed.PhotosFeedMediaMetadataRootPartDefinition;
+import com.facebook.feed.rows.photosfeed.PhotosFeedStoryGroupPartDefinition;
+import com.facebook.feed.rows.sections.HoldoutUnitPartDefinition;
+import com.facebook.feed.rows.sections.StoryAYMTHotPostFooterPartDefinition;
+import com.facebook.feed.rows.sections.attachments.AlbumAttachmentHScrollPartDefinition;
+import com.facebook.feed.rows.sections.attachments.AnimatedImageShareAttachmentSelectorPartDefinition;
+import com.facebook.feed.rows.sections.attachments.AvatarAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.AvatarAttachmentUtil;
+import com.facebook.feed.rows.sections.attachments.AvatarListAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.CenteredTextPartDefinition;
+import com.facebook.feed.rows.sections.attachments.CouponAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.EventTicketAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.FileUploadAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.ImageShareAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.LifeEventAttachmentGroupPartDefinition;
+import com.facebook.feed.rows.sections.attachments.MediaQuestionPollAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.MinutiaeAttachmentTextComponentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.MinutiaeAttachmentTextPartDefinition;
+import com.facebook.feed.rows.sections.attachments.NoteAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.PollAttachmentSelectorPartDefinition;
+import com.facebook.feed.rows.sections.attachments.QuestionAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.ReadingAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.SportsMatchAttachmentGroupPartDefinition;
+import com.facebook.feed.rows.sections.attachments.TranscodedAnimatedImageShareAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.UnavailableAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.linkshare.FollowShareAttachmentSelector;
+import com.facebook.feed.rows.sections.attachments.linkshare.InstagramAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.linkshare.LargeImageAttachmentPartDefinition;
+import com.facebook.feed.rows.sections.attachments.linkshare.QuoteShareAttachmentGroupDefinition;
+import com.facebook.feed.rows.sections.attachments.linkshare.QuoteShareQuoteOnlyGroupDefinition;
+import com.facebook.feed.rows.sections.attachments.linkshare.QuoteShareWithVerticalBarPartDefinition;
+import com.facebook.feed.rows.sections.attachments.linkshare.VideoShareHighlightedAttachmentSelector;
+import com.facebook.feed.rows.sections.common.EmptyPartDefinition;
+import com.facebook.feed.rows.sections.common.endoffeed.EndOfFeedPartDefinition;
+import com.facebook.feed.rows.sections.common.loadingmore.LoadingMorePartDefinition;
+import com.facebook.feed.rows.sections.common.scissor.ScissorPartDefinition;
+import com.facebook.feed.rows.sections.common.unknown.UnknownFeedUnitMultiRowGroupPartDefinition;
+import com.facebook.feed.rows.sections.header.DefaultFriendableHeaderPartDefinition;
+import com.facebook.feed.rows.sections.header.components.FriendableHeaderComponent;
+import com.facebook.feed.rows.sections.header.components.FriendableHeaderComponentPartDefinition;
+import com.facebook.feed.rows.sections.header.components.PinnedPostHeaderComponentPartDefinition;
+import com.facebook.feed.rows.sections.text.InstantArticleClickWithPositionListener;
+import com.facebook.feed.seefirst.SeeFirstNuxInterstitialController;
+import com.facebook.feed.seefirst.seefirstnux.SeeFirstNuxManager;
+import com.facebook.feed.server.NewsFeedServiceHandler;
+import com.facebook.feed.spannable.FrescoSpannableImageRangeApplicator;
+import com.facebook.feed.storypermalink.PermalinkFragmentFactory;
+import com.facebook.feed.thirdparty.instagram.InstagramUtils;
+import com.facebook.feed.topicfeeds.abtest.TopicFeedsTestUtil;
+import com.facebook.feed.topicfeeds.favorites.TopicFeedFavoritesDragSortGridAdapter;
+import com.facebook.feed.topicfeeds.nux.TopicFeedsCustomizationInterstitialController;
+import com.facebook.feed.topicfeeds.nux.TopicFeedsSwitcherInterstitialController;
+import com.facebook.feed.topicfeeds.nux.TopicFeedsTooltipInterstitialController;
+import com.facebook.feed.ui.DisabledFeedStoryMenuHelper;
+import com.facebook.feed.ui.chaining.HScrollChainingViewControllerManager;
+import com.facebook.feed.ui.fullscreenvideoplayer.FullScreenVideoInflater;
+import com.facebook.feed.ui.fullscreenvideoplayer.service.VideoDeleteController;
+import com.facebook.feed.ui.imageloader.AsyncFeedImagePrefetcher;
+import com.facebook.feed.ui.imageloader.FeedImageLoaderFactory;
+import com.facebook.feed.ui.itemlistfeedunits.neko.prefs.NekoPrefKeys;
+import com.facebook.feed.util.DeleteStoryHelper;
+import com.facebook.feed.util.composer.OfflinePostHeaderController;
+import com.facebook.feed.util.event.FeedEventBus;
+import com.facebook.feed.util.injection.FeedClientSideInjectionTool;
+import com.facebook.feedback.reactions.ui.ReactionsNuxTokensDrawable;
+import com.facebook.feedback.reactions.ui.anim.BlinkAnimationTransformer;
+import com.facebook.feedback.reactions.ui.anim.ThrobAnimationTransformer;
+import com.facebook.feedback.ui.EditingGalleryFeedbackLauncher;
+import com.facebook.feedback.ui.InlineReplyComposerController;
+import com.facebook.feedback.ui.RootFeedbackEventSubscriberProvider;
+import com.facebook.feedback.ui.VideoCommentInterstitialController;
+import com.facebook.feedback.ui.nux.CommentReactionsNuxInterstitialController;
+import com.facebook.feedback.ui.rows.CommentPhotoAttachmentPartDefinition;
+import com.facebook.feedback.ui.rows.CommentPlaceInfoAttachmentSelectorPartDefinition;
+import com.facebook.feedback.ui.rows.CommentShareAttachmentPartDefinition;
+import com.facebook.feedback.ui.rows.CommentStickerAttachmentPartDefinition;
+import com.facebook.feedback.ui.rows.CommentStylingPartDefinition;
+import com.facebook.feedback.ui.rows.CommentVideoAttachmentPartDefinition;
+import com.facebook.feedback.ui.rows.FeedbackRootGroupPartDefinition;
+import com.facebook.feedback.ui.rows.LoadMoreCommentsPartDefinition;
+import com.facebook.feedback.ui.rows.OriginalPostButtonPartDefinition;
+import com.facebook.feedback.ui.rows.TopLevelCommentGroupPartDefinition;
+import com.facebook.feedback.ui.rows.TypingIndicatorGroupPartDefinition;
+import com.facebook.feedback.ui.rows.TypingIndicatorPartDefinition;
+import com.facebook.feedplugins.attachments.collage.CollageMediaGalleryLaunchHelper;
+import com.facebook.feedplugins.attachments.list.ListAttachmentRootPartDefinition;
+import com.facebook.feedplugins.attachments.poll.PollAttachmentListPartDefinition;
+import com.facebook.feedplugins.attachments.video.InlineVideoPartDefinition;
+import com.facebook.feedplugins.base.NetEgoStoryFooterButtonClickLoggingHandler;
+import com.facebook.feedplugins.base.blingbar.BlingBarRootPartDefinition;
+import com.facebook.feedplugins.base.blingbar.ExperimentalBlingBarStyler;
+import com.facebook.feedplugins.egolistview.rows.GroupYouShouldJoinPartDefinition;
+import com.facebook.feedplugins.facecast.CreateLiveVideoCallToActionPartDefinition;
+import com.facebook.feedplugins.feedbackreactions.ui.nux.ReactionsRetargetNuxInterstitialController;
+import com.facebook.feedplugins.findgroups.FindGroupsGroupPartDefinition;
+import com.facebook.feedplugins.findpages.FindPagesPartDefinition;
+import com.facebook.feedplugins.fitness.FitnessAttachmentPartSelector;
+import com.facebook.feedplugins.games.QuicksilverContentAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.goodwill.AnniversaryPartDefinition;
+import com.facebook.feedplugins.goodwill.CulturalMomentAttachmentPartDefinition;
+import com.facebook.feedplugins.goodwill.FriendversaryCardAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.goodwill.FriendversaryDataCardAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.goodwill.FriendversaryInProductBrandingAttachmentHeaderPartDefinition;
+import com.facebook.feedplugins.goodwill.FriendversaryOrFaceversaryCollageAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackCollageAttachmentPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackGroupPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackHeaderSelectorPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackPrivacyLabelComponentPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackPrivacyLabelPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackSimplePhotoAttachmentPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackUnifiedSeeMorePartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackVideoCardAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.goodwill.ThrowbackVideoSharePartDefinition;
+import com.facebook.feedplugins.graphqlstory.footer.DefaultVideoPlaysBlingBarPartDefinition;
+import com.facebook.feedplugins.graphqlstory.footer.FeedDiscoveryDefaultBlingBarPartDefinition;
+import com.facebook.feedplugins.graphqlstory.footer.InstagramBlingBarPartDefinition;
+import com.facebook.feedplugins.graphqlstory.footer.LiveVideoCommercialBreakFooterPartDefinition;
+import com.facebook.feedplugins.graphqlstory.footer.StoryEmptyFooterPartDefinition;
+import com.facebook.feedplugins.graphqlstory.footer.components.DefaultFooterComponentPartDefinition;
+import com.facebook.feedplugins.graphqlstory.translation.AutoTranslateComponentPartDefinition;
+import com.facebook.feedplugins.graphqlstory.translation.AutoTranslatePartDefinition;
+import com.facebook.feedplugins.greetingcard.GreetingCardAttachmentPartDefinition;
+import com.facebook.feedplugins.greetingcard.GreetingCardPromoPartDefinition;
+import com.facebook.feedplugins.groupcommerce.GroupCommerceItemAttachmentPartDefinition;
+import com.facebook.feedplugins.groupcommerce.GroupCommerceItemMarkAsSoldAttachmentPartDefinition;
+import com.facebook.feedplugins.groups.calltoaction.GroupMemberWelcomeCallToActionPartDefinition;
+import com.facebook.feedplugins.growth.rows.FindFriendsGroupPartDefinition;
+import com.facebook.feedplugins.gts.rows.GroupTopStoriesHeaderPartDefinition;
+import com.facebook.feedplugins.gts.rows.GroupTopStoriesPartDefinition;
+import com.facebook.feedplugins.gysc.partdefinitions.GroupsYouShouldCreateHScrollRowPartDefinition;
+import com.facebook.feedplugins.hpp.MobilePageAdminPanelPartDefinition;
+import com.facebook.feedplugins.instagram.InstagramPhotosFromFriendsPartDefinition;
+import com.facebook.feedplugins.instagram.InstagramPromoteUnitPartDefinition;
+import com.facebook.feedplugins.instantarticles.SharedInstantArticleContentAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.loadingindicator.GlowingStoryPartDefinition;
+import com.facebook.feedplugins.loadingindicator.LoadingCoverPhotoPartDefinition;
+import com.facebook.feedplugins.loadingindicator.LoadingIndicatorManager;
+import com.facebook.feedplugins.loadingindicator.ShimmeringStoryPartDefinition;
+import com.facebook.feedplugins.mlecalltoaction.GroupsMLEOverlayCallToActionPartDefinition;
+import com.facebook.feedplugins.momentscalltoaction.MomentsCallToActionPartDefinition;
+import com.facebook.feedplugins.multishare.MultiShareSingleTextAttachmentPartDefinition;
+import com.facebook.feedplugins.musicstory.partselector.MusicStoryAttachmentPartSelector;
+import com.facebook.feedplugins.musicstory.utils.SongClipPlayer;
+import com.facebook.feedplugins.nearbyfriends.rows.friendslocations.FriendsLocationsPartDefinition;
+import com.facebook.feedplugins.opengraph.OpenGraphAttachmentPartSelector;
+import com.facebook.feedplugins.prompts.PromptFriendSelectorFragmentFactory;
+import com.facebook.feedplugins.prompts.SocialPromptFeedActionHandler;
+import com.facebook.feedplugins.psym.rows.PagesStoriesYouMissedPartDefinition;
+import com.facebook.feedplugins.pyma.PagesYouMayAdvertisePartDefinition;
+import com.facebook.feedplugins.pyma.rows.objectives.PYMAGraphQLObjectivesPartDefinition;
+import com.facebook.feedplugins.pyma.rows.objectives.PYMAPageLikeObjectiveBodyComponentPartDefinition;
+import com.facebook.feedplugins.pyma.rows.objectives.PYMAPageLikeObjectiveBodyPartDefinition;
+import com.facebook.feedplugins.pymi.rows.FutureFriendingHScrollPartDefinition;
+import com.facebook.feedplugins.pymi.rows.FutureFriendingHeaderPartDefinition;
+import com.facebook.feedplugins.pymi.rows.PaginatedPeopleYouMayInvitePartDefinition;
+import com.facebook.feedplugins.pymi.rows.PeopleYouMayInviteHeaderPartDefinition;
+import com.facebook.feedplugins.pymi.rows.PeopleYouMayInvitePagerPartDefinition;
+import com.facebook.feedplugins.pymk.rows.PaginatedPeopleYouMayKnowPartDefinition;
+import com.facebook.feedplugins.pymk.rows.QuickPromotionPeopleYouMayKnowPartDefinition;
+import com.facebook.feedplugins.pyml.rows.contentbased.ContentBasedPagesYouMayLikePartDefinition;
+import com.facebook.feedplugins.pysf.rows.PeopleYouShouldFollowPartDefinition;
+import com.facebook.feedplugins.quickpromotion.QuickPromotionFeedUnitPartDefinition;
+import com.facebook.feedplugins.quickpromotion.QuickPromotionSocialContextComponentPartDefinition;
+import com.facebook.feedplugins.quickpromotion.QuickPromotionSocialContextPartDefinition;
+import com.facebook.feedplugins.reactnative.ReactNativePartDefinition;
+import com.facebook.feedplugins.researchpoll.ResearchPollGroupPartDefinition;
+import com.facebook.feedplugins.reviews.protocol.XOutGraphQLMutation;
+import com.facebook.feedplugins.reviews.rows.PlaceReviewPartDefinition;
+import com.facebook.feedplugins.richmedia.RichMediaAttachmentSelectorPartDefinition;
+import com.facebook.feedplugins.saved.rows.SavedCollectionPartDefinition;
+import com.facebook.feedplugins.sell.ForSaleItemMessageSellerCallToActionPartDefinition;
+import com.facebook.feedplugins.sgny.rows.SaleGroupsNearYouPartDefinition;
+import com.facebook.feedplugins.share.ShareMenuPopoverFactory;
+import com.facebook.feedplugins.socialgood.FundraiserPageAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.socialgood.FundraiserPersonToCharityAttachmentGroupPartDefinition;
+import com.facebook.feedplugins.storygallerysurvey.StoryGallerySurveyFeedUnitSelectorPartDefinition;
+import com.facebook.feedplugins.storyset.rows.StorySetPartDefinition;
+import com.facebook.feedplugins.storyset.rows.StorySetSingleStoryGroupPartDefinition;
+import com.facebook.feedplugins.survey.SurveyGroupPartDefinition;
+import com.facebook.feedplugins.topiccustomizationstory.partdefinitions.TopicCustomizationStoryHScrollRowPartDefinition;
+import com.facebook.feedplugins.treehousepromotcalltoaction.TreehousePromotCallToActionPartDefinition;
+import com.facebook.feedplugins.video.AvatarVideoAttachmentSelectorPartDefinition;
+import com.facebook.feedplugins.voiceswitcher.VoiceSwitcherPartDefinition;
+import com.facebook.feedplugins.worktrending.rows.WorkTrendingGroupPartDefinition;
+import com.facebook.fql.FqlQueryRunner;
+import com.facebook.friending.center.abtest.FriendsCenterGateKeepers;
+import com.facebook.friending.center.ui.FriendsCenterCommonBinder;
+import com.facebook.friending.center.ui.FriendsCenterConnectionAdapter;
+import com.facebook.friending.center.ui.FriendsCenterListAdapter;
+import com.facebook.friending.center.uri.FriendsCenterFragmentFactory;
+import com.facebook.friending.immersive.ImmersivePeopleYouMayKnowFragmentFactory;
+import com.facebook.friending.jewel.entitycards.FriendRequestsEntityCardsLauncher;
+import com.facebook.friending.newuserpromotion.NewUserFriendingDialogController;
+import com.facebook.friending.profileshare.uri.ProfileShareFragmentFactory;
+import com.facebook.friending.suggestion.uri.FriendingSuggestionFragmentFactory;
+import com.facebook.friendlist.FriendListFragmentFactory;
+import com.facebook.friends.controllers.FriendingButtonControllerWithCallback;
+import com.facebook.friends.events.FriendingEventBus;
+import com.facebook.friends.logging.PYMKImpressionLogger;
+import com.facebook.friends.navigator.FriendingNavigator;
+import com.facebook.friends.navigator.FriendingNavigator.FriendableContactsChangedSubscriber;
+import com.facebook.friends.navigator.FriendingNavigator.FriendableContactsFetchedSubscriber;
+import com.facebook.friends.protocol.AddFriendListMemberMethod;
+import com.facebook.friends.protocol.BlacklistPeopleYouMayInviteMethod;
+import com.facebook.friends.protocol.BlacklistPeopleYouMayKnowMethod;
+import com.facebook.friends.protocol.BlacklistPeopleYouShouldFollowMethod;
+import com.facebook.friends.protocol.BlockUserMethod;
+import com.facebook.friends.protocol.FetchFriendsWhoUsedContactImporter;
+import com.facebook.friends.protocol.MarkFriendRequestsSeenMethod;
+import com.facebook.friends.protocol.PokeUserMethod;
+import com.facebook.friends.protocol.RemoveFriendListMemberMethod;
+import com.facebook.friends.protocol.SetNotificationPreferenceMethod;
+import com.facebook.friends.protocol.UpdatePeopleYouMayKnowHistoryMethod;
+import com.facebook.friendsharing.meme.prompt.MemePromptPartDefinition;
+import com.facebook.friendsharing.souvenirs.layout.SouvenirLayoutCreator;
+import com.facebook.friendsharing.souvenirs.models.SouvenirsFormattedStringHelper;
+import com.facebook.friendsharing.souvenirs.prompt.SouvenirPromptModelFilter;
+import com.facebook.friendsharing.souvenirs.prompt.SouvenirPromptsPromptPartDefinition;
+import com.facebook.friendsharing.souvenirs.prompt.v3.SouvenirPromptSmallPartDefinition;
+import com.facebook.friendsharing.souvenirs.util.TestSouvenirCreator;
+import com.facebook.friendsharing.suggestedcoverphotos.prompt.CoverPhotoPromptPartDefinition;
+import com.facebook.friendsharing.text.abtest.FeedTextSizeExperimentHelper;
+import com.facebook.friendsnearby.model.FriendsNearbyNewDataHolder;
+import com.facebook.friendsnearby.ui.NearbyFriendsFragmentFactory;
+import com.facebook.friendsnearby.ui.NearbyFriendsInviteMultipickerFragmentFactory;
+import com.facebook.gametime.ui.GametimeDashboardFragmentFactory;
+import com.facebook.gametime.ui.components.partdefinition.ComposerUnitComponentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.GametimeRecentPlaysComponentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.GametimeSingleSportsPlayGroupPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.GametimeSportsPlayFeedAttachmentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.GametimeSportsPlayUnitComponentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.GametimeSportsPlaysRootPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.HeadToHeadUnitComponentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.fanfavorite.GametimeFanFavoriteUnitComponentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.match.GametimeMatchUnitComponentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.table.GametimeTableRowComponentPartDefinition;
+import com.facebook.gametime.ui.components.partdefinition.table.GametimeTableUnitComponentPartDefinition;
+import com.facebook.gametime.ui.plays.GametimePlaysFragmentFactory;
+import com.facebook.gk.GatekeeperStoreImplMethodAutoProvider;
+import com.facebook.gk.store.GatekeeperStoreImpl;
+import com.facebook.goodfriends.audience.AudienceFragmentFactory;
+import com.facebook.goodfriends.feedplugins.NoContentFeedPartDefinition;
+import com.facebook.goodwill.birthday.BirthdayCardFragmentFactory;
+import com.facebook.goodwill.feed.rows.ThrowbackAnniversaryCampaignGroupPartDefinition;
+import com.facebook.goodwill.feed.rows.ThrowbackFeedPromotionSelectorPartDefinition;
+import com.facebook.goodwill.feed.rows.ThrowbackFeedRootGroupPartDefinition;
+import com.facebook.goodwill.feed.rows.ThrowbackFriendversaryCampaignGroupPartDefinition;
+import com.facebook.goodwill.feed.rows.ThrowbackFriendversaryGroupPartDefinition;
+import com.facebook.goodwill.feed.rows.ThrowbackGraphQLStorySelectorPartDefinition;
+import com.facebook.goodwill.feed.rows.ThrowbackMissedMemoriesStoryGroupPartDefinition;
+import com.facebook.goodwill.feed.rows.ThrowbackYearMarkerPartDefinition;
+import com.facebook.goodwill.feed.ui.ThrowbackFeedFragmentFactory;
+import com.facebook.goodwill.publish.PublishFriendversaryCollageMethod;
+import com.facebook.goodwill.publish.PublishGoodwillLifeEventMethod;
+import com.facebook.goodwill.publish.PublishGoodwillVideoMethod;
+import com.facebook.graphql.cursor.database.GraphCursorDatabase;
+import com.facebook.graphql.cursor.worker.GraphCursorDatabaseWorker;
+import com.facebook.graphql.executor.GraphQLQueryExecutor;
+import com.facebook.graphql.executor.GraphQLQueryScheduler;
+import com.facebook.graphql.executor.ObservableThreadUtil;
+import com.facebook.graphql.executor.cache.GraphQLCacheManager;
+import com.facebook.graphql.executor.cache.GraphQLDiskCachePeriodicReporter;
+import com.facebook.graphql.executor.filemap.FlatBufferDirectorySizeLimiter;
+import com.facebook.graphql.mqtt.GraphQLSubscriptionConnector;
+import com.facebook.graphql.protocol.GraphQLProtocolHelper;
+import com.facebook.graphql.util.GraphQLImageHelper;
+import com.facebook.groups.create.coverphoto.GroupsCoverPhotoHandler;
+import com.facebook.groups.docsandfiles.GroupsFileFragmentFactory;
+import com.facebook.groups.editfavorites.GroupEditFavoritesFragmentFactory;
+import com.facebook.groups.editfavorites.intent.GroupEditFavoritesIntentBuilder;
+import com.facebook.groups.editsettings.GroupEditNameDescFragmentFactory;
+import com.facebook.groups.editsettings.GroupEditPrivacyFragmentFactory;
+import com.facebook.groups.editsettings.GroupEditPurposeFragmentFactory;
+import com.facebook.groups.editsettings.GroupEditSettingsFragmentFactory;
+import com.facebook.groups.events.GroupsEventsFragmentFactory;
+import com.facebook.groups.fb4a.addtogroups.FB4AAddToGroupsFragmentFactory;
+import com.facebook.groups.fb4a.create.FB4AGroupsCreateFragmentFactory;
+import com.facebook.groups.fb4a.groupshub.abtest.FB4AGroupsHubExperiments;
+import com.facebook.groups.fb4a.groupshub.fragment.FB4AGroupsCreationTabFragmentFactory;
+import com.facebook.groups.fb4a.groupshub.fragment.FB4AGroupsDiscoverFragmentFactory;
+import com.facebook.groups.fb4a.groupshub.fragment.FB4AGroupsGridFragmentFactory;
+import com.facebook.groups.fb4a.groupshub.fragment.FB4AGroupsHubSearchFragmentFactory;
+import com.facebook.groups.fb4a.groupshub.nux.FB4AGroupsDiscoverToolTipInterstitialController;
+import com.facebook.groups.fb4a.memberpicker.FB4AGroupsMemberPickerFragmentFactory;
+import com.facebook.groups.fb4a.react.GeneralGroupsReactFragmentFactory;
+import com.facebook.groups.feed.integration.CrossGroupForSalePostsFragmentFactory;
+import com.facebook.groups.feed.integration.GroupFeedFragmentFactory;
+import com.facebook.groups.feed.integration.GroupForSalePostFragmentFactory;
+import com.facebook.groups.feed.integration.GroupPendingPostsFragmentFactory;
+import com.facebook.groups.feed.integration.GroupPinnedPostFragmentFactory;
+import com.facebook.groups.feed.integration.GroupYourPostFragmentFactory;
+import com.facebook.groups.feed.protocol.FetchGroupFeedMethod;
+import com.facebook.groups.feed.rows.partdefinitions.HideApprovedStoryPartDefinition;
+import com.facebook.groups.feed.rows.partdefinitions.HidePinnedStoryPartDefinition;
+import com.facebook.groups.feed.rows.partdefinitions.HideUnpinnedStoryPartDefinition;
+import com.facebook.groups.feed.ui.contextual.GroupsContextItemPresenter;
+import com.facebook.groups.feed.ui.nux.GroupsSeedsComposerSellSomethingNuxInterstitialController;
+import com.facebook.groups.feed.ui.partdefinitions.GroupsGraphQLStorySelectorPartDefinition;
+import com.facebook.groups.feed.ui.partdefinitions.GroupsProductFeedGraphQLStorySelectorPartDefinition;
+import com.facebook.groups.feed.ui.partdefinitions.GroupsYourPostsGraphQLStorySelectorPartDefinition;
+import com.facebook.groups.feed.ui.partdefinitions.ModerationGroupPartDefinition;
+import com.facebook.groups.groupsgrid.mutations.GroupHiddenStatusUpdater;
+import com.facebook.groups.groupsgrid.mutations.GroupsFavoriteUpdater;
+import com.facebook.groups.groupsgrid.mutations.GroupsOrderUpdater;
+import com.facebook.groups.info.GroupInfoFragmentFactory;
+import com.facebook.groups.info.GroupReactReportedPostFragmentFactory;
+import com.facebook.groups.memberlist.GroupMembershipFragmentFactory;
+import com.facebook.groups.memberlist.GroupSuggestAdminFragmentFactory;
+import com.facebook.groups.memberlist.intent.MembershipIntentBuilder;
+import com.facebook.groups.memberlist.nux.GroupsMultiTierAdminNuxInterstitialController;
+import com.facebook.groups.memberpicker.GroupAddInviteMemberSearchListLoader;
+import com.facebook.groups.memberpicker.GroupAddMemberFriendSearchListLoader;
+import com.facebook.groups.memberpicker.GroupAddMemberSearchListLoader;
+import com.facebook.groups.memberpicker.SuggestedSearchMemberListLoaderProvider;
+import com.facebook.groups.memberpicker.UserFriendsSearchListLoaderProvider;
+import com.facebook.groups.memberrequests.GroupsMemberRequestsFragmentFactory;
+import com.facebook.groups.mutations.GroupsClient;
+import com.facebook.groups.photos.GroupAlbumFragmentFactory;
+import com.facebook.groups.photos.GroupsPhotosFragmentFactory;
+import com.facebook.groups.settings.DefaultGroupSubscriptionController;
+import com.facebook.groups.settings.GroupSubscriptionFragmentFactory;
+import com.facebook.groups.sideconversation.GroupsStartSideConversationFragmentFactory;
+import com.facebook.groups.sideshow.ui.RecentActiveGroupsListAdapter;
+import com.facebook.growth.friendfinder.FriendFinderIntroFragmentFactory;
+import com.facebook.growth.interstitial.UserAccountNUXInterstitialController;
+import com.facebook.growth.protocol.FriendFinderMethod;
+import com.facebook.growth.protocol.FriendFinderPYMKMethod;
+import com.facebook.growth.protocol.SetContinuousContactsUploadMethod;
+import com.facebook.growth.util.DeviceOwnerDataFetcher;
+import com.facebook.heisman.CategoryBrowserLauncherImpl;
+import com.facebook.heisman.ImageOverlayQueryBuilder;
+import com.facebook.heisman.ProfilePictureOverlayActivityLauncher;
+import com.facebook.heisman.ProfilePictureOverlayAnalyticsLogger;
+import com.facebook.heisman.ProfilePictureOverlayPivotQueryExecutor;
+import com.facebook.heisman.swipeable.PageProfilePictureOverlaysQueryBuilder;
+import com.facebook.heisman.swipeable.SwipeableOverlaysRequestFactory;
+import com.facebook.http.common.DelayEmpathyManager;
+import com.facebook.http.common.PassthroughRequestEngine;
+import com.facebook.http.common.TigonRequestEngine;
+import com.facebook.http.common.executorimpl.apache.FbHttpClientImpl;
+import com.facebook.http.common.executorimpl.apache.FbHttpClientRequestExecutor;
+import com.facebook.http.onion.impl.FbTorProxyFactory;
+import com.facebook.http.onion.impl.OnionAnalyticsLogger;
+import com.facebook.http.onion.impl.OnionPreferenceListener;
+import com.facebook.http.onion.impl.OrbotLauncher;
+import com.facebook.http.onion.impl.ProxyUpdater;
+import com.facebook.http.onion.impl.TorIntegrityChecker;
+import com.facebook.http.onion.impl.TorWebViewProxyManager;
+import com.facebook.http.onion.ui.TorProxyListenersInitializerImpl;
+import com.facebook.http.prefs.delaybasedqp.DelayBasedQPViewController;
+import com.facebook.http.protocol.ApiMethodRunnerImpl;
+import com.facebook.http.protocol.SingleMethodRunnerImpl;
+import com.facebook.http.protocol.UDPPrimingHelper;
+import com.facebook.identitygrowth.profilequestion.data.ProfileQuestionFetcher;
+import com.facebook.imagepipeline.instrumentation.ImagePipelinePeriodicReporter;
+import com.facebook.imagepipeline.module.ImagePipelineMethodAutoProvider;
+import com.facebook.instantshopping.fetcher.InstantShoppingDocumentFetcher;
+import com.facebook.instantshopping.view.block.impl.SaveNuxInterstitialController;
+import com.facebook.intent.feed.DefaultFeedIntentBuilder;
+import com.facebook.interstitial.logging.LogInterstitialMethod;
+import com.facebook.interstitial.manager.InterstitialManager;
+import com.facebook.iorg.common.upsell.activity.ZeroInterstitialActivityResultHandler;
+import com.facebook.iorg.common.upsell.ui.dialogprovider.DefaultDialogProviders.DefaultDataControlWithoutUpsellDialogProvider;
+import com.facebook.iorg.common.upsell.ui.dialogprovider.DefaultDialogProviders.DefaultUpsellWithDataControlDialogProvider;
+import com.facebook.iorg.common.upsell.ui.dialogprovider.DefaultDialogProviders.DefaultUpsellWithoutDataControlDialogProvider;
+import com.facebook.iorg.common.upsell.ui.handlers.UpsellDontShowAgainHandler;
+import com.facebook.iorg.common.upsell.ui.screencontroller.BorrowLoanConfirmController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.BuyConfirmController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.BuyFailurePromoController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.BuyMaybeController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.BuySuccessController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.FetchUpsellsSpinnerController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.PromoListScreenController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.ShowLoanController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.UpsellStandardDataChargesController;
+import com.facebook.iorg.common.upsell.ui.screencontroller.UseDataOrStayInFreeController;
+import com.facebook.iorg.fb4acommon.IorgFb4aAnalyticsLogger;
+import com.facebook.ipc.composer.launch.ComposerIntentLauncher;
+import com.facebook.ipc.composer.launch.DefaultShareComposerLauncher;
+import com.facebook.ipc.photos.PhotosContract;
+import com.facebook.katana.activity.BookmarkMenuFragmentFactory;
+import com.facebook.katana.activity.BookmarkSectionFragmentFactory;
+import com.facebook.katana.activity.FacewebFragmentFactory;
+import com.facebook.katana.activity.FriendRequestsFragmentFactory;
+import com.facebook.katana.activity.NearbyPlacesFragmentFactory;
+import com.facebook.katana.activity.TabQuickPromotionLauncher;
+import com.facebook.katana.activity.UberbarFragmentFactory;
+import com.facebook.katana.activity.media.DefaultPhotoIntentBuilder;
+import com.facebook.katana.app.module.common.ComponentName_FragmentChromeActivityMethodAutoProvider;
+import com.facebook.katana.dbl.DeviceBasedLoginActivityHelper;
+import com.facebook.katana.orca.DisableMessengerUriIntentBuilder;
+import com.facebook.katana.orca.HasUnreadMessagesFilterPredicate;
+import com.facebook.katana.orca.MessengerMSiteUriIntentBuilder;
+import com.facebook.katana.orca.MessengerRedirectUriIntentBuilder;
+import com.facebook.katana.platform.PlatformMediaUploadActivityReceiver;
+import com.facebook.katana.platform.PlatformServiceGetInstallDataRequest;
+import com.facebook.katana.urimap.AppLinksUtil;
+import com.facebook.katana.urimap.BookmarkIntentUriBuilder;
+import com.facebook.katana.urimap.FacewebUriIntentBuilder;
+import com.facebook.katana.urimap.Fb4aUriIntentMapper;
+import com.facebook.katana.urimap.LegacyFacebookUriRedirector;
+import com.facebook.katana.urimap.StaticUriIntentMapper;
+import com.facebook.katana.util.LogoutHelper;
+import com.facebook.languages.switcher.service.GetUserLocaleMethod;
+import com.facebook.languages.switcher.task.AutoSyncLoggedInUserLocaleConditionalWorker;
+import com.facebook.livephotos.downloader.LivePhotosMediaDownloader;
+import com.facebook.localcontent.AddPhotoMenuFragmentFactory;
+import com.facebook.localcontent.PageMenuManagementFragmentFactory;
+import com.facebook.localcontent.PageMenuManagementLinkMenuFragmentFactory;
+import com.facebook.localcontent.PagePhotoMenuFragmentFactory;
+import com.facebook.localcontent.ShowAllPhotosByCategoryFragmentFactory;
+import com.facebook.localcontent.StructuredMenuFragmentFactory;
+import com.facebook.localcontent.menus.nux.AddPhotoMenuMoreTabNuxController;
+import com.facebook.localstats.LocalStatsLoggerMethodAutoProvider;
+import com.facebook.location.AndroidPlatformFbLocationContinuousListener;
+import com.facebook.location.AndroidPlatformFbLocationManager;
+import com.facebook.location.AndroidPlatformFbLocationPassiveListener;
+import com.facebook.location.FbLocationStatusUtil;
+import com.facebook.location.GooglePlayFbLocationContinuousListener;
+import com.facebook.location.GooglePlayFbLocationPassiveListener;
+import com.facebook.location.GooglePlayGoogleApiClientFactory;
+import com.facebook.location.LocationAgeUtil;
+import com.facebook.location.gmsupsell.GooglePlayLocationServicesSettingsManager;
+import com.facebook.location.ui.LocationSettingsFragmentFactory;
+import com.facebook.looknow.LookNowPermalinkFragmentFactory;
+import com.facebook.loom.module.LoomBridgeListener;
+import com.facebook.malware.scanner.MalwareScanner;
+import com.facebook.maps.ExternalMapLauncher;
+import com.facebook.maps.GenericMapsFragmentAndUriIntentBuilder;
+import com.facebook.marketplace.badge.MarketplaceUnseenCountFetcher;
+import com.facebook.marketplace.tab.MarketplaceTabFragmentFactory;
+import com.facebook.media.transcode.video.SegmentedVideoTranscodeSession;
+import com.facebook.media.transcode.video.VideoTranscodeSession;
+import com.facebook.megaphone.data.IdentityGrowthMegaphoneStoryData;
+import com.facebook.megaphone.fetcher.MegaphoneExtraDataFetcher;
+import com.facebook.memory.logging.OtherAppMemoryUsageReporter;
+import com.facebook.messaging.analytics.reliability.AggregatedReliabilityLogger;
+import com.facebook.messaging.analytics.reliability.MessagesReliabilityLogger;
+import com.facebook.messaging.analytics.reliability.ReliabilityLoggerStaleEntriesConditionalWorker;
+import com.facebook.messaging.analytics.search.OmniPickerAnalyticsLogger;
+import com.facebook.messaging.analytics.threads.CreateThreadReliabilityLogger;
+import com.facebook.messaging.analytics.threads.FetchThreadTracer;
+import com.facebook.messaging.applinks.ApplinkHelper;
+import com.facebook.messaging.attribution.GQLAppAttributionQueryHelper;
+import com.facebook.messaging.attribution.PlatformAttributionLogging;
+import com.facebook.messaging.attribution.PlatformLaunchDialogHelper;
+import com.facebook.messaging.attributionview.AttributionHelper;
+import com.facebook.messaging.audio.playback.AudioCache;
+import com.facebook.messaging.audio.playback.AudioClipPlayer;
+import com.facebook.messaging.bannertriggers.BannerTriggersCache;
+import com.facebook.messaging.bannertriggers.OmnistoreKeyJustWrittenFilterPredicate;
+import com.facebook.messaging.blocking.BlockingUtils;
+import com.facebook.messaging.business.agent.helper.AgentTermsStatusHelper;
+import com.facebook.messaging.business.agent.xma.AgentItemReceiptSnippetCreator;
+import com.facebook.messaging.business.agent.xma.AgentItemReceiptStyleRenderer;
+import com.facebook.messaging.business.commerceui.analytics.MessengerCommerceAnalyticsLogger;
+import com.facebook.messaging.business.commerceui.views.common.RetailItemSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.common.RetailItemStyleRenderer;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleAgentItemSuggestionSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleCancellationSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleReceiptAndCancellationStyleRenderer;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleReceiptSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleRetailItemSuggestionStyleRenderer;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleShipmentSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleShipmentTrackingSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleShippingNotificationStyleRenderer;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleSubscriptionSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.xma.CommerceBubbleSubscriptionStyleRenderer;
+import com.facebook.messaging.business.commerceui.views.xma.RetailPromotionSnippetCreator;
+import com.facebook.messaging.business.commerceui.views.xma.RetailPromotionStyleRenderer;
+import com.facebook.messaging.business.common.analytics.BusinessAnalyticsLogger;
+import com.facebook.messaging.business.common.calltoaction.BusinessUriMapper;
+import com.facebook.messaging.business.common.calltoaction.CTAPostbackActionHandler;
+import com.facebook.messaging.business.common.helper.BusinessMutationHelper;
+import com.facebook.messaging.business.common.loader.BusinessGreetingContentsLoader;
+import com.facebook.messaging.business.common.loader.BusinessNuxContentsLoader;
+import com.facebook.messaging.business.ride.helper.RideOauthHelper;
+import com.facebook.messaging.business.ride.xma.RideOrderBubbleSnippetCreator;
+import com.facebook.messaging.business.ride.xma.RideOrderBubbleStyleRenderer;
+import com.facebook.messaging.business.ride.xma.RideReceiptBubbleSnippetCreator;
+import com.facebook.messaging.business.ride.xma.RideReceiptBubbleStyleRenderer;
+import com.facebook.messaging.cache.ArchiveThreadManager;
+import com.facebook.messaging.cache.CacheInsertThreadsHandler_FacebookMessagesMethodAutoProvider;
+import com.facebook.messaging.cache.CacheInsertThreadsHandler_SmsMessagesMethodAutoProvider;
+import com.facebook.messaging.cache.CacheInsertThreadsHandler_TincanMessagesMethodAutoProvider;
+import com.facebook.messaging.cache.GloballyDeletedMessagesPlaceholderCache;
+import com.facebook.messaging.cache.ReadThreadManager;
+import com.facebook.messaging.cache.SpamThreadManager;
+import com.facebook.messaging.cache.ThreadParticipantUtils;
+import com.facebook.messaging.cache.ThreadRecipientUtil;
+import com.facebook.messaging.cache.ThreadSummaryStitching;
+import com.facebook.messaging.cache.ThreadUnreadCountUtil;
+import com.facebook.messaging.cache.ThreadsCacheUpdateRateLimiter;
+import com.facebook.messaging.chatheads.ipc.ChatHeadsBroadcaster;
+import com.facebook.messaging.clockskew.EstimatedServerClock;
+import com.facebook.messaging.clockskew.SkewedTimestampHandler;
+import com.facebook.messaging.composershortcuts.ComposerShortcutsAnalyticsLogger;
+import com.facebook.messaging.connectivity.SimpleConnectionStatusMonitor;
+import com.facebook.messaging.contacts.picker.ContactPickerDbGroupFilter;
+import com.facebook.messaging.contacts.picker.ContactPickerFavoriteEditFilter;
+import com.facebook.messaging.contacts.picker.ContactPickerFriendFilter;
+import com.facebook.messaging.contacts.picker.ContactPickerNotOnMessengerFriendsFilter;
+import com.facebook.messaging.contacts.picker.ContactPickerPaymentEligibleContactsFilter;
+import com.facebook.messaging.contacts.picker.ContactPickerPhoneContactsFilter;
+import com.facebook.messaging.contacts.picker.ContactPickerRowsFactory;
+import com.facebook.messaging.contactsyoumayknow.ContactsYouMayKnowLogger;
+import com.facebook.messaging.contactsyoumayknow.ContactsYouMayKnowMutationHandler;
+import com.facebook.messaging.contactsyoumayknow.ContactsYouMayKnowNoticeHelper;
+import com.facebook.messaging.contextbanner.ContextItemsFuturesGenerator;
+import com.facebook.messaging.customthreads.CustomThreadsHoldout;
+import com.facebook.messaging.database.handlers.DbInsertThreadsHandler;
+import com.facebook.messaging.database.handlers.DbSendHandler;
+import com.facebook.messaging.database.serialization.DbMessageMetadataSerialization;
+import com.facebook.messaging.database.serialization.DbMessagePlatformMetadataSerialization;
+import com.facebook.messaging.database.threads.DbCache;
+import com.facebook.messaging.database.threads.DbMessageCache;
+import com.facebook.messaging.database.threads.DbThreadParticipantsUtil;
+import com.facebook.messaging.database.threads.DbThreadsPropertyUtil;
+import com.facebook.messaging.database.threads.MessagesDbContract;
+import com.facebook.messaging.database.threads.MessagesProviderTable;
+import com.facebook.messaging.database.threads.ThreadsDatabaseSupplier;
+import com.facebook.messaging.database.threads.ThreadsDbPropertiesContract;
+import com.facebook.messaging.database.threads.ThreadsProviderTable;
+import com.facebook.messaging.deliveryreceipt.DefaultSendDeliveryReceiptManager;
+import com.facebook.messaging.deliveryreceipt.SendDeliveryReceiptRetryManager;
+import com.facebook.messaging.emoji.GlobalEmojiSkinToneHelper;
+import com.facebook.messaging.emoji.MessagingEmojiGatingUtil;
+import com.facebook.messaging.ephemeral.EphemeralMessageProgressManager;
+import com.facebook.messaging.ephemeral.EphemeralProgressUtil;
+import com.facebook.messaging.ephemeral.MessageLifetimeStringHelper;
+import com.facebook.messaging.ephemeral.ModifyThreadEphemeralityHelper;
+import com.facebook.messaging.ephemeral.gating.EphemeralGatingUtil;
+import com.facebook.messaging.events.abtest.LightweightEventsGatekeepers;
+import com.facebook.messaging.events.banner.EventReminderMutator;
+import com.facebook.messaging.forward.MessageForwardHandler;
+import com.facebook.messaging.graphql.fetch.GQLUserConverter;
+import com.facebook.messaging.groups.admin.GroupAdminController;
+import com.facebook.messaging.groups.admin.GroupsAdminLogger;
+import com.facebook.messaging.groups.links.GQLGroupInfoQueryHelper;
+import com.facebook.messaging.groups.links.gatekeepers.JoinableLinksGatekeepers;
+import com.facebook.messaging.groups.logging.GroupJoinableLinksLogger;
+import com.facebook.messaging.groups.notifications.GroupNotificationsHandler;
+import com.facebook.messaging.groups.sharesheet.GroupShareSheetCreator;
+import com.facebook.messaging.groups.threadactions.GroupThreadActionHandler;
+import com.facebook.messaging.groups.threadactions.GroupThreadModelUpgrader;
+import com.facebook.messaging.inbox2.data.common.InboxUnitFetcherHelper;
+import com.facebook.messaging.inbox2.data.graphql.InboxUnitGraphQLQueryExecutorHelper;
+import com.facebook.messaging.inbox2.data.loader.InboxUnitLoader;
+import com.facebook.messaging.inbox2.data.omnistore.InboxUnitFetcherWithOmnistore;
+import com.facebook.messaging.inbox2.data.unitstore.InboxUnitFetcherWithUnitStore;
+import com.facebook.messaging.linkhandling.LinkHandlingHelper;
+import com.facebook.messaging.login.RemoteLogOutHelper;
+import com.facebook.messaging.media.download.MediaDownloadManager;
+import com.facebook.messaging.media.download.MediaDownloadServiceHandler;
+import com.facebook.messaging.media.picking.MessengerStartVideoEditHelper;
+import com.facebook.messaging.media.retry.MediaRetryQueue;
+import com.facebook.messaging.media.upload.MediaResourceChecker;
+import com.facebook.messaging.media.upload.MediaUploadErrorHelper;
+import com.facebook.messaging.media.upload.MediaUploadServiceHelper;
+import com.facebook.messaging.messagerequests.loaders.MessageRequestsHeaderLoader;
+import com.facebook.messaging.messagerequests.snippet.MessageRequestsSnippetFetcher;
+import com.facebook.messaging.model.attribution.ContentAppAttributionFactory;
+import com.facebook.messaging.model.messages.MessagesCollectionMerger;
+import com.facebook.messaging.modifiers.flowerborder.FlowerCornersDrawable;
+import com.facebook.messaging.modifiers.flowerborder.FlowerElementsGenerator;
+import com.facebook.messaging.momentsinvite.analytics.MomentsInviteLogger;
+import com.facebook.messaging.momentsinvite.ui.MomentsInviteSnippetCreator;
+import com.facebook.messaging.momentsinvite.ui.MomentsInviteStyleRenderer;
+import com.facebook.messaging.momentsinvite.ui.MomentsLaunchHelper;
+import com.facebook.messaging.montage.ThreadKeyMethodAutoProvider;
+import com.facebook.messaging.montage.inboxcomposer.MontageInboxComposerLoader;
+import com.facebook.messaging.nativesurvey.MessengerSurveyInterstitialController;
+import com.facebook.messaging.neue.nullstate.MessagingNullStatesLogger;
+import com.facebook.messaging.notificationpolicy.NotificationPolicyEngine;
+import com.facebook.messaging.notify.MessagesNotificationClient;
+import com.facebook.messaging.particles.ThreadViewParticleEffectResolver;
+import com.facebook.messaging.payment.cache.PaymentCardCache;
+import com.facebook.messaging.payment.cache.PaymentRequestCache;
+import com.facebook.messaging.payment.cache.PaymentTransactionCache;
+import com.facebook.messaging.payment.currency.PaymentCurrencyUtil;
+import com.facebook.messaging.payment.dialog.PaymentDialogsBuilder;
+import com.facebook.messaging.payment.method.input.MessengerPayAddCardFormAnalyticsEventSelector;
+import com.facebook.messaging.payment.method.input.MessengerPayAddCardFormConfigurator;
+import com.facebook.messaging.payment.method.input.MessengerPayAddCardFormMutator;
+import com.facebook.messaging.payment.method.input.MessengerPayAddCardFormStyleRenderer;
+import com.facebook.messaging.payment.method.input.MessengerPayAddCardFormViewController;
+import com.facebook.messaging.payment.method.input.MessengerPayEditCardFormAnalyticsEventSelector;
+import com.facebook.messaging.payment.method.input.MessengerPayEditCardFormConfigurator;
+import com.facebook.messaging.payment.method.input.MessengerPayEditCardFormMutator;
+import com.facebook.messaging.payment.method.input.MessengerPayEditCardFormStyleRenderer;
+import com.facebook.messaging.payment.method.input.cvv.MessengerPayRequireCvvFormConfigurator;
+import com.facebook.messaging.payment.method.input.cvv.MessengerPayRequireCvvFormMutator;
+import com.facebook.messaging.payment.method.input.shipping.MessengerCommerceShippingAddressMutator;
+import com.facebook.messaging.payment.method.input.shipping.MessengerCommerceShippingStateInputValidator;
+import com.facebook.messaging.payment.method.input.shipping.MessengerCommerceShippingStyleRenderer;
+import com.facebook.messaging.payment.method.input.shipping.MessengerCommerceShippingZipInputValidator;
+import com.facebook.messaging.payment.method.verification.PaymentCardsFetcher;
+import com.facebook.messaging.payment.method.verification.PaymentMethodVerificationController;
+import com.facebook.messaging.payment.method.verification.PaymentMethodVerificationNuxDialogsHelper;
+import com.facebook.messaging.payment.pin.protocol.PaymentPinProtocolUtil;
+import com.facebook.messaging.payment.prefs.FetchIncomingPaymentRequestsConditionalWorker;
+import com.facebook.messaging.payment.protocol.PaymentProtocolUtil;
+import com.facebook.messaging.payment.protocol.shipping.AddShippingAddressMethod;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaNewPaymentRequestHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaNewTransferHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaPaymentEnableHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaPaymentMethodHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaPaymentNoOpHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaPaymentRequestStatusHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaPinCodeHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaPlatformItemInterestHandler;
+import com.facebook.messaging.payment.sync.delta.handler.DeltaTransferStatusHandler;
+import com.facebook.messaging.payment.thread.DefaultPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.PaymentRowMessageItemHelper;
+import com.facebook.messaging.payment.thread.RequestActionButtonsPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.RequestDetailsPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.RequestDollarAmountPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.RequestHeaderPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.RequestLoadingPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.RequestRecipientNamePaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.RequestThemePaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionActionButtonsPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionDetailsPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionDollarAmountPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionHeaderPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionLoadingPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionRecipientNamePaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionSupplementaryPaymentBubbleViewController;
+import com.facebook.messaging.payment.thread.TransactionThemePaymentBubbleViewController;
+import com.facebook.messaging.payment.util.PaymentRequestUtil;
+import com.facebook.messaging.payment.util.PaymentTransactionUtil;
+import com.facebook.messaging.payment.utils.PaymentViewUtil;
+import com.facebook.messaging.payment.value.input.CompositeMessengerPayLogger;
+import com.facebook.messaging.payment.value.input.GroupCommerceMessengerPayLogger;
+import com.facebook.messaging.payment.value.input.MCMessengerPayInitializer;
+import com.facebook.messaging.payment.value.input.MCMessengerPayLoader;
+import com.facebook.messaging.payment.value.input.MCMessengerPayLogger;
+import com.facebook.messaging.payment.value.input.MCMessengerPaySender;
+import com.facebook.messaging.payment.value.input.MPMessengerPayInitializer;
+import com.facebook.messaging.payment.value.input.MPMessengerPayLoader;
+import com.facebook.messaging.payment.value.input.MPMessengerPayLogger;
+import com.facebook.messaging.payment.value.input.MPMessengerPaySender;
+import com.facebook.messaging.payment.value.input.OrionMessengerPayIneligibleRecipientHandler;
+import com.facebook.messaging.payment.value.input.OrionMessengerPayInitializer;
+import com.facebook.messaging.payment.value.input.OrionMessengerPayLoader;
+import com.facebook.messaging.payment.value.input.OrionMessengerPayLogger;
+import com.facebook.messaging.payment.value.input.OrionMessengerPaySender;
+import com.facebook.messaging.payment.value.input.OrionRequestAckMessengerPayInitializer;
+import com.facebook.messaging.payment.value.input.OrionRequestAckMessengerPayLogger;
+import com.facebook.messaging.payment.value.input.OrionRequestAckMessengerPaySender;
+import com.facebook.messaging.payment.value.input.OrionRequestMessengerPayIneligibleRecipientHandler;
+import com.facebook.messaging.payment.value.input.OrionRequestMessengerPayLoader;
+import com.facebook.messaging.payment.value.input.OrionRequestMessengerPayLogger;
+import com.facebook.messaging.payment.value.input.OrionRequestMessengerPaySender;
+import com.facebook.messaging.payment.value.input.checkout.MCheckoutRowViewHolderFactory;
+import com.facebook.messaging.payment.value.input.checkout.MCheckoutRowsGenerator;
+import com.facebook.messaging.payment.value.input.checkout.MCheckoutSender;
+import com.facebook.messaging.payment.value.input.checkout.MCheckoutStyleRenderer;
+import com.facebook.messaging.payment.value.input.checkout.MCheckoutSubScreenParamsGenerator;
+import com.facebook.messaging.payment.value.input.checkout.MessengerCommerceCheckoutDataLoader;
+import com.facebook.messaging.payment.value.input.checkout.MessengerCommerceCheckoutDataMutator;
+import com.facebook.messaging.payment.value.input.checkout.MessengerCommerceCheckoutRowViewHolderFactory;
+import com.facebook.messaging.payment.value.input.checkout.MessengerCommerceCheckoutRowsGenerator;
+import com.facebook.messaging.payment.value.input.checkout.MessengerCommerceCheckoutSender;
+import com.facebook.messaging.payment.value.input.checkout.MessengerCommerceCheckoutStyleRenderer;
+import com.facebook.messaging.payment.value.input.checkout.MessengerCommerceCheckoutSubScreenParamsGenerator;
+import com.facebook.messaging.payment.value.input.pagescommerce.PagesCommerceMessengerPayLoader;
+import com.facebook.messaging.payment.value.input.pagescommerce.PagesCommerceMessengerPaySender;
+import com.facebook.messaging.payment.value.input.pagescommerce.PagesCommercePostPurchaseActionHandler;
+import com.facebook.messaging.payment.value.input.picker.CommercePaymentMethodsPickerScreenOnActivityResultHandler;
+import com.facebook.messaging.payment.value.input.picker.CommercePaymentMethodsPickerScreenRowItemViewFactory;
+import com.facebook.messaging.payment.value.input.picker.CommercePaymentMethodsPickerScreenRowItemsGenerator;
+import com.facebook.messaging.payment.value.input.picker.CommercePaymentMethodsPickerScreenSubScreenParamsGenerator;
+import com.facebook.messaging.payment.value.input.picker.CommercePaymentMethodsSectionOrganizer;
+import com.facebook.messaging.payment.value.input.picker.CommercePickerScreenStyleRender;
+import com.facebook.messaging.phoneintegration.util.OutgoingPhoneCallManager;
+import com.facebook.messaging.photoreminders.PhotoRemindersGatingUtil;
+import com.facebook.messaging.photoreminders.PhotoRemindersNuxInterstitialController;
+import com.facebook.messaging.photoreminders.PhotoRemindersNuxTriggerManager;
+import com.facebook.messaging.photoreminders.inboxheader.PhotoRemindersInboxDataLoader;
+import com.facebook.messaging.photoreminders.omnistore.PhotoRemindersCollectionCallback;
+import com.facebook.messaging.photoreminders.stub.PhotoSuggestionManagerMethodAutoProvider;
+import com.facebook.messaging.photos.size.MediaSizeUtil;
+import com.facebook.messaging.photos.tiles.MessengerThreadTileViewDataFactory;
+import com.facebook.messaging.photos.tiles.UserTileViewParamsFactory;
+import com.facebook.messaging.platform.utilities.PlatformShareUploadManager;
+import com.facebook.messaging.prefs.notifications.NotificationPrefsWatcher;
+import com.facebook.messaging.prefs.notifications.ThreadNotificationPrefsSyncUtil;
+import com.facebook.messaging.providers.ViewerContextHelperForContentProviders;
+import com.facebook.messaging.quickpromotion.ClockSkewBannerEligibleFilterPredicate;
+import com.facebook.messaging.quickpromotion.ContactLogsUploadFilterPredicate;
+import com.facebook.messaging.quickpromotion.ContactsUploadEnabledFilterPredicate;
+import com.facebook.messaging.quickpromotion.HasMadeRtcCallContextualFilterPredicate;
+import com.facebook.messaging.quickpromotion.HasNoProfilePicturePredicate;
+import com.facebook.messaging.quickpromotion.PhotoRemindersEverEnabledFilterPredicate;
+import com.facebook.messaging.quickpromotion.PhotoRemindersNuxEligibleFilterPredicate;
+import com.facebook.messaging.quickpromotion.QuickPromotionMessengerInterstitialController;
+import com.facebook.messaging.quickpromotion.QuickPromotionThreadListBannerController;
+import com.facebook.messaging.quickpromotion.QuickPromotionThreadViewBannerController;
+import com.facebook.messaging.quickpromotion.SmsTakeoverDelayedReadOnlyThreadViewBannerEligibleFilterPredicate;
+import com.facebook.messaging.quickpromotion.SmsTakeoverFullThreadViewBannerEligibleFilterPredicate;
+import com.facebook.messaging.quickpromotion.SmsTakeoverRecentReadOnlyThreadViewBannerEligibleFilterPredicate;
+import com.facebook.messaging.rtc.adminmsg.xma.RTCAdminMsgRenderer;
+import com.facebook.messaging.rtc.adminmsg.xma.RTCAdminMsgSnippetCreator;
+import com.facebook.messaging.seenheads.SeenHeadCircleOverflowRendererProvider;
+import com.facebook.messaging.seenheads.ThreadItemSeenHeadsDrawableController;
+import com.facebook.messaging.send.client.OutgoingMessageFactory;
+import com.facebook.messaging.send.client.PendingThreadsManager;
+import com.facebook.messaging.send.client.PostSendMessageManager_FacebookMessagesMethodAutoProvider;
+import com.facebook.messaging.send.client.PostSendMessageManager_SmsMessagesMethodAutoProvider;
+import com.facebook.messaging.send.client.SendFailureNotifier;
+import com.facebook.messaging.send.client.SendMessageManager;
+import com.facebook.messaging.send.client.SendMessageToPendingThreadManager;
+import com.facebook.messaging.send.service.SendApiHandler;
+import com.facebook.messaging.send.service.SendMessageExceptionHelper;
+import com.facebook.messaging.send.service.SendViaGraphHandler;
+import com.facebook.messaging.send.ui.SendDialogUtils;
+import com.facebook.messaging.service.methods.AcceptMessageRequestsMethod;
+import com.facebook.messaging.service.methods.AddAdminsToGroupMethod;
+import com.facebook.messaging.service.methods.AddMembersMethod;
+import com.facebook.messaging.service.methods.AddMontageViewerMethod;
+import com.facebook.messaging.service.methods.AddPinnedThreadMethod;
+import com.facebook.messaging.service.methods.CreateGroupMethod;
+import com.facebook.messaging.service.methods.DeleteMessagesMethod;
+import com.facebook.messaging.service.methods.DeleteThreadMethod;
+import com.facebook.messaging.service.methods.DeliveryReceiptsDeserializer;
+import com.facebook.messaging.service.methods.FetchDeliveryReceiptsMethod;
+import com.facebook.messaging.service.methods.FetchGroupInviteLinkMethod;
+import com.facebook.messaging.service.methods.FetchMessageMethod;
+import com.facebook.messaging.service.methods.FetchMoreMessagesMethod;
+import com.facebook.messaging.service.methods.FetchMoreThreadsMethod;
+import com.facebook.messaging.service.methods.FetchPinnedThreadsGQLMethod;
+import com.facebook.messaging.service.methods.FetchPinnedThreadsMethod;
+import com.facebook.messaging.service.methods.FetchThreadGQLMethod;
+import com.facebook.messaging.service.methods.FetchThreadListMethod;
+import com.facebook.messaging.service.methods.FetchThreadMethod;
+import com.facebook.messaging.service.methods.FetchThreadsFqlHelper;
+import com.facebook.messaging.service.methods.GetAuthenticatedAttachmentUrlMethod;
+import com.facebook.messaging.service.methods.IgnoreMessageRequestsMethod;
+import com.facebook.messaging.service.methods.MarkFolderSeenMethod;
+import com.facebook.messaging.service.methods.MarkFolderSeenMqttHandler;
+import com.facebook.messaging.service.methods.MarkReadThreadMethod;
+import com.facebook.messaging.service.methods.MarkSpamThreadMethod;
+import com.facebook.messaging.service.methods.MessagingServiceGatekeeper;
+import com.facebook.messaging.service.methods.PickedUserUtils;
+import com.facebook.messaging.service.methods.PinnedThreadsUtils;
+import com.facebook.messaging.service.methods.PostGameScoreMethod;
+import com.facebook.messaging.service.methods.RemoveAdminsFromGroupMethod;
+import com.facebook.messaging.service.methods.RemoveMemberMethod;
+import com.facebook.messaging.service.methods.RemoveMontageViewerMethod;
+import com.facebook.messaging.service.methods.SearchThreadNameAndParticipantsMethod;
+import com.facebook.messaging.service.methods.SendMessageParameterHelper;
+import com.facebook.messaging.service.methods.SendMessageToPendingThreadMethod;
+import com.facebook.messaging.service.methods.SetThreadEphemeralityMethod;
+import com.facebook.messaging.service.methods.SetThreadImageMethod;
+import com.facebook.messaging.service.methods.SetThreadMuteUntilMethod;
+import com.facebook.messaging.service.methods.SetThreadNameMethod;
+import com.facebook.messaging.service.methods.SetThreadParticipantNicknameMethod;
+import com.facebook.messaging.service.methods.SetThreadThemeMethod;
+import com.facebook.messaging.service.methods.SetUserSettingsMethod;
+import com.facebook.messaging.service.methods.UnpinThreadMethod;
+import com.facebook.messaging.service.methods.UpdatePinnedThreadsMethod;
+import com.facebook.messaging.service.methods.WebMarkThreadsHandler;
+import com.facebook.messaging.sharerendering.ImageShareSnippetCreator;
+import com.facebook.messaging.sharerendering.ImageShareStyleRenderer;
+import com.facebook.messaging.sharerendering.LinkShareSnippetCreator;
+import com.facebook.messaging.sharerendering.ShareStyleRenderer;
+import com.facebook.messaging.sharing.mediapreview.MediaCheckHelper;
+import com.facebook.messaging.sharing.sendasmessage.SendAsMessageUtil;
+import com.facebook.messaging.shortcuts.MessengerShortcutHelper;
+import com.facebook.messaging.sms.MmsSmsErrorCache;
+import com.facebook.messaging.sms.SmsSpecialThreadManager;
+import com.facebook.messaging.sms.SmsTakeoverNuxController;
+import com.facebook.messaging.sms.SmsThreadManager;
+import com.facebook.messaging.sms.abtest.AnonymousSmsThreadStateHelper;
+import com.facebook.messaging.sms.abtest.SmsIntegrationState;
+import com.facebook.messaging.sms.abtest.SmsTakeoverMultiverseExperimentHelper;
+import com.facebook.messaging.sms.broadcast.SmsTakeoverContactsObserver;
+import com.facebook.messaging.sms.broadcast.SmsTakeoverStateChangedHandler;
+import com.facebook.messaging.sms.contacts.PhoneContactsLoader;
+import com.facebook.messaging.sms.database.ReadonlyModeMarkThreadDbHandler;
+import com.facebook.messaging.sms.defaultapp.SmsPermissionsUtil;
+import com.facebook.messaging.sms.defaultapp.action.MmsSmsCacheUpdateAction;
+import com.facebook.messaging.sms.defaultapp.config.MmsSmsConfig;
+import com.facebook.messaging.sms.defaultapp.send.MmsSmsPendingSendQueue;
+import com.facebook.messaging.sms.defaultapp.send.SmsSender;
+import com.facebook.messaging.sms.migration.SMSMigrationAnalyticsLogger;
+import com.facebook.messaging.sms.readonly.AnonymousSmsThreadHelper;
+import com.facebook.messaging.sms.readonly.GentleNotificationChecker;
+import com.facebook.messaging.sms.readonly.ReadOnlyModeObserver;
+import com.facebook.messaging.sms.util.HighestTimestampUtil;
+import com.facebook.messaging.sms.util.SmsContactUtil;
+import com.facebook.messaging.smsbridge.abtest.Boolean_IsSmsBridgeEnabledMethodAutoProvider;
+import com.facebook.messaging.sync.connection.MessagesSyncLoggedInUserFetcher;
+import com.facebook.messaging.sync.connection.MessagesSyncThreadsFetcher;
+import com.facebook.messaging.sync.delta.MessagesDeltaEnsuredDataFetcher;
+import com.facebook.messaging.sync.delta.MessagesDeltaHandlerSupplier;
+import com.facebook.messaging.sync.delta.MessagesSyncPayloadHandler;
+import com.facebook.messaging.sync.delta.NewMessageHandlerHelper;
+import com.facebook.messaging.sync.delta.handler.DeltaAdminAddedToGroupThreadHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaAdminRemovedFromGroupThreadHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaAdminTextMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaApprovalModeHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaApprovalQueueHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaBroadcastMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaDeliveredReceiptHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaFolderCountHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaForcedFetchHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaGenieMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaJoinableModeHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaMarkReadHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaMarkUnreadHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaMessageDeleteHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaMontageMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaNewMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaNoOpHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaP2PPaymentMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaParticipantLeftGroupThreadHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaParticipantsAddedToGroupThreadHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaRTCEventLogHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaReadReceiptHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaReplaceMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaSentMessageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaThreadActionHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaThreadDeleteHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaThreadFolderHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaThreadImageHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaThreadMuteSettingsHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaThreadNameHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaThreadRtcCallInfoHandler;
+import com.facebook.messaging.sync.delta.handler.DeltaZeroRatingHandler;
+import com.facebook.messaging.threads.graphql.ConversationRequestsThreadListFetcher;
+import com.facebook.messaging.threads.graphql.GQLSearchThreadNameAndParticipantsHelper;
+import com.facebook.messaging.threads.graphql.GQLThreadQueryHelper;
+import com.facebook.messaging.threads.graphql.GQLThreadsConverter;
+import com.facebook.messaging.threads.graphql.GQLThreadsLogger;
+import com.facebook.messaging.threadview.util.ThreadViewOpenHelper;
+import com.facebook.messaging.tincan.crypto.CryptoEngine;
+import com.facebook.messaging.tincan.database.MasterKeyChain;
+import com.facebook.messaging.tincan.database.ThreadEncryptionKeyCache;
+import com.facebook.messaging.tincan.database.TincanDatabaseSupplier;
+import com.facebook.messaging.tincan.messenger.MessageExpirationHelper;
+import com.facebook.messaging.tincan.messenger.MessengerCryptoSessionStorage;
+import com.facebook.messaging.tincan.messenger.MessengerIdentityKeyStore;
+import com.facebook.messaging.tincan.messenger.TincanIncomingDispatcher;
+import com.facebook.messaging.tincan.messenger.TincanSendMessageManager;
+import com.facebook.messaging.ui.name.MessengerThreadNameViewDataFactory;
+import com.facebook.messaging.ui.name.ThreadNameViewComputer_DefaultThreadNameViewComputerMethodAutoProvider;
+import com.facebook.messaging.ui.name.ThreadNameViewComputer_NamesOnlyThreadNameViewComputerMethodAutoProvider;
+import com.facebook.messaging.users.MessengerUserCheckHelper;
+import com.facebook.messaging.users.refresh.MessagesUserInfoRefresher;
+import com.facebook.messaging.users.username.graphql.MessagingUsernameGraphQLHandler;
+import com.facebook.messaging.util.launchtimeline.LaunchTimelineHelper;
+import com.facebook.messaging.widget.anchorabletoast.AnchorableToast;
+import com.facebook.messaging.xma.DefaultFallbackSnippetCreator;
+import com.facebook.messaging.xma.STATICDI_MULTIBIND_PROVIDER.StyleAssociation;
+import com.facebook.messaging.xma.SnippetCreator;
+import com.facebook.messaging.xma.SnippetGenerator;
+import com.facebook.messaging.xma.StyleRendererManager;
+import com.facebook.messengerwear.support.MessengerWearDispatcher;
+import com.facebook.messengerwear.support.MessengerWearSoftAlarm;
+import com.facebook.minipreview.MiniPreviewCoverPhotoProcessor;
+import com.facebook.multirow.parts.TextIconPartDefinition;
+import com.facebook.nearby.analytics.NearbySearchAnalytics;
+import com.facebook.nearby.v2.resultlist.views.SetSearchPlaceViewBinder;
+import com.facebook.notifications.activitylistener.NotificationsActivityListener;
+import com.facebook.notifications.common.JewelCounters;
+import com.facebook.notifications.fragmentfactory.NotificationSettingsFragmentFactory;
+import com.facebook.notifications.fragmentfactory.NotificationsFriendingFragmentFactory;
+import com.facebook.notifications.lockscreen.db.PushNotificationDbHelper;
+import com.facebook.notifications.model.SystemTrayNotificationBuilder;
+import com.facebook.notifications.multirow.partdefinition.NotificationsFeedItemPartDefinition;
+import com.facebook.notifications.multirow.partdefinition.NotificationsFeedRootPartDefinition;
+import com.facebook.notifications.multirow.partdefinition.NotificationsSectionHeaderPartDefinition;
+import com.facebook.notifications.multirow.partdefinition.TodayNotificationSinglePartDefinition;
+import com.facebook.notifications.nux.NotificationsInlineFeedbackNuxInterstitialController;
+import com.facebook.notifications.protocol.FetchNotificationURIMethod;
+import com.facebook.notifications.protocol.GetNotificationsSettingsMethod;
+import com.facebook.notifications.protocol.GraphNotificationsChangeSeenStateMethod;
+import com.facebook.notifications.protocol.NotificationsChangeSettingsMethod;
+import com.facebook.notifications.settings.NotificationSettingsRootGroupPartDefinition;
+import com.facebook.notifications.subscription.NotificationSubscriptionsManager;
+import com.facebook.notifications.widget.NotificationSettingsAlertsFragmentFactory;
+import com.facebook.nux.interstitial.MusicPreviewNuxBubbleInterstitialController;
+import com.facebook.nux.interstitial.SeeFirstPromptNuxController;
+import com.facebook.nux.status.ResetNuxStatusMethod;
+import com.facebook.nux.status.UpdateNuxStatusMethod;
+import com.facebook.offers.fragment.OffersDetailPageFragmentFactory;
+import com.facebook.offers.fragment.OffersWalletFragmentFactory;
+import com.facebook.offlinemode.intentchecker.OfflineIntentManager;
+import com.facebook.omnistore.module.OmnistoreCallbackRegistration;
+import com.facebook.omnistore.module.OmnistoreIndexerRegistration;
+import com.facebook.orca.background.FetchPinnedThreadsConditionalWorker;
+import com.facebook.orca.background.FetchPinnedThreadsSyncComponent;
+import com.facebook.orca.compose.ComposeModule;
+import com.facebook.orca.compose.MessageCapButtonController;
+import com.facebook.orca.compose.ReactKeyboard;
+import com.facebook.orca.contacts.divebar.FavoritesDivebarInitializer;
+import com.facebook.orca.contacts.favorites.PhoneContactUiHelper;
+import com.facebook.orca.contacts.picker.BaseSearchableContactPickerListAdapter_ForDivebarListMethodAutoProvider;
+import com.facebook.orca.contacts.picker.ContactPickerListFilter_ForDivebarListMethodAutoProvider;
+import com.facebook.orca.contacts.picker.ContactPickerListFilter_ForVoipGroupCallListMethodAutoProvider;
+import com.facebook.orca.contacts.picker.ContactPickerNonFriendUsersFilter;
+import com.facebook.orca.contacts.picker.ContactPickerServerGroupFilter;
+import com.facebook.orca.contacts.picker.DivebarContactPickerViewFactory;
+import com.facebook.orca.contacts.picker.MessagesContactPickerModule;
+import com.facebook.orca.contacts.providers.ContactPickerListFilterProviderForVoipSelectSearchList;
+import com.facebook.orca.contacts.providers.UnpinnedGroupsContactPickerListFilterProvider;
+import com.facebook.orca.notify.CommerceLocalNotificationHelper;
+import com.facebook.orca.notify.ContactsUploadNotificationHandler;
+import com.facebook.orca.notify.NotificationSettingsUtil;
+import com.facebook.orca.notify.SmsFallbackNumberNotificationHandler;
+import com.facebook.orca.threadlist.ThreadListContextMenuHelper;
+import com.facebook.orca.threadview.AddMontageViewerHelper;
+import com.facebook.orca.threadview.AddToContactListHelper;
+import com.facebook.orca.threadview.AdminMessageWithLinkViewModelFactory;
+import com.facebook.orca.threadview.GroupPhotoSettingsDialogFactory;
+import com.facebook.orca.threadview.InternalAttributionCallToActionHelper;
+import com.facebook.orca.threadview.MessageListAdapter;
+import com.facebook.orca.threadview.NewMessageAnchorController;
+import com.facebook.orca.threadview.RowItemUiUtil;
+import com.facebook.orca.threadview.RowMessageItemGenerator;
+import com.facebook.orca.threadview.ThreadEventReminderLoader;
+import com.facebook.orca.threadview.ThreadPaymentRiskFlowHelper;
+import com.facebook.orca.threadview.ThreadViewDebugHelper;
+import com.facebook.orca.threadview.ThreadViewLoader;
+import com.facebook.orca.threadview.ThreadViewLowDataModeUtils;
+import com.facebook.orca.threadview.ThreadViewOperationsHelper;
+import com.facebook.orca.threadview.ephemeral.EphemeralToggleButtonHelper;
+import com.facebook.orca.threadview.messagelist.MessageListHelperForListView;
+import com.facebook.orca.threadview.messagelist.MessageListHelperForRecyclerView;
+import com.facebook.orca.threadview.montage.MontageReplyMessageViewHelper;
+import com.facebook.orca.threadview.sms.SmsThreadViewButtonsHelper;
+import com.facebook.pages.adminedpages.AdminedPagesRamCache;
+import com.facebook.pages.browser.fragment.PagesBrowserFragmentFactory;
+import com.facebook.pages.browser.fragment.PagesBrowserListFragmentFactory;
+import com.facebook.pages.common.abtest.qe.PagesExperimentUtils;
+import com.facebook.pages.common.actionbar.blueservice.PagesCommonActionBarDataMutator;
+import com.facebook.pages.common.actionbar.blueservice.PagesCommonActionBarServiceHandler;
+import com.facebook.pages.common.actionbar.blueservice.ReportPlaceMethod;
+import com.facebook.pages.common.bannedusers.analytics.PagesBanUserAnalytics;
+import com.facebook.pages.common.contactinbox.util.PagesContactInboxTimeUtils;
+import com.facebook.pages.common.editpage.PageEditPageFragmentFactory;
+import com.facebook.pages.common.eventbus.PageEventBus;
+import com.facebook.pages.common.friendinviter.fragments.PageFriendInviterFragmentFactory;
+import com.facebook.pages.common.friendinviter.protocol.FetchFriendsYouMayInviteMethod;
+import com.facebook.pages.common.friendinviter.protocol.SendPageLikeInviteMethod;
+import com.facebook.pages.common.intent_builder.DefaultPageSurfaceIntentBuilder;
+import com.facebook.pages.common.logging.analytics.PageViewReferrerUtils;
+import com.facebook.pages.common.logging.analytics.PagesAnalytics;
+import com.facebook.pages.common.photos.PagesPhotosFragmentUtils;
+import com.facebook.pages.common.reaction.components.FooterWithBadgeComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.LargeProfileImageBlockComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageAddressNavigationUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageAdminFeedStoryComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageAppointmentStatusUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageContactInfoStackUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageContextRowWithBadgeComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageCreatePhotoAlbumUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageInfoDescriptionUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageInfoRatingsAndReviewsUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageInfoRowUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageInfoWriteFirstReviewUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageInlineComposerUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageInsightsOverviewCardMetricUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageMessageBlockComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageNuxUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageOpenHoursUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PagePhotoAlbumUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PagePhotoAlbumsUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PagePhotosUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageSocialContextImageBlockUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PageVeryResponsiveToMessagesBadgeUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PagesFeaturedServiceItemsUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PagesMapUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PagesServiceItemUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PostCommentsModerationBlockUnitComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.PromotionBlockComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.ReactionFullWidthActionButtonComponentPartDefinition;
+import com.facebook.pages.common.reaction.components.ReactionSegmentedProgressBarComponentPartDefinition;
+import com.facebook.pages.common.resulthandlers.ActivityResultHandlerResolver;
+import com.facebook.pages.common.resulthandlers.interfaces.STATICDI_MULTIBIND_PROVIDER.ActivityResultHandler;
+import com.facebook.pages.common.scoped_eventbus.scopedevent.PageScopedEventBus;
+import com.facebook.pages.common.surface.calltoaction.PageCallToActionAutoFillProviderImpl;
+import com.facebook.pages.common.surface.calltoaction.analytics.PageCallToActionAnalytics;
+import com.facebook.pages.common.surface.calltoaction.util.PageCallToActionUtil;
+import com.facebook.pages.common.surface.protocol.headerfetcher.PageHeaderEarlyFetcher;
+import com.facebook.pages.common.surface.protocol.headerfetcher.PageHeaderFetchQueryExecutor;
+import com.facebook.pages.common.surface.protocol.headerfetcher.PageReactionInitialFetcher;
+import com.facebook.pages.common.surface.tabs.tabbar.management.PagesSurfaceAddDeleteTabUtil;
+import com.facebook.pages.common.surface.ui.header.PagesProfileVideoViewportListener;
+import com.facebook.pages.common.surface.ui.relatedpages.PageRelatedPagesUnitComponentPartDefinition;
+import com.facebook.pages.common.viewercontextutils.PageViewerContextApiMethod;
+import com.facebook.pages.common.viewercontextutils.ViewerContextUtil;
+import com.facebook.pages.data.cache.PagesInfoCache;
+import com.facebook.pages.deeplinking.PageAdminUtils;
+import com.facebook.pages.fb4a.admin_activity.uri.Fb4aPagesNotificationsFragmentFactory;
+import com.facebook.pages.identity.cards.actionbar.PagesFollowActionHelper;
+import com.facebook.pages.identity.cards.contextitems.PageContextRowsPlaceholderUnitComponentPartDefinition;
+import com.facebook.pages.identity.cards.maps.PageIdentityMapUtil;
+import com.facebook.pages.identity.contextitems.PageContextItemsAddCoverPhotoHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsAddPageInfoHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsAddPhotoMenuHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsAddProfilePhotoHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsAddReviewHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsAddressPlaceQuestionHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsCallHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsCategoryPlaceQuestionHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsClickHandlerImpl;
+import com.facebook.pages.identity.contextitems.PageContextItemsFallbackHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsInsightsHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsInviteFriendsLikePageHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsLaunchComposerHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsMessagePageHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsMessageResponsivenessHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsPageDetailsHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsPageTipsHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsPlaceQuestionHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsReactionHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsReviewsHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsSubscribeToNearbyEventsHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsViewMenuHandler;
+import com.facebook.pages.identity.contextitems.PageContextItemsViewWebsiteHandler;
+import com.facebook.pages.identity.fragments.identity.PageAlbumFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageCallToActionFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageChildLocationsFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageContactInboxFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageEventsListFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageIdentityFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageInformationFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageManagerCoverPhotoFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageReactionFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageResidenceFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageServiceFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageSingleServiceFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageVideoHubFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageVideoListAllVideosFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageVideoListFragmentFactory;
+import com.facebook.pages.identity.fragments.identity.PageVistorPostsFragmentFactory;
+import com.facebook.pages.identity.intent.impl.FbAndroidPageSurfaceIntentBuilder;
+import com.facebook.pages.identity.timeline.PageIdentityPinnedPostGroupPartDefinition;
+import com.facebook.pages.identity.timeline.PageIdentityPinnedPostHeaderPartDefinition;
+import com.facebook.pages.identity.timeline.PagesManagerProfilePicUpdateListener;
+import com.facebook.pages.launchpoint.fragments.factories.PagesLaunchpointFragmentFactory;
+import com.facebook.payments.checkout.SimpleCheckoutDataLoader;
+import com.facebook.payments.checkout.SimpleCheckoutDataMutator;
+import com.facebook.payments.checkout.SimpleCheckoutManager;
+import com.facebook.payments.checkout.SimpleCheckoutOnActivityResultHandler;
+import com.facebook.payments.checkout.SimpleCheckoutSender;
+import com.facebook.payments.checkout.SimpleCheckoutStyleRenderer;
+import com.facebook.payments.checkout.recyclerview.SimpleCheckoutRowViewHolderFactory;
+import com.facebook.payments.checkout.recyclerview.SimpleCheckoutRowsGenerator;
+import com.facebook.payments.checkout.recyclerview.SimpleCheckoutSubScreenParamsGenerator;
+import com.facebook.payments.checkout.statemachine.SimpleCheckoutStateMachineHandler;
+import com.facebook.payments.checkout.statemachine.SimpleCheckoutStateMachineOrganizer;
+import com.facebook.payments.confirmation.SimpleConfirmationOnActivityResultHandler;
+import com.facebook.payments.confirmation.SimpleConfirmationRowViewHolderFactory;
+import com.facebook.payments.confirmation.SimpleConfirmationRowsGenerator;
+import com.facebook.payments.confirmation.SimplePostPurchaseActionHandler;
+import com.facebook.payments.contactinfo.form.EmailContactInfoFormMutator;
+import com.facebook.payments.contactinfo.form.SimpleContactInfoFormMutator;
+import com.facebook.payments.contactinfo.protocol.ContactInfoProtocolUtil;
+import com.facebook.payments.contactinfo.validation.SimpleContactInputValidator;
+import com.facebook.payments.paymentmethods.cardform.SimpleCardFormAnalyticsEventSelector;
+import com.facebook.payments.paymentmethods.cardform.SimpleCardFormConfigurator;
+import com.facebook.payments.paymentmethods.cardform.SimpleCardFormMutator;
+import com.facebook.payments.paymentmethods.cardform.SimpleCardFormStyleRenderer;
+import com.facebook.payments.paymentmethods.cardform.SimpleCardFormViewController;
+import com.facebook.payments.paymentmethods.cardform.formatting.SecurityCodeFormattingTextWatcher;
+import com.facebook.payments.paymentmethods.cardform.protocol.CardFormProtocolUtil;
+import com.facebook.payments.paymentmethods.cardform.validation.BillingZipInputValidator;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsInfoCache;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsPickerScreenDataFetcher;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsPickerScreenDataMutator;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsPickerScreenOnActivityResultHandler;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsPickerScreenStyleRenderer;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsPickerScreenSubScreenParamsGenerator;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsRowItemViewFactory;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsRowItemsGenerator;
+import com.facebook.payments.paymentmethods.picker.PaymentMethodsSectionOrganizer;
+import com.facebook.payments.paymentmethods.picker.SimplePickerScreenDataMutator;
+import com.facebook.payments.paymentmethods.picker.SimplePickerScreenManager;
+import com.facebook.payments.paymentsflow.ui.PayViewController;
+import com.facebook.payments.picker.SimpleRowItemViewFactory;
+import com.facebook.payments.settings.PaymentSettingsPickerScreenDataFetcher;
+import com.facebook.payments.settings.PaymentSettingsPickerScreenOnActivityResultHandler;
+import com.facebook.payments.settings.PaymentSettingsRowItemViewFactory;
+import com.facebook.payments.settings.PaymentSettingsRowItemsGenerator;
+import com.facebook.payments.settings.PaymentSettingsSectionOrganizer;
+import com.facebook.payments.shipping.addresspicker.ShippingPickerScreenDataFetcher;
+import com.facebook.payments.shipping.addresspicker.ShippingPickerScreenDataMutator;
+import com.facebook.payments.shipping.addresspicker.ShippingPickerScreenOnActivityResultHandler;
+import com.facebook.payments.shipping.addresspicker.ShippingPickerScreenStyleRenderer;
+import com.facebook.payments.shipping.addresspicker.ShippingRowItemViewFactory;
+import com.facebook.payments.shipping.addresspicker.ShippingRowItemsGenerator;
+import com.facebook.payments.shipping.addresspicker.ShippingSectionOrganizer;
+import com.facebook.payments.shipping.form.SimpleShippingAddressMutator;
+import com.facebook.payments.shipping.form.SimpleShippingManager;
+import com.facebook.payments.shipping.form.SimpleShippingStyleRenderer;
+import com.facebook.payments.shipping.optionpicker.ShippingOptionPickerScreenDataFetcher;
+import com.facebook.payments.shipping.optionpicker.ShippingOptionPickerScreenOnActivityResultHandler;
+import com.facebook.payments.shipping.optionpicker.ShippingOptionPickerScreenStyleRenderer;
+import com.facebook.payments.shipping.optionpicker.ShippingOptionRowItemViewFactory;
+import com.facebook.payments.shipping.optionpicker.ShippingOptionSectionOrganizer;
+import com.facebook.payments.shipping.optionpicker.ShippingOptionsPickerScreenDataMutator;
+import com.facebook.payments.shipping.optionpicker.ShippingOptionsRowItemsGenerator;
+import com.facebook.payments.shipping.protocol.MailingAddressCache;
+import com.facebook.payments.shipping.protocol.MailingAddressProtocolUtil;
+import com.facebook.payments.shipping.validation.SimpleShippingStateInputValidator;
+import com.facebook.payments.shipping.validation.SimpleShippingZipInputValidator;
+import com.facebook.perf.PerfToastProvider;
+import com.facebook.performancelogger.DelegatingPerformanceLogger;
+import com.facebook.photos.albumcreator.AlbumCreatorController;
+import com.facebook.photos.albumcreator.AlbumCreatorFlowLogger;
+import com.facebook.photos.albumcreator.AlbumCreatorIntentBuilder;
+import com.facebook.photos.albums.AlbumsAdapterProvider;
+import com.facebook.photos.albums.ProfilePicCoverPhotoEditHelper;
+import com.facebook.photos.albums.abtest.VideoAlbumConfig;
+import com.facebook.photos.albums.events.AlbumsEventBus;
+import com.facebook.photos.albums.futures.AlbumsConverterFunction;
+import com.facebook.photos.albums.futures.AlbumsFuturesGenerator;
+import com.facebook.photos.base.analytics.DefaultPhotoFlowLogger;
+import com.facebook.photos.base.analytics.MediaLogger;
+import com.facebook.photos.base.analytics.PreFilledTagLogger;
+import com.facebook.photos.base.analytics.WaterfallIdGenerator;
+import com.facebook.photos.base.media.MediaItemCursorUtil;
+import com.facebook.photos.base.tagging.TaggingHelper;
+import com.facebook.photos.creativecam.ui.CreativeCamPickerPreviewControllerImpl;
+import com.facebook.photos.creativecam.ui.CreativeCamTopBarControllerImpl;
+import com.facebook.photos.creativeediting.analytics.CreativeEditingAnalyticsLogger;
+import com.facebook.photos.creativeediting.analytics.CreativeEditingLogger;
+import com.facebook.photos.creativeediting.stickers.events.StickerEventBus;
+import com.facebook.photos.creativeediting.swipeable.composer.SwipeableDraweeControllerGeneratorImpl;
+import com.facebook.photos.creativeediting.swipeable.composer.SwipeableRepeatedPostprocessor;
+import com.facebook.photos.creativeediting.swipeable.composer.nux.SwipeableFilterAnimatingNuxViewController;
+import com.facebook.photos.creativeediting.swipeable.composer.nux.SwipeableFrameAnimatingNuxViewController;
+import com.facebook.photos.creativeediting.swipeable.prompt.FramePromptsPromptPartDefinition;
+import com.facebook.photos.creativeediting.swipeable.prompt.v3.FramePromptSmallPartDefinition;
+import com.facebook.photos.creativeediting.utilities.CreativeEditingImageHelper;
+import com.facebook.photos.creativeediting.utilities.MediaRotationHelper;
+import com.facebook.photos.creativeediting.utilities.SpringAlphaAnimator;
+import com.facebook.photos.data.method.FetchDefaultTagSuggestions;
+import com.facebook.photos.data.protocol.SizeAwareImageUtil;
+import com.facebook.photos.editgallery.utils.FetchImageUtils;
+import com.facebook.photos.futures.MediaSetFuturesGenerator;
+import com.facebook.photos.futures.PhotosFuturesGenerator;
+import com.facebook.photos.imageprocessing.FiltersEngine;
+import com.facebook.photos.imageprocessing.FiltersRepeatedPostprocessor;
+import com.facebook.photos.intent.PhotosViewIntentProvider;
+import com.facebook.photos.local.LocalMediaCursorImp;
+import com.facebook.photos.local.LocalMediaCursorMethodAutoProvider;
+import com.facebook.photos.mediagallery.MediaGalleryLauncherParamsFactory;
+import com.facebook.photos.mediagallery.MediaGalleryModule;
+import com.facebook.photos.mediagallery.mutation.MediaMutationGenerator;
+import com.facebook.photos.mediagallery.ui.DefaultMediaGalleryLauncher;
+import com.facebook.photos.mediagallery.ui.MediaGalleryActionsGeneratorMethodAutoProvider;
+import com.facebook.photos.mediagallery.ui.tagging.DefaultSuggestionController;
+import com.facebook.photos.mediagallery.ui.widget.FrescoMediaGalleryActionsGenerator;
+import com.facebook.photos.mediagallery.ui.widget.LegacyMediaGalleryActionsGenerator;
+import com.facebook.photos.mediagallery.ui.widget.MediaGalleryMenuHelper;
+import com.facebook.photos.mediagallery.ui.widget.ViewerSuggestLocationInterstitialController;
+import com.facebook.photos.mediagallery.util.MediaGalleryAttachmentFilter;
+import com.facebook.photos.mediagallery.util.MediaMetadataParcelUtil;
+import com.facebook.photos.pandora.common.cache.PandoraStoryMemoryCache;
+import com.facebook.photos.pandora.common.events.PandoraEventBus;
+import com.facebook.photos.pandora.common.futures.PandoraFuturesGenerator;
+import com.facebook.photos.pandora.common.futures.PandoraGraphQLParamImageHelper;
+import com.facebook.photos.pandora.common.futures.functions.PandoraMemoryCacheFunction;
+import com.facebook.photos.pandora.common.futures.functions.PandoraRendererFunction;
+import com.facebook.photos.pandora.common.futures.functions.PandoraResultConverterFunction;
+import com.facebook.photos.pandora.common.ui.renderer.PandoraRendererController;
+import com.facebook.photos.pandora.common.ui.renderer.configs.PandoraRendererGridConfiguration;
+import com.facebook.photos.pandora.common.ui.renderer.configs.PandoraRendererMixedMediaGridConfiguration;
+import com.facebook.photos.pandora.common.ui.renderer.factories.MultiPhotoStoryModelRowBuilder;
+import com.facebook.photos.pandora.common.ui.renderer.factories.PandoraRendererHighlightPhotosGridRowFactoryProvider;
+import com.facebook.photos.pandora.common.ui.renderer.factories.PandoraRendererMultiMediaRowEntryCache;
+import com.facebook.photos.pandora.common.ui.renderer.factories.PandoraRendererMultiPhotosRowEntryCache;
+import com.facebook.photos.pandora.common.ui.renderer.highlights.PandoraHighlightsCalculator;
+import com.facebook.photos.pandora.common.util.PandoraGraphQLObjectExtractor;
+import com.facebook.photos.pandora.ui.PandoraAlbumMediaSetAdapter;
+import com.facebook.photos.pandora.ui.PandoraFooterPartDefinition;
+import com.facebook.photos.pandora.ui.PandoraTaggedPhotosAdapter;
+import com.facebook.photos.pandora.ui.PandoraTaggedPhotosMainAdapter;
+import com.facebook.photos.photoset.controllers.AlbumHeaderSetupController;
+import com.facebook.photos.photoset.controllers.FbPhotoPickerController;
+import com.facebook.photos.photoset.controllers.MediaPickerLaunchController;
+import com.facebook.photos.photoset.controllers.PhotoSetOnActivityResultController;
+import com.facebook.photos.photoset.launcher.PhotoSetConsumptionGalleryPhotoLauncher;
+import com.facebook.photos.photoset.ui.permalink.AlbumPermalinkTitleBarSupplier;
+import com.facebook.photos.photoset.ui.permalink.edit.PrivacyMapping;
+import com.facebook.photos.photoset.ui.permalink.futures.AlbumPermalinkFuturesGenerator;
+import com.facebook.photos.prefetch.BackgroundHandoffHelperProvider;
+import com.facebook.photos.prefetch.ExperimentalImageFetcher;
+import com.facebook.photos.prefetch.STATICDI_MULTIBIND_PROVIDER$PrefetchListener;
+import com.facebook.photos.rotation.RotationManager;
+import com.facebook.photos.simplecamera.SimpleCamera;
+import com.facebook.photos.simplepicker.controller.PickerSelectionUpdateUtil;
+import com.facebook.photos.simplepicker.nux.SimplePickerHDUploadInterstitialController;
+import com.facebook.photos.simplepicker.nux.SimplePickerSlideshowInterstitialController;
+import com.facebook.photos.taggablegallery.GifVideoPlayerGalleryDelegate;
+import com.facebook.photos.tagging.AutoTaggingHelper;
+import com.facebook.photos.tagging.shared.FamilyTagTypeaheadUtil;
+import com.facebook.photos.tagging.store.TagStore;
+import com.facebook.photos.upload.ImageSampling.RealImageSampler;
+import com.facebook.photos.upload.abtest.ImmediateRetryTimingQEConfig;
+import com.facebook.photos.upload.compost.CompostPendingPostStore;
+import com.facebook.photos.upload.disk.UploadTempFileManager;
+import com.facebook.photos.upload.manager.OptimisticVideoUploadHelper;
+import com.facebook.photos.upload.manager.UploadNotificationManager;
+import com.facebook.photos.upload.module.ImmediateRetryPolicyMethodAutoProvider;
+import com.facebook.photos.upload.operation.UploadOperationFactory;
+import com.facebook.photos.upload.operation.UploadOperationHelper;
+import com.facebook.photos.upload.progresspage.MediaUploadActivityReceiver;
+import com.facebook.photos.upload.progresspage.survey.CompostSurveyController;
+import com.facebook.photos.upload.uploaders.DirectPhotoUploader;
+import com.facebook.photos.upload.uploaders.MediaUploadCancelHandler;
+import com.facebook.photos.upload.uploaders.PhotoPreprocessor;
+import com.facebook.photos.upload.uploaders.VideoUploader;
+import com.facebook.photos.warning.DisturbingMediaTracker;
+import com.facebook.places.checkin.composerflows.PeopleToPlaceController;
+import com.facebook.places.checkin.launcher.PlacePickerLauncher;
+import com.facebook.places.checkin.protocol.CheckinHistoryLoader;
+import com.facebook.places.checkin.protocol.CheckinHistorySyncHelper;
+import com.facebook.places.checkin.protocol.CheckinPrefetchRunner;
+import com.facebook.places.checkin.protocol.CheckinSearchResultsLoader;
+import com.facebook.places.checkin.protocol.FetchNearbyRegionsRunner;
+import com.facebook.places.checkin.protocol.FlagPlaceMethod;
+import com.facebook.places.checkin.protocol.FlagPlaceMethodRunner;
+import com.facebook.places.checkin.protocol.LocationExtraDataRetriever;
+import com.facebook.places.checkin.protocol.PlacesAppStateReceiver;
+import com.facebook.places.create.citypicker.CityPickerFragmentFactory;
+import com.facebook.places.features.PlacesFeatures;
+import com.facebook.places.pagetopics.CategoryPickerFragmentFactory;
+import com.facebook.places.suggestions.PlaceSuggestionsIntentBuilder;
+import com.facebook.places.suggestions.common.SuggestProfilePicMethod;
+import com.facebook.places.suggestions.common.UploadPictureView;
+import com.facebook.placetips.gpscore.DefaultPlaceTipsGpsLocationProcessor;
+import com.facebook.placetips.gpscore.LocationTriggerFetchProcessor;
+import com.facebook.placetips.gpscore.PlaceTipsGpsReceiverLogic;
+import com.facebook.placetips.gpscore.PlaceTipsGpsSpecificAnalyticsLogger;
+import com.facebook.placetips.pulsarcore.PulsarController;
+import com.facebook.placetips.pulsarcore.PulsarCoreModule;
+import com.facebook.placetips.pulsarcore.PulsarPrefs.Accessor;
+import com.facebook.placetips.pulsarcore.PulsarPrefs.AccessorFuture;
+import com.facebook.placetips.pulsarcore.abtest.PlaceTipsPulsarQeFuture;
+import com.facebook.placetips.pulsarcore.presence.DefaultBleScanProcessor;
+import com.facebook.placetips.pulsarcore.scan.BleScanResultBuilder;
+import com.facebook.placetips.pulsarcore.scan.BleScannerImpl;
+import com.facebook.placetips.pulsarcore.scan.EmptyBleScanner;
+import com.facebook.placetips.pulsarcore.service.BluetoothDiscoveryInterruptHandler;
+import com.facebook.placetips.settings.PlaceTipsSettingsHelper;
+import com.facebook.placetips.settings.ui.PlaceTipsBlacklistConfirmationFragmentFactory;
+import com.facebook.placetips.settings.ui.PlaceTipsBlacklistPromptFragmentFactory;
+import com.facebook.placetips.settings.ui.PlaceTipsBlacklistReasonFragmentFactory;
+import com.facebook.placetips.settings.ui.PlaceTipsSettingsFragmentFactory;
+import com.facebook.placetips.upsell.OnLoginGmsLsUpsellInterstitialController;
+import com.facebook.placetips.upsell.PlaceTipsUpsellBuilder;
+import com.facebook.placetips.upsell.UpsellFragmentFactory;
+import com.facebook.platform.auth.service.GetAccessTokenPlatformServiceRequest;
+import com.facebook.platform.common.activity.PlatformIntentDemuxer;
+import com.facebook.platform.common.service.GetLikeStateServiceRequest;
+import com.facebook.platform.common.service.GetProtocolVersionsRequest;
+import com.facebook.platform.common.util.PlatformPackageUtilities;
+import com.facebook.prefetch.feed.scheduler.NewsFeedPrefetchInvoker;
+import com.facebook.prefs.shared.FbSharedPreferencesImpl;
+import com.facebook.prefs.shared.objects.FbSharedObjectPreferencesImpl;
+import com.facebook.privacy.PrivacyOperationsClient;
+import com.facebook.privacy.audience.PostPrivacyUpsellDialogController;
+import com.facebook.privacy.checkup.photofeed.PhotoPrivacyFeedContentRowPartDefinition;
+import com.facebook.privacy.checkup.photofeed.PhotoPrivacyFeedHeaderPartDefinition;
+import com.facebook.privacy.checkup.photofeed.PhotoPrivacyFeedRootPartDefinition;
+import com.facebook.privacy.edit.EditPrivacyIntentBuilder;
+import com.facebook.privacy.educator.AudienceEducatorTooltipGenerator;
+import com.facebook.privacy.protocol.BulkEditAlbumPhotoPrivacyMethod;
+import com.facebook.privacy.protocol.EditObjectsPrivacyMethod;
+import com.facebook.privacy.protocol.EditReviewPrivacyMethod;
+import com.facebook.privacy.protocol.ReportAAAOnlyMeActionMethod;
+import com.facebook.privacy.protocol.ReportAAATuxActionMethod;
+import com.facebook.privacy.protocol.ReportInlinePrivacySurveyActionMethod;
+import com.facebook.privacy.protocol.ReportNASActionMethod;
+import com.facebook.privacy.protocol.ReportPrivacyCheckupActionsMethod;
+import com.facebook.privacy.protocol.ReportStickyGuardrailActionMethod;
+import com.facebook.privacy.protocol.ReportStickyUpsellActionMethod;
+import com.facebook.privacy.protocol.SetComposerStickyPrivacyMethod;
+import com.facebook.privacy.protocol.SetPrivacyEducationStateMethod;
+import com.facebook.privacy.selector.AudienceSelectorPerformanceLogger;
+import com.facebook.privacy.ui.PrivacyIcons;
+import com.facebook.productionprompts.ClipboardPromptsPromptPartDefinition;
+import com.facebook.productionprompts.ProductionPromptsPromptPartDefinition;
+import com.facebook.productionprompts.v3.ClipboardPromptSmallPartDefinition;
+import com.facebook.productionprompts.v3.ProductionPromptSmallPartDefintion;
+import com.facebook.profile.inforequest.InfoRequestFragmentFactory;
+import com.facebook.profile.inforequest.event.InfoRequestEventBus;
+import com.facebook.profile.inforequest.protocol.DeleteInfoRequestMethod;
+import com.facebook.profile.inforequest.protocol.InfoRequestMethod;
+import com.facebook.profilelist.FriendsSupplier;
+import com.facebook.profilelist.GroupMembersSupplier;
+import com.facebook.proxygen.HTTPTransportCallback;
+import com.facebook.push.adm.ADMPushPrefKeys;
+import com.facebook.push.externalcloud.PrimaryPushTokenHolder;
+import com.facebook.push.mqtt.service.MqttPushServiceClientManagerImpl;
+import com.facebook.push.nna.NNAPushPrefKeys;
+import com.facebook.push.nna.NNARegistrar;
+import com.facebook.qe.module.QeInternalImplMethodAutoProvider;
+import com.facebook.quicklog.module.QuickPerformanceLoggerMethodAutoProvider;
+import com.facebook.quickpromotion.action.DefaultQuickPromotionActionHandler;
+import com.facebook.quickpromotion.asset.QuickPromotionAssetManagerImpl;
+import com.facebook.quickpromotion.controller.QuickPromotionControllerDelegateProvider;
+import com.facebook.quickpromotion.customrender.CustomRenderManager;
+import com.facebook.quickpromotion.event.QuickPromotionEventManager;
+import com.facebook.quickpromotion.filter.AggregateImpressionsFilterPredicate;
+import com.facebook.quickpromotion.filter.AndroidPermissionsAnyDisabledFilterPredicate;
+import com.facebook.quickpromotion.filter.AppInstalledFilterPredicate;
+import com.facebook.quickpromotion.filter.AppNotInstalledFilterPredicate;
+import com.facebook.quickpromotion.filter.ApplicationInstallSpaceFilterPredicate;
+import com.facebook.quickpromotion.filter.ApplicationMaxStorageSpaceFilterPredicate;
+import com.facebook.quickpromotion.filter.ApplicationMaxVersionFilterPredicate;
+import com.facebook.quickpromotion.filter.ApplicationMinVersionFilterPredicate;
+import com.facebook.quickpromotion.filter.AssetsReadyFilter;
+import com.facebook.quickpromotion.filter.BatteryLowContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.DirectInstallEnabledFilterPredicate;
+import com.facebook.quickpromotion.filter.GoogleAccountContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.GooglePlayContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.IsMeteredConnectionFilter;
+import com.facebook.quickpromotion.filter.IsOtherBirthdayContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.LocaleFilterPredicate;
+import com.facebook.quickpromotion.filter.ManualNewsfeedRefreshFilterPredicate;
+import com.facebook.quickpromotion.filter.MessagesSentOneAfterTheOtherPredicate;
+import com.facebook.quickpromotion.filter.MessengerInstalledContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.MobileNetworkAvailableFilterPredicate;
+import com.facebook.quickpromotion.filter.NetworkConnectivityFilterPredicate;
+import com.facebook.quickpromotion.filter.OtherPromotionEventFilterPredicate;
+import com.facebook.quickpromotion.filter.PreInstalledContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.QuickPromotionCounters;
+import com.facebook.quickpromotion.filter.RtcPresenceContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.SecondsSinceMessageReceivedPredicate;
+import com.facebook.quickpromotion.filter.SecondsSinceMessageSentPredicate;
+import com.facebook.quickpromotion.filter.SecondsSinceMeteredConnectionChangedFilter;
+import com.facebook.quickpromotion.filter.TimeOfDayAfterFilterPredicate;
+import com.facebook.quickpromotion.filter.TimeOfDayBeforeFilterPredicate;
+import com.facebook.quickpromotion.filter.TimeSinceDismissFilter;
+import com.facebook.quickpromotion.filter.TimeSinceForegroundFilterPredicate;
+import com.facebook.quickpromotion.filter.TimeSinceImpressionFilter;
+import com.facebook.quickpromotion.filter.UnknownContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.UserRankContextualFilterPredicate;
+import com.facebook.quickpromotion.filter.WifiConnectedContextualFilterPredicate;
+import com.facebook.quickpromotion.ui.QuickPromotionDiveBarController;
+import com.facebook.quickpromotion.ui.QuickPromotionFragmentFactory;
+import com.facebook.quickpromotion.ui.QuickPromotionTabFragmentFactory;
+import com.facebook.quickpromotion.ui.QuickPromotionToastFooterController;
+import com.facebook.quickpromotion.validators.QuickPromotionClientsideDynamicParametersValidator;
+import com.facebook.quickpromotion.validators.QuickPromotionContextualFilterValidator;
+import com.facebook.rapidfeedback.RapidFeedbackController;
+import com.facebook.rapidfeedback.nux.RapidFeedbackNuxInterstitialController;
+import com.facebook.reaction.ReactionMediaGalleryUtil;
+import com.facebook.reaction.ReactionPlaceTipsPostComposeManager;
+import com.facebook.reaction.ReactionSessionHelper;
+import com.facebook.reaction.ReactionSessionManager;
+import com.facebook.reaction.ReactionThemedContextHelper;
+import com.facebook.reaction.ReactionUtil;
+import com.facebook.reaction.action.PagesReactionManager;
+import com.facebook.reaction.action.ReactionIntentFactory;
+import com.facebook.reaction.common.ReactionUnitValidator;
+import com.facebook.reaction.event.ReactionEventBus;
+import com.facebook.reaction.feed.ReactionRootPartDefinition;
+import com.facebook.reaction.feed.common.ReactionDividerUnitComponentPartDefinition;
+import com.facebook.reaction.feed.corecomponents.partdefinition.ReactionCoreButtonComponentPartDefinition;
+import com.facebook.reaction.feed.corecomponents.partdefinition.ReactionCoreHorizontalListComponentPartDefinition;
+import com.facebook.reaction.feed.corecomponents.partdefinition.ReactionCoreImageComponentPartDefinition;
+import com.facebook.reaction.feed.corecomponents.partdefinition.ReactionCoreImageTextComponentPartDefinition;
+import com.facebook.reaction.feed.corecomponents.partdefinition.ReactionCoreTextComponentPartDefinition;
+import com.facebook.reaction.feed.pages.ReactionPagesPinnedPostGroupPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionCenterAlignedHeaderPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionDescriptiveHeaderPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionFacepileHeaderSelectorPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionIconHeaderSelectorPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionIconInlineActionHeaderSelectorPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionIconPivotHeaderPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionMultiActionFooterPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionSingleActionFooterPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionStoryUnitSelectorPartDefinition;
+import com.facebook.reaction.feed.rows.ReactionUnitStackPartDefinition;
+import com.facebook.reaction.feed.rows.attachments.ReactionEventBlocksAttachmentPartDefinition;
+import com.facebook.reaction.feed.rows.attachments.ReactionImageTextBlockAttachmentPartDefinition;
+import com.facebook.reaction.feed.rows.attachments.ReactionPageLikesAndVisitsAttachmentPartDefinition;
+import com.facebook.reaction.feed.rows.attachments.ReactionProfileStoryAttachmentSelectorPartDefinition;
+import com.facebook.reaction.feed.rows.attachments.ReactionSimpleLeftRightTextAttachmentPartDefinition;
+import com.facebook.reaction.feed.rows.attachments.ReactionSinglePhotoAttachmentPartDefinition;
+import com.facebook.reaction.feed.rows.attachments.ReactionTopicBlocksAttachmentPartDefinition;
+import com.facebook.reaction.feed.rows.subparts.ReactionExtendedWidthPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionActionListGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionArticleUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionBannerHighlightableUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionCenteredParagraphUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionCollapsableIconMessageWithCaretUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionCountsHorizontalUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionEventRowWithCoverPhotoUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionEventRowWithoutCoverPhotoUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionExpandableUnitComponentGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionFacepileHScrollUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionFigActionFooterGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionFigFooterGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionFigHeaderUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionFooterUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionFormattedParagraphUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionFundraiserAmountRaisedUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionGroupDescriptionPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionHScrollGenericComponentsListPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionHeaderUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionHeaderWithVerifiedBadgeComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionIconMessageAutoActionUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionIconMessageSmallTitleComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionIconMessageUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionIconMessageUnitComponentSelector;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionIconOverMessageUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionImageBlockUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionImageStoryBlockUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionImageWithOverlayGridUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionImageWithTextOverlayUnitComponentGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionInfoRowUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionInfoRowWithRightIconUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionMapWithBreadcrumbsHeaderUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionMessageAndBreadcrumbsUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPageMapWithNavigationUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPaginatedVScrollGenericComponentsListPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPhotoFullWidthCounterUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPhotoOneAspectRatioUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPhotoZeroAspectRatioUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPhotosUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPlaceInfoBlurbUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPlaceInfoBlurbWithBreadcrumbsUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPlaceWithMetadataUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPlaceholderPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionPostPivotUnitComponentDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionProfileFramePartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionProgressBarUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionReviewComposerUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionReviewUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionSectionHeaderPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionSimpleTextUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionSingleButtonUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionSingleImageUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionStaticMapUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionStoryBlockUnitComponentPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionTabSwitcherPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionTextWithInlineFacepileGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionVerticalActionWithComponentsPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionVerticalComponentsNoBottomGapGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionVerticalComponentsSelectorPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionVerticalListUnitComponentGroupPartDefinition;
+import com.facebook.reaction.feed.unitcomponents.partdefinition.ReactionVideoUnitComponentPartDefinition;
+import com.facebook.reaction.intent.ReactionIntentLauncher;
+import com.facebook.reaction.intent.ReactionReviewUpdateHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionAdminedPagesListHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionBoostedLocalAwarenessHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionCriticReviewHscrollHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionEventBlocksHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionEventHScrollLargeHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionEventLargeHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionEventsCardLargeViewHelper;
+import com.facebook.reaction.ui.attachment.handler.ReactionFacepileHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionFacepileHscrollHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionFriendYouMayInviteToLikePageHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionImageTextBlockHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionOGObjectBlocksHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPageAttributionHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPageCommerceProductHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPageLikesAndVisitsHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPageResidenceHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPageServiceItemHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPageYouMayLikeHscrollHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPlaceQuestionHorizontalAttachmentHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPlaceQuestionThankyouAttachmentHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPlaceQuestionVerticalAttachmentHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionPopularProductHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionProfileHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionProfileHscrollHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionProfileStoryHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionSimpleLeftRightTextHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionSimpleTextHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionSinglePhotoHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionTodayGenericProfileHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionTopicBlocksHandler;
+import com.facebook.reaction.ui.attachment.handler.ReactionVideoHscrollHandler;
+import com.facebook.reaction.ui.attachment.handler.photos.ReactionDefaultPhotosHandlerProvider;
+import com.facebook.reaction.ui.attachment.handler.photos.ReactionPhotosWithAttributionHandlerProvider;
+import com.facebook.reaction.ui.attachment.style.ReactionAdminedPagesListAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionBoostedLocalAwarenessAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionCriticReviewHscrollAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionEventBlocksAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionEventHScrollLargeAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionEventLargeAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionFacepileAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionFacepileHscrollAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionFriendYouMayInviteToLikePageAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionImageTextBlockAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionOGObjectBlocksAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPageAttributionAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPageCommerceAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPageLikesAndVisitsAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPageResidenceAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPageServiceListAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPageYouMayLikeHscrollAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPhotosAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPhotosLargeAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPhotosWithAttributionAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPlaceQuestionHorizontalAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPlaceQuestionThankyouAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPlaceQuestionVerticalAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionPopularProductAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionProfileAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionProfileHscrollAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionProfileStoryAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionSimpleLeftRightTextAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionSimpleTextAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionSinglePhotoAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionTodayGenericMLEImageBlocksAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionTopicBlocksAttachmentStyle;
+import com.facebook.reaction.ui.attachment.style.ReactionVideoHscrollAttachmentStyle;
+import com.facebook.reaction.ui.fragment.ReactionDialogFragmentFactory;
+import com.facebook.reaction.ui.fragment.ShowMoreAttachmentsFragmentFactory;
+import com.facebook.reaction.ui.fragment.ShowMoreComponentsFragmentFactory;
+import com.facebook.redspace.analytics.RedSpaceComposerListener;
+import com.facebook.redspace.analytics.RedSpaceGridOpenListener;
+import com.facebook.redspace.analytics.logger.RedSpaceLogger;
+import com.facebook.redspace.analytics.logger.RedSpaceTimeLogger;
+import com.facebook.redspace.badge.RedSpaceTabUnseenCountFetcher;
+import com.facebook.redspace.data.RedSpaceFeedProfileUnreadStoriesHelper;
+import com.facebook.redspace.data.RedSpaceFriendsCacheHelper;
+import com.facebook.redspace.data.RedSpaceFriendsCollection;
+import com.facebook.redspace.data.RedSpaceMutationsExecutor;
+import com.facebook.redspace.data.RedSpaceNewsFeedTitle;
+import com.facebook.redspace.data.RedSpaceSelfProfileDataStore;
+import com.facebook.redspace.data.RedSpaceSelfViewMutator;
+import com.facebook.redspace.data.RedSpaceTimeHelper;
+import com.facebook.redspace.data.RedSpaceWallItemDebugWriter;
+import com.facebook.redspace.data.cache.RedSpaceMemoryFriendsCache;
+import com.facebook.redspace.debug.RedSpaceFriendsDebugWriter;
+import com.facebook.redspace.debug.RedSpaceStoriesDebugWriter;
+import com.facebook.redspace.entry.RedSpaceEntryDescriptionHelper;
+import com.facebook.redspace.event.RedSpaceEventBus;
+import com.facebook.redspace.fetcher.RedSpaceBatchFetcher;
+import com.facebook.redspace.fetcher.RedSpaceBatchRequests;
+import com.facebook.redspace.fetcher.RedSpaceFriendsImageSizeResolver;
+import com.facebook.redspace.fetcher.RedSpaceRequests;
+import com.facebook.redspace.fetcher.RedSpaceViewerProfileFetcher;
+import com.facebook.redspace.fetcher.RedSpaceViewerProfileHelper;
+import com.facebook.redspace.fragment.RedSpaceFriendsOverflowFragmentFactory;
+import com.facebook.redspace.fragment.RedSpaceHomeFragmentFactory;
+import com.facebook.redspace.nux.RedSpaceDivebarInterstitialController;
+import com.facebook.redspace.nux.RedSpaceInterstitialController;
+import com.facebook.redspace.pagerindicator.ArgbEvaluatorCompat;
+import com.facebook.redspace.rows.RedSpaceFeedRootGroupPartDefinition;
+import com.facebook.redspace.rows.RedSpaceNewsFeedTitlePartDefinition;
+import com.facebook.redspace.rows.RedSpaceProfileNavigationPartDefinition;
+import com.facebook.redspace.rows.header.RedSpaceHeaderGroupPartDefinition;
+import com.facebook.redspace.rows.header.RedSpaceHeaderTitlePartDefinition;
+import com.facebook.redspace.rows.sharedactivities.RedSpaceSharedActivitiesGroupPartDefinition;
+import com.facebook.redspace.rows.visits.RedSpaceVisitorsPartDefinition;
+import com.facebook.redspace.ui.RedSpaceFriendOptionsHelper;
+import com.facebook.redspace.ui.RedSpaceGridEqualSpacingDecorator;
+import com.facebook.redspace.ui.animation.RedSpaceAnimations;
+import com.facebook.redspace.ui.friendslist.RedSpaceFriendsItemHelper;
+import com.facebook.reportaproblem.fb.FbBitmapDecoder;
+import com.facebook.reportaproblem.fb.FbBugReportMetadata;
+import com.facebook.reportaproblem.fb.FbBugReportUploadMethod;
+import com.facebook.reportaproblem.fb.FbBugReportUploader;
+import com.facebook.resources.impl.loading.LanguagePackDownloader;
+import com.facebook.resources.impl.loading.LanguagePrefetchConditionalWorker;
+import com.facebook.resources.impl.loading.LanguagePrefetcher;
+import com.facebook.reviews.adapter.PlacesToReviewSection;
+import com.facebook.reviews.adapter.SingleReviewSection;
+import com.facebook.reviews.adapter.UserReviewsInfiniteScrollFooter;
+import com.facebook.reviews.adapter.UserReviewsListSeeMoreFooter;
+import com.facebook.reviews.adapter.UserReviewsSection;
+import com.facebook.reviews.analytics.ReviewsLogger;
+import com.facebook.reviews.event.ReviewEventBus;
+import com.facebook.reviews.feed.ReviewsFeedComposerLauncherAndHandler;
+import com.facebook.reviews.handler.DeleteReviewHandler;
+import com.facebook.reviews.intent.ReviewsListLauncher;
+import com.facebook.reviews.ui.PageReviewsFragmentFactory;
+import com.facebook.reviews.ui.UserReviewsFragmentFactory;
+import com.facebook.reviews.util.PageReviewLoader;
+import com.facebook.reviews.util.helper.ReviewsImageHelper;
+import com.facebook.reviews.util.intent.ReviewComposerLauncherAndHandler;
+import com.facebook.reviews.util.intent.StoryReviewComposerLauncherAndHandler;
+import com.facebook.reviews.util.protocol.graphql.FetchPlacesToReviewGraphQLRequest;
+import com.facebook.reviews.util.protocol.graphql.FetchSingleReviewGraphQLRequest;
+import com.facebook.reviews.util.protocol.graphql.FetchUpdatedPlaceReviewContextQueryRequest;
+import com.facebook.reviews.util.protocol.graphql.FetchUpdatedUserReviewForPageGraphQLRequest;
+import com.facebook.reviews.util.protocol.graphql.FetchUserReviewsGraphQLRequest;
+import com.facebook.richdocument.RichDocumentInfo;
+import com.facebook.richdocument.ThirdPartyTrackerHandler;
+import com.facebook.richdocument.event.RichDocumentEventBus;
+import com.facebook.richdocument.event.RichDocumentSessionEventBus;
+import com.facebook.richdocument.fonts.FontCache;
+import com.facebook.richdocument.fonts.FontResourceCache;
+import com.facebook.richdocument.fonts.FontsDownloader;
+import com.facebook.richdocument.fonts.RichDocumentFontManager;
+import com.facebook.richdocument.fonts.RichDocumentFonts;
+import com.facebook.richdocument.ham.HamDimensions;
+import com.facebook.richdocument.ham.HamViewUtils;
+import com.facebook.richdocument.logging.ImagePerfLogger;
+import com.facebook.richdocument.logging.NativeAdsPerfInfoLogger;
+import com.facebook.richdocument.logging.RichDocumentAnalyticsLogger;
+import com.facebook.richdocument.logging.RichDocumentLoggingUtils;
+import com.facebook.richdocument.logging.RichDocumentLongClickTracker;
+import com.facebook.richdocument.logging.RichDocumentScrollDepthLogger;
+import com.facebook.richdocument.logging.RichDocumentSessionTracker;
+import com.facebook.richdocument.logging.WebViewPerfInfoLogger;
+import com.facebook.richdocument.nux.InstantArticleIconInterstitialController;
+import com.facebook.richdocument.presenter.PageLikeActionHelper;
+import com.facebook.richdocument.view.block.BlockViewUtil;
+import com.facebook.richdocument.view.performance.IncrementalUiIdleJobManager;
+import com.facebook.richdocument.view.util.CompositeRecyclableViewFactory;
+import com.facebook.richdocument.view.util.RichDocumentLayoutDirection;
+import com.facebook.richdocument.view.widget.ExpandedMediaHolder;
+import com.facebook.rtc.Boolean_IsVoipVideoEnabledMethodAutoProvider;
+import com.facebook.rtc.campon.RtcCampOnManager;
+import com.facebook.rtc.dialogs.RtcMergedAudioVideoDialogHelper;
+import com.facebook.rtc.dialogs.WebrtcGroupDialogBuilder;
+import com.facebook.rtc.fbwebrtc.VoipStatusHandler;
+import com.facebook.rtc.fbwebrtc.WebrtcUiHandler;
+import com.facebook.rtc.models.RecentCallsDb;
+import com.facebook.rtcpresence.RtcPresenceHandler;
+import com.facebook.runtimepermissions.RuntimePermissionsUtil;
+import com.facebook.saved.analytics.SaveAnalyticsLogger;
+import com.facebook.saved.common.nux.DownloadVideoBookmarksNuxInterstitialController;
+import com.facebook.saved.common.protocol.UpdateSavedStateMethod;
+import com.facebook.saved.common.protocol.UpdateSavedStateUtils;
+import com.facebook.saved.common.sync.SavedEventHandler;
+import com.facebook.saved.fragment.SavedFragmentFactory;
+import com.facebook.saved.helper.SavedSectionHelper;
+import com.facebook.saved.interstitial.SavedDashboardInterstitialController;
+import com.facebook.saved.loader.SavedDashboardDataFetcher;
+import com.facebook.saved.loader.SavedDashboardEarlyFetcher;
+import com.facebook.saved2.ui.Saved2NetworkController;
+import com.facebook.saved2.ui.contextmenu.Saved2ContextMenuFactory;
+import com.facebook.saved2.ui.itemadapters.Saved2ItemClickHandler;
+import com.facebook.saved2.ui.mutator.Saved2DbMutator;
+import com.facebook.search.api.EdgeRoutingConfig;
+import com.facebook.search.api.protocol.FetchGraphSearchTypeaheadApiMethod;
+import com.facebook.search.api.protocol.FetchSimpleSearchTypeaheadApiMethod;
+import com.facebook.search.api.protocol.SearchTypeaheadApiMethodUtil;
+import com.facebook.search.bootstrap.PendingBootstrapEntitiesManager;
+import com.facebook.search.bootstrap.common.normalizer.NormalizedTokenHelper;
+import com.facebook.search.bootstrap.converter.BootstrapEntityConverter;
+import com.facebook.search.bootstrap.converter.BootstrapKeywordConverter;
+import com.facebook.search.bootstrap.db.DbBootstrapPerformanceLogger;
+import com.facebook.search.bootstrap.db.data.BootstrapDatabaseSupplier;
+import com.facebook.search.bootstrap.db.data.BootstrapDbCacheWarmer;
+import com.facebook.search.bootstrap.db.data.BootstrapDbCacheWarmerTimer;
+import com.facebook.search.bootstrap.db.data.BootstrapDbFetchHelper;
+import com.facebook.search.bootstrap.db.data.BootstrapDbInsertHelper;
+import com.facebook.search.bootstrap.db.data.BootstrapDbPropertyUtil;
+import com.facebook.search.bootstrap.sync.BootstrapEntitiesLoader;
+import com.facebook.search.bootstrap.sync.BootstrapKeywordsLoader;
+import com.facebook.search.bootstrap.sync.BootstrapSyncConditionalWorker;
+import com.facebook.search.events.FriendshipEventSubscriber;
+import com.facebook.search.fragmentfactory.EntitiesFragmentFactory;
+import com.facebook.search.fragmentfactory.FeedFragmentFactory;
+import com.facebook.search.fragmentfactory.FilterTypeaheadFragmentFactory;
+import com.facebook.search.fragmentfactory.GraphSearchFragmentFactory;
+import com.facebook.search.fragmentfactory.LiveFeedFragmentFactory;
+import com.facebook.search.fragmentfactory.PandoraPhotosFragmentFactory;
+import com.facebook.search.fragmentfactory.PlacesFragmentFactory;
+import com.facebook.search.fragmentfactory.ResultsFragmentFactory;
+import com.facebook.search.intent.SearchFilterTypeaheadIntentBuilder;
+import com.facebook.search.intent.SearchResultsIntentBuilder;
+import com.facebook.search.logging.SearchResultsLogger;
+import com.facebook.search.logging.SearchResultsPerformanceLogger;
+import com.facebook.search.logging.SuggestionsTypeaheadAnalyticHelper;
+import com.facebook.search.logging.perf.SearchPerfLoggerImpl;
+import com.facebook.search.logging.perf.SearchPerfNoOpLogger;
+import com.facebook.search.model.TypeaheadSuggestionsCache;
+import com.facebook.search.model.converter.SearchSpotlightGraphQLModelConverter;
+import com.facebook.search.model.visitor.GetTitleOfTypeaheadSuggestionVisitor;
+import com.facebook.search.module.SearchPerfLoggerMethodAutoProvider;
+import com.facebook.search.protocol.SnippetsUtil;
+import com.facebook.search.quickpromotion.QuickPromotionSearchMegaphoneController;
+import com.facebook.search.quickpromotion.ScopedSearchGroupsNuxController;
+import com.facebook.search.quickpromotion.SearchAwarenessFormattedTooltip;
+import com.facebook.search.quickpromotion.SearchAwarenessLearningNuxConfigurationLoader;
+import com.facebook.search.quickpromotion.SearchAwarenessOptOutController;
+import com.facebook.search.quickpromotion.SearchAwarenessTutorialNuxConfigurationLoader;
+import com.facebook.search.quickpromotion.SearchAwarenessTutorialNuxConfigurationValidator;
+import com.facebook.search.quickpromotion.SearchAwarenessTutorialNuxController;
+import com.facebook.search.quickpromotion.SearchSpotlightConfigurationValidator;
+import com.facebook.search.quickpromotion.SearchTrendingAwarenessNuxInterstitialController;
+import com.facebook.search.quickpromotion.TutorialNuxInterstitialController;
+import com.facebook.search.results.factory.graphsearch.GraphSearchAnnotationUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchAttachmentCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchCentralEntityWikiUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchCommerceCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchComposerUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchEmptyEntityUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchEmptyUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchEntityPivotCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchEntityUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchFeedUnitMetaFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchForSalePostsFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchNewsContextUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchNodesCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchPulseContextUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchPulsePhrasesCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchPulseQuotesCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchPulseSentimentUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchPulseStoriesFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchPulseTopicMetadataUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchReactionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchResultsBridgeMetaFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchSeeMoreUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchSportsTeamCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchSportsUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchStoriesFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchStoryCollectionUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchUnsupportedUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchVideoUnitFactory;
+import com.facebook.search.results.factory.graphsearch.GraphSearchVideosModuleFactory;
+import com.facebook.search.results.factory.graphsearch.answer.TimeUnitFactory;
+import com.facebook.search.results.filters.controller.SearchResultPageFilterController;
+import com.facebook.search.results.filters.definition.SearchResultPageDistanceFilterDefinition;
+import com.facebook.search.results.filters.definition.SearchResultPagePriceFilterDefinition;
+import com.facebook.search.results.filters.definition.SearchResultPageRadioGroupFilterDefinition;
+import com.facebook.search.results.filters.definition.SearchResultPageUnsupportedFilterDefinition;
+import com.facebook.search.results.filters.model.SearchResultPageMainFilterConverter;
+import com.facebook.search.results.fragment.pps.SeeMoreResultsListAdapter;
+import com.facebook.search.results.fragment.spec.AppsFragmentSpec;
+import com.facebook.search.results.fragment.spec.BlendedVideosFragmentSpec;
+import com.facebook.search.results.fragment.spec.EventsFragmentSpec;
+import com.facebook.search.results.fragment.spec.GraphSearchResultFragmentSpecificationRegistry;
+import com.facebook.search.results.fragment.spec.GroupsFragmentSpec;
+import com.facebook.search.results.fragment.spec.LatestFragmentSpec;
+import com.facebook.search.results.fragment.spec.MarketplaceFragmentSpec;
+import com.facebook.search.results.fragment.spec.PagesFragmentSpec;
+import com.facebook.search.results.fragment.spec.PeopleFragmentSpec;
+import com.facebook.search.results.fragment.spec.PhotosFragmentSpec;
+import com.facebook.search.results.fragment.spec.PlacesFragmentSpec;
+import com.facebook.search.results.fragment.spec.PostsFragmentSpec;
+import com.facebook.search.results.fragment.spec.TopEntitiesFragmentSpec;
+import com.facebook.search.results.fragment.spec.TopFragmentSpec;
+import com.facebook.search.results.fragment.spec.TopReactionFragmentSpec;
+import com.facebook.search.results.fragment.spec.VideoChannelsFragmentSpec;
+import com.facebook.search.results.fragment.spec.VideosFragmentSpec;
+import com.facebook.search.results.livefeed.loader.LiveFeedDataLoaderProvider;
+import com.facebook.search.results.livefeed.loader.LiveFeedRefreshController;
+import com.facebook.search.results.loader.SearchResultsObjectInitializer;
+import com.facebook.search.results.loader.modules.SearchResultsCollectionGraphQLConverter;
+import com.facebook.search.results.loader.modules.SearchResultsFeedModulesDataLoader;
+import com.facebook.search.results.mutator.SearchResultsStoryLikeMutator;
+import com.facebook.search.results.rows.SearchResultsBridgePartDefinition;
+import com.facebook.search.results.rows.SearchResultsFeedRootPartDefinition;
+import com.facebook.search.results.rows.SearchResultsRootPartDefinition;
+import com.facebook.search.results.rows.SearchResultsRowSelectorPartDefinition;
+import com.facebook.search.results.rows.sections.SearchResultsCollectionGroupPartDefinition;
+import com.facebook.search.results.rows.sections.SearchResultsTopModuleSelectorPartDefinition;
+import com.facebook.search.results.rows.sections.answer.SearchResultsTimeGroupPartDefinition;
+import com.facebook.search.results.rows.sections.central.SearchResultsCentralEntityPhotoPartDefinition;
+import com.facebook.search.results.rows.sections.central.SearchResultsCentralEntityWikiConvertedGroupPartDefinition;
+import com.facebook.search.results.rows.sections.central.SearchResultsCentralEntityWikiGroupPartDefinition;
+import com.facebook.search.results.rows.sections.collection.OldSearchResultsGroupPartDefinition;
+import com.facebook.search.results.rows.sections.collection.SearchResultsAwarenessNodePartDefinition;
+import com.facebook.search.results.rows.sections.collection.SearchResultsStoryCollectionGroupPartDefinition;
+import com.facebook.search.results.rows.sections.commerce.SearchResultsCommerceGroupPartDefinition;
+import com.facebook.search.results.rows.sections.common.SearchResultsAnnotationSelectorPartDefinition;
+import com.facebook.search.results.rows.sections.common.SearchResultsPostsHeaderPartDefinition;
+import com.facebook.search.results.rows.sections.common.SearchResultsSeeMoreClickListenerPartDefinition;
+import com.facebook.search.results.rows.sections.common.SearchResultsTabSwitchPartDefinition;
+import com.facebook.search.results.rows.sections.composer.SearchComposerSinglePartDefinition;
+import com.facebook.search.results.rows.sections.derp.DerpSuperDenseHeaderNoAttachmentPartDefinition;
+import com.facebook.search.results.rows.sections.derp.DerpSuperDenseStoryPartDefinition;
+import com.facebook.search.results.rows.sections.derp.SmallPhotoShareAttachmentWithMarginPartDefinition;
+import com.facebook.search.results.rows.sections.entities.SearchResultsEntitiesRootGroupPartDefinition;
+import com.facebook.search.results.rows.sections.entities.SearchResultsEntityLargeRowPartDefinition;
+import com.facebook.search.results.rows.sections.entities.SearchResultsEntityPivotsGroupPartDefinition;
+import com.facebook.search.results.rows.sections.entities.SearchResultsEntityTitlePartDefinition;
+import com.facebook.search.results.rows.sections.entities.SearchResultsSingleEntityNodePartDefinition;
+import com.facebook.search.results.rows.sections.eyewitness.SearchResultsEyewitnessGroupPartDefinition;
+import com.facebook.search.results.rows.sections.fanfavorite.SearchResultsGametimeFanFavoriteGroupPartDefinition;
+import com.facebook.search.results.rows.sections.groupcommerce.GroupCommerceWrapperGroupPartDefinition;
+import com.facebook.search.results.rows.sections.header.SearchResultsSectionHeaderModulePartDefinition;
+import com.facebook.search.results.rows.sections.header.SearchResultsWayfinderPartDefinition;
+import com.facebook.search.results.rows.sections.livefeed.LiveFeedCompactStoryPartDefinition;
+import com.facebook.search.results.rows.sections.livefeed.LiveFeedGroupPartDefinition;
+import com.facebook.search.results.rows.sections.livevideos.SearchResultsLiveVideosModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.local.SearchResultsPlacePartDefinition;
+import com.facebook.search.results.rows.sections.local.SearchResultsPlacesMapPartDefinition;
+import com.facebook.search.results.rows.sections.newscontext.SearchResultsNewsContextSelectorPartDefinition;
+import com.facebook.search.results.rows.sections.noresults.SearchResultsEmptyEntityModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.noresults.SearchResultsEmptyUnitPartDefinition;
+import com.facebook.search.results.rows.sections.noresults.SearchResultsNoResultsGroupPartDefinition;
+import com.facebook.search.results.rows.sections.pulse.PulseContextConvertedGroupPartDefinition;
+import com.facebook.search.results.rows.sections.pulse.PulseContextGroupPartDefinition;
+import com.facebook.search.results.rows.sections.pulse.PulseSentimentGroupPartDefinition;
+import com.facebook.search.results.rows.sections.pulse.PulseStoriesGroupPartDefinition;
+import com.facebook.search.results.rows.sections.seemore.SearchResultsSeeMoreGroupPartDefinition;
+import com.facebook.search.results.rows.sections.seemore.SearchResultsSeeMoreQueryPartDefinition;
+import com.facebook.search.results.rows.sections.spellcorrection.SearchResultsSpellCorrectionGroupPartDefinition;
+import com.facebook.search.results.rows.sections.sports.SportsGroupPartDefinition;
+import com.facebook.search.results.rows.sections.stories.SearchResultsStoryGroupPartDefinition;
+import com.facebook.search.results.rows.sections.unsupported.SearchResultsUnsupportedResultPartDefinition;
+import com.facebook.search.results.rows.sections.unsupported.UnsupportedModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsFeedVideosModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsGrammarVideosModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsLiveVideoPagePartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsTopVideosModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsVideoChannelLargeRowPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsVideoPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsVideosHScrollPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsVideosModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsWebVideoPartDefinition;
+import com.facebook.search.results.rows.sections.videos.SearchResultsWebVideosModuleGroupPartDefinition;
+import com.facebook.search.results.rows.sections.videos.inline.SearchResultsInlineVideoPagePartDefinition;
+import com.facebook.search.results.rows.sections.videos.topvideo.TopVideoModuleGroupPartDefinition;
+import com.facebook.search.searchbox.GraphSearchTitleSearchBoxSupplier;
+import com.facebook.search.suggestions.QueryTextSuggestionFilter;
+import com.facebook.search.suggestions.SuggestionsListRowItemFactory;
+import com.facebook.search.suggestions.loader.GraphSearchTypeaheadSuggestionDeduper;
+import com.facebook.search.suggestions.loader.RemoteTypeaheadLoader;
+import com.facebook.search.suggestions.log.LogSelectedSuggestionToActivityLogHelper;
+import com.facebook.search.suggestions.logging.SuggestionsLoggingViewportEventListener;
+import com.facebook.search.suggestions.nullstate.DefaultSearchNullStateListSupplier;
+import com.facebook.search.suggestions.nullstate.NullStatePartDefinitionInitializer;
+import com.facebook.search.suggestions.nullstate.NullStateSyncConditionalWorker;
+import com.facebook.search.suggestions.nullstate.ScopedNullStateSupplier;
+import com.facebook.search.suggestions.nullstate.SearchNullStateListSupplier;
+import com.facebook.search.suggestions.nullstate.TabbedSearchNullStateListSupplier;
+import com.facebook.search.suggestions.nullstate.mutator.AddRecentSearchCacheVisitorProvider;
+import com.facebook.search.suggestions.nullstate.mutator.RecentSearchCacheMutator;
+import com.facebook.search.suggestions.simplesearch.LocalTypeaheadLoader;
+import com.facebook.search.suggestions.simplesearch.RemoteCombinedTypeaheadFetcher;
+import com.facebook.search.suggestions.simplesearch.RemoteTypeaheadFetcher;
+import com.facebook.search.suggestions.simplesearch.SimpleSearchSuggestionsTypeaheadController;
+import com.facebook.search.suggestions.simplesearch.VideoScopedSuggestionsFilter;
+import com.facebook.search.suggestions.systems.FlipOnceKeywordSearchTypeaheadSystem;
+import com.facebook.search.suggestions.systems.KeywordsOnTopSearchTypeaheadSystem;
+import com.facebook.search.suggestions.systems.NeueSingleStateSearchTypeaheadSystem;
+import com.facebook.search.suggestions.systems.ScopedSearchTypeaheadSystem;
+import com.facebook.search.suggestions.systems.SearchKeywordsEntitiesTypeaheadSystem;
+import com.facebook.search.suggestions.systems.SearchKeywordsOnlyTypeaheadSystem;
+import com.facebook.search.suggestions.systems.SearchTypeaheadSystemFactory;
+import com.facebook.search.suggestions.systems.SimpleSearchTypeaheadSystem;
+import com.facebook.search.suggestions.systems.SingleStateSearchTypeaheadSystem;
+import com.facebook.search.suggestions.viewbinder.EntitySuggestionViewBinder;
+import com.facebook.search.suggestions.viewbinder.TextResultsViewBinder;
+import com.facebook.search.titlebar.GraphSearchIntentLauncher;
+import com.facebook.search.titlebar.GraphSearchTitleBarController;
+import com.facebook.search.typeahead.rows.SearchHScrollRecyclerRecentPartDefinition;
+import com.facebook.search.typeahead.rows.SearchNeueTypeaheadPartDefinition;
+import com.facebook.search.typeahead.rows.SearchSpotlightHScrollRecyclerPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadDividerPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadEmptyScopedNullStateSelectorPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadEntityComponentPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadEntityPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadFindMorePartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadGapPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadHeaderPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadHorizontalRecentPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadKeywordPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadNearbyPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadNeueTrendingEntityPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadNullStateSuggestionPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadPlaceTipsPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadQRCodePartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadRootGroupPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadShortcutPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadSimpleEntityPartDefinition;
+import com.facebook.search.typeahead.rows.SearchTypeaheadSimpleKeywordPartDefinition;
+import com.facebook.search.typeahead.rows.UnsupportedSearchTypeaheadPartDefinition;
+import com.facebook.search.typeahead.rows.nullstate.NullStateSeeMorePartDefinition;
+import com.facebook.search.util.GraphSearchConfig;
+import com.facebook.search.util.TypeaheadRowTitleFormatter;
+import com.facebook.search.util.TypeaheadTextMatcherFactory;
+import com.facebook.search.util.keyword.KeywordSuggestionHighlightingUtil;
+import com.facebook.search.util.text.TextToPhoneticAndNormalizedTokensUtil;
+import com.facebook.securitycheckup.SecurityCheckupLogger;
+import com.facebook.securitycheckup.password.SecurityCheckupPasswordChangeFragmentFactory;
+import com.facebook.selfupdate.PackageValidator;
+import com.facebook.selfupdate.SelfUpdateNotifier;
+import com.facebook.slideshow.analytics.SlideshowLogger;
+import com.facebook.socialgood.FundraiserDonationFragmentFactory;
+import com.facebook.socialgood.FundraiserPageFragmentFactory;
+import com.facebook.socialgood.guestlist.FundraiserGuestListFragmentFactory;
+import com.facebook.socialgood.guestlist.FundraiserMessageGuestsFragmentFactory;
+import com.facebook.socialgood.inviter.FundraiserPageInviterFragmentFactory;
+import com.facebook.socialgood.ipc.SocialGoodUtil;
+import com.facebook.sounds.SoundPlayer;
+import com.facebook.sounds.configurator.AudioConfigRegistry;
+import com.facebook.sounds.fb4a.AudioConfigDataMethodAutoProvider;
+import com.facebook.sounds.fb4a.Fb4aSoundUtil;
+import com.facebook.sounds.fb4a.SoundResourceStoreMethodAutoProvider;
+import com.facebook.springs.SpringCurve;
+import com.facebook.springs.SpringSystem;
+import com.facebook.ssl.reporter.RootCAReporter;
+import com.facebook.ssl.trustmanager.FbTrustManagerFactory;
+import com.facebook.stickers.client.StickerToPackMetadataLoader;
+import com.facebook.stickers.data.StickerAssetDownloader;
+import com.facebook.stickers.data.StickerAssetsDownloadUtil;
+import com.facebook.stickers.data.StickerCache;
+import com.facebook.stickers.data.StickerDbStorageImpl;
+import com.facebook.stickers.service.StickerAssetsHandler;
+import com.facebook.story.GraphQLStoryHelper;
+import com.facebook.storyteller.StoryTeller;
+import com.facebook.storyteller.StoryTellerConfig;
+import com.facebook.structuredsurvey.util.SurveyNotificationHelper;
+import com.facebook.survey.interstitial.SurveyDialogInterstitialController;
+import com.facebook.sync.analytics.MessageSyncAnalyticsLogger;
+import com.facebook.sync.util.ExponentialBackoffHelperFactory;
+import com.facebook.systrace.mainlooper.FbMainLooperTracer;
+import com.facebook.tablet.Boolean_IsTabletMethodAutoProvider;
+import com.facebook.tagging.conversion.UserIncludingSelfTokenMatcher;
+import com.facebook.tagging.data.TaggingProfiles;
+import com.facebook.tagging.data.UberbarDataSource;
+import com.facebook.tagging.graphql.data.ContactsDbTaggingDataSource;
+import com.facebook.tagging.graphql.data.GoodFriendsTaggingTypeaheadDataSource;
+import com.facebook.tagging.graphql.data.GraphQLTaggingDataSource;
+import com.facebook.telephony.FbPhoneNumberUtils;
+import com.facebook.text.imagerange.FrescoTextWithImageFetcher;
+import com.facebook.tigon.httpclientadapter.TigonHttpClientAdapterImpl;
+import com.facebook.timeline.CoverPhotoFragmentFactory;
+import com.facebook.timeline.ProfileNuxModalRunnableHelper;
+import com.facebook.timeline.TimelineFetchFutures;
+import com.facebook.timeline.TimelineFragmentFactory;
+import com.facebook.timeline.aboutpage.CollectionsCollectionFragmentFactory;
+import com.facebook.timeline.aboutpage.CollectionsSectionFragmentFactory;
+import com.facebook.timeline.aboutpage.CollectionsSummaryFragmentFactory;
+import com.facebook.timeline.aboutpage.CollectionsUriIntentBuilder;
+import com.facebook.timeline.actionbar.TimelineActionBarControllerDummy;
+import com.facebook.timeline.actionbar.TimelineActionBarManageButtonNuxController;
+import com.facebook.timeline.cache.TimelineUserDataCleaner;
+import com.facebook.timeline.cache.db.TimelineDatabaseSupplier;
+import com.facebook.timeline.cache.db.TimelineDbCache;
+import com.facebook.timeline.cache.db.TimelineDeletedRowsAnalyticsLogger;
+import com.facebook.timeline.cache.db.reporters.TimelineDbCachePeriodicReporter;
+import com.facebook.timeline.contextual.TimelineAboutProtilePresenter;
+import com.facebook.timeline.contextual.TimelineContextListItemPresenter;
+import com.facebook.timeline.contextual.TimelineContextualInfoControllerDummy;
+import com.facebook.timeline.contextual.TimelineIntroCardAboutItemsPresenter;
+import com.facebook.timeline.controllers.TimelineContactCacheController;
+import com.facebook.timeline.datafetcher.Fb4aPageFirstUnitsQueryExecutor;
+import com.facebook.timeline.datafetcher.FetchContactCacheTaskProvider;
+import com.facebook.timeline.datafetcher.TimelineContextItemQueryExecutor;
+import com.facebook.timeline.datafetcher.TimelineEarlyFetcher;
+import com.facebook.timeline.datafetcher.TimelineFirstUnitsEarlyFetcher;
+import com.facebook.timeline.datafetcher.TimelineFirstUnitsQueryBuilder;
+import com.facebook.timeline.datafetcher.TimelineHeaderCacheKeySerializer;
+import com.facebook.timeline.datafetcher.TimelineHeaderParallelQueryExecutor;
+import com.facebook.timeline.datafetcher.TimelineHeaderRequestFactory;
+import com.facebook.timeline.datafetcher.TimelineNonSelfFirstUnitsQueryExecutor;
+import com.facebook.timeline.datafetcher.TimelineSectionQueryExecutor;
+import com.facebook.timeline.datafetcher.TimelineSelfFirstUnitsQueryExecutor;
+import com.facebook.timeline.datafetcher.TimelineVisitedController;
+import com.facebook.timeline.delegate.TimelineFragmentHeaderFetchCallbackDelegate;
+import com.facebook.timeline.editfeaturedcontainers.rows.NullStateCameraSectionPartDefinition;
+import com.facebook.timeline.editfeaturedcontainers.rows.NullStateRecentSectionPartDefinition;
+import com.facebook.timeline.editfeaturedcontainers.rows.NullStateRootGroupPartDefinition;
+import com.facebook.timeline.editfeaturedcontainers.rows.NullStateSuggestedPagesSectionPartDefinition;
+import com.facebook.timeline.editfeaturedcontainers.rows.NullStateSuggestedPhotosSectionPartDefinition;
+import com.facebook.timeline.editfeaturedcontainers.rows.environments.HasRowKeyImplEmpty;
+import com.facebook.timeline.editfeaturedcontainers.utils.SaveFeaturedContainerController;
+import com.facebook.timeline.editfeaturedcontainers.utils.UploadFeaturedPhotoController;
+import com.facebook.timeline.event.TimelineHeaderEventBus;
+import com.facebook.timeline.event.TimelineStoryEventBus;
+import com.facebook.timeline.event.TimelineVisitedEventBus;
+import com.facebook.timeline.favmediapicker.rows.parts.CameraSectionPartDefinition;
+import com.facebook.timeline.favmediapicker.rows.parts.FavoriteMediaPickerRootGroupPartDefinition;
+import com.facebook.timeline.favmediapicker.rows.parts.SuggestedForYouLabelPartDefinition;
+import com.facebook.timeline.favmediapicker.rows.parts.SuggestedMediasetSectionPartDefinition;
+import com.facebook.timeline.feed.parts.TimelineFeedUnitRootPartDefinition;
+import com.facebook.timeline.feed.parts.TimelineLoadingIndicatorRootPartDefinition;
+import com.facebook.timeline.feed.parts.TimelineNoStoriesPartDefinition;
+import com.facebook.timeline.feed.parts.TimelinePostsLabelPartDefinition;
+import com.facebook.timeline.feed.parts.TimelineScrubberRootPartDefinition;
+import com.facebook.timeline.header.ProfileNuxEntryViewBinder;
+import com.facebook.timeline.header.ProfileNuxFlowStartedMutationController;
+import com.facebook.timeline.header.ProfileNuxViewMutationController;
+import com.facebook.timeline.header.ProfileVideoTrimmerNuxInterstitialController;
+import com.facebook.timeline.header.TimelineHeaderComposerBinder;
+import com.facebook.timeline.header.TimelineHeaderUpdateDispatcher;
+import com.facebook.timeline.header.bio.TimelineHeaderPerfControllerDummy;
+import com.facebook.timeline.header.bio.TimelineHeaderSuggestedBioBinder;
+import com.facebook.timeline.header.controllers.TimelineHeaderImagesController;
+import com.facebook.timeline.header.controllers.dummy.TimelineCoverPhotoControllerDummy;
+import com.facebook.timeline.header.controllers.dummy.TimelineProfileImageControllerDummy;
+import com.facebook.timeline.header.coverphoto.TimelineCoverPhotoLoggingHelper;
+import com.facebook.timeline.header.expirephoto.ExpirePhotoMutationClient;
+import com.facebook.timeline.header.externalLinks.IntroCardExternalLinkViewBinder;
+import com.facebook.timeline.header.favphotos.TimelineHeaderFavPhotosPostToFeedNuxInterstitialController;
+import com.facebook.timeline.header.favphotos.TimelineHeaderFeaturedPhotosMosaicBinder;
+import com.facebook.timeline.header.favphotos.TimelineHeaderSuggestedPhotosBinder;
+import com.facebook.timeline.header.favphotos.edit.FetchFavoritePhotoController;
+import com.facebook.timeline.header.favphotos.edit.UploadFavoritePhotoController;
+import com.facebook.timeline.header.intro.protocol.BioQueryExecutor;
+import com.facebook.timeline.header.intro.protocol.FavPhotosQueryExecutor;
+import com.facebook.timeline.header.menus.TimelineCoverPhotoMenuBuilder;
+import com.facebook.timeline.header.menus.TimelineFriendPopoverHelper;
+import com.facebook.timeline.header.profilevideo.TimelineProfileVideoViewportListener;
+import com.facebook.timeline.header.ui.NuxBorderDrawingHelper;
+import com.facebook.timeline.logging.TimelineAnalyticsLogger;
+import com.facebook.timeline.navtiles.TimelineNavtileControllerDummy;
+import com.facebook.timeline.prefs.TimelineConfig;
+import com.facebook.timeline.profilemedia.ProfileMediaChangeBroadcaster;
+import com.facebook.timeline.profilemedia.ProfileMediaOptimisticPostingController;
+import com.facebook.timeline.profilemedia.crop.ProfilePicCropHandler;
+import com.facebook.timeline.profilemedia.upload.ProfileMediaUploadReceiver;
+import com.facebook.timeline.profilepiccoverphotoupload.ProfilePicUploadHandler;
+import com.facebook.timeline.profilepiccoverphotoupload.SetCoverPhotoHandler;
+import com.facebook.timeline.profilepiccoverphotoupload.SetCoverPhotoMethod;
+import com.facebook.timeline.profileprotocol.FetchTimelineHeaderParamsFactory;
+import com.facebook.timeline.profileprotocol.HideTimelineStoryMethod;
+import com.facebook.timeline.profilevideo.logging.ProfileVideoSessionTracker;
+import com.facebook.timeline.profilevideo.qp.filter.ProfileVideoCannotCreateFilter;
+import com.facebook.timeline.profilevideo.qp.filter.ProfileVideoCannotViewFilter;
+import com.facebook.timeline.protiles.rows.ProtilesLoadingIndicatorPartDefinition;
+import com.facebook.timeline.protiles.rows.ProtilesRootGroupPartDefinition;
+import com.facebook.timeline.protiles.rows.ProtilesRootPartDefinition;
+import com.facebook.timeline.protiles.rows.TimelinePendingFriendRequestsPartDefinition;
+import com.facebook.timeline.protiles.util.ProtilesQueryBuilder;
+import com.facebook.timeline.publisher.TimelinePublishControllerDummy;
+import com.facebook.timeline.publisher.rows.OpenPublisherBarWithStatusButtonsPartDefinition;
+import com.facebook.timeline.publisher.rows.PublisherRootGroupPartDefinition;
+import com.facebook.timeline.pymk.rows.PeopleYouMayKnowGroupPartDefinition;
+import com.facebook.timeline.pymk.rows.PeopleYouMayKnowSelectorPartDefinition;
+import com.facebook.timeline.refresher.ProfileNuxRefresherDismissController;
+import com.facebook.timeline.refresher.ProfileRefresherAnalyticsLogger;
+import com.facebook.timeline.refresher.launcher.ProfileRefresherLauncher;
+import com.facebook.timeline.rows.TimelineGraphQLStorySelectorPartDefinition;
+import com.facebook.timeline.rows.TimelineViewTypeMapper;
+import com.facebook.timeline.searchbootstrap.TimelineBootstrapEntitiesManager;
+import com.facebook.timeline.services.ProfileContextItemNavigationHandler;
+import com.facebook.timeline.services.ProfileServicesCallbackHelper;
+import com.facebook.timeline.services.intentbuilder.ProfileServicesIntentBuilder;
+import com.facebook.timeline.viewfeaturedcontainers.nux.FeaturedHeaderNuxInterstitialController;
+import com.facebook.timeline.widget.actionbar.TimelineActionBarItemFactory;
+import com.facebook.today.abtest.TodayExperimentController;
+import com.facebook.today.intent.TodayFragmentFactory;
+import com.facebook.today.ui.TodayFragmentArgumentsBuilder;
+import com.facebook.today.ui.components.partdefinition.EventDescriptionUnitComponentPartDefinition;
+import com.facebook.today.ui.components.partdefinition.LargeMapUnitComponentPartDefinition;
+import com.facebook.today.ui.components.partdefinition.MessageBlockUnitComponentPartDefinition;
+import com.facebook.today.ui.components.partdefinition.PhotoGridPartDefinition;
+import com.facebook.today.ui.components.partdefinition.ReactionFeedCommentUnitComponentPartDefinition;
+import com.facebook.today.ui.components.partdefinition.ReactionTopLevelCommentComposerUnitComponentPartDefinition;
+import com.facebook.today.ui.components.partdefinition.VerticalListInnerCardUnitComponentPartDefinition;
+import com.facebook.today.ui.notificationslist.NotificationsListGroupPartDefinition;
+import com.facebook.topics.customization.TopicCustomizationFragmentFactory;
+import com.facebook.trace.DebugTracer;
+import com.facebook.transliteration.TransliterationConfig;
+import com.facebook.transliteration.algorithms.unigram.HindiUnicodeUtil;
+import com.facebook.transliteration.algorithms.unigram.UnigramModelAlgorithm;
+import com.facebook.transliteration.algorithms.unigram.UnigramModelDataManager;
+import com.facebook.transliteration.datamanager.DataManagerUtil;
+import com.facebook.ufiservices.cache.PendingCommentInputCache;
+import com.facebook.ufiservices.data.ActorProfilesLoader;
+import com.facebook.ufiservices.flyout.ProfileListPopoverLauncher;
+import com.facebook.ufiservices.util.CommentMenuHelper;
+import com.facebook.ui.animations.ViewHelperViewAnimatorFactory;
+import com.facebook.ui.choreographer.DefaultChoreographerWrapper;
+import com.facebook.ui.emoji.BigEmojisMethodAutoProvider;
+import com.facebook.ui.errordialog.ErrorDialogs;
+import com.facebook.ui.futures.TasksManager;
+import com.facebook.ui.images.fetch.FeatureAwareImageAccessLogger;
+import com.facebook.ui.media.attachments.MediaResourceBodyFactory;
+import com.facebook.ui.toaster.ToastThreadUtil;
+import com.facebook.ui.toaster.Toaster;
+import com.facebook.ui.typeahead.DefaultTypeaheadDispatchStrategy;
+import com.facebook.ui.typeahead.TypeaheadSuggestionDeduper;
+import com.facebook.ui.typeahead.TypeaheadSuggestionListUtilProvider;
+import com.facebook.ui.typeahead.querycache.TypeaheadQueryCache;
+import com.facebook.uicontrib.tipseentracker.TipSeenTracker;
+import com.facebook.user.broadcast.UserInfoBroadcaster;
+import com.facebook.user.names.HanziToPinyin;
+import com.facebook.userfilter.UserTokenMatcher;
+import com.facebook.vault.momentsupsell.uri.MomentsUpsellPromotionFragmentFactory;
+import com.facebook.vault.service.VaultEnabledDataFetcher;
+import com.facebook.vault.service.VaultHelpers;
+import com.facebook.vault.service.VaultTable;
+import com.facebook.video.abtest.VideoQEConfig;
+import com.facebook.video.activity.FullscreenVideoPlayerLauncher;
+import com.facebook.video.analytics.VideoCachePeriodicReporter;
+import com.facebook.video.channelfeed.ChannelFeedInflater;
+import com.facebook.video.channelfeed.ChannelFeedRootPartDefinition;
+import com.facebook.video.chromecast.VideoCastManager;
+import com.facebook.video.downloadmanager.DownloadManager;
+import com.facebook.video.livemap.LiveMapFragmentFactory;
+import com.facebook.video.server.PlayerReadableCacheMethodAutoProvider;
+import com.facebook.video.server.VideoPerformancePeriodicReporter;
+import com.facebook.video.settings.AutoplayRolloutNuxController;
+import com.facebook.video.settings.C0759x3db8deda;
+import com.facebook.video.videohome.abtest.VideoHomeConfig;
+import com.facebook.video.videohome.audio.VideoHomeInlineAudioManager;
+import com.facebook.video.videohome.fragment.VideoHomeFragmentFactory;
+import com.facebook.video.videohome.fragment.VideoHomeGuideFragmentFactory;
+import com.facebook.video.videohome.metadata.VideoHomeBadgeUpdater;
+import com.facebook.video.videohome.partdefinitions.VideoHomeComposerPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeExploreFeedRecommendationUnitPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeItemSelectorPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomePaginatedHscrollLiveVideoComponentListPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeRootPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeSectionHeaderPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeSeeMorePartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeShortcutPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeSpinnerPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeUnitPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeVideoChannelFeedUnitGroupPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeVideoChannelFeedUnitSquareGroupPartDefinition;
+import com.facebook.video.videohome.partdefinitions.VideoHomeVideoChannelRecommendationSquarePartDefinition;
+import com.facebook.video.videohome.prefetching.VideoHomeReactionSessionHelper;
+import com.facebook.video.videohome.protocol.VideoHomeQueryGraphQLHelper;
+import com.facebook.video.watchandbrowse.VideoWatchAndBrowseInflator;
+import com.facebook.video.watchandshop.WatchAndShopProductItemPartDefinition;
+import com.facebook.videocodec.base.VideoMetadataExtractor;
+import com.facebook.videocodec.extract.DefaultVideoMetadataExtractor;
+import com.facebook.videocodec.extract.SystemVideoMetadataExtractor;
+import com.facebook.videocodec.extract.VideoTrackExtractor;
+import com.facebook.videocodec.ffmpeg.FFMpegVideoMetadataExtractor;
+import com.facebook.videocodec.resizer.CodecMuxerMethodAutoProvider;
+import com.facebook.videocodec.resizer.VideoResizeOperation;
+import com.facebook.videocodec.resizer.VideoResizer;
+import com.facebook.videocodec.resizer.VideoTranscodeHandlerFactory;
+import com.facebook.videocodec.resizer.VideoTranscoderJBMR2;
+import com.facebook.videocodec.resizer.VideoTranscoderOnGPU;
+import com.facebook.videocodec.trimmer.VideoTrimOperation;
+import com.facebook.videocodec.trimmer.VideoTrimmer;
+import com.facebook.webview.WebViewUriRedirector;
+import com.facebook.widget.bottomsheet.BottomSheetDialog;
+import com.facebook.widget.bottomsheet.sharesheet.ShareSheetIntentLauncher;
+import com.facebook.widget.text.BetterLinkMovementMethod;
+import com.facebook.widget.tiles.ThreadTileDrawableController;
+import com.facebook.widget.tokenizedtypeahead.chips.ContactChipSpanFactory;
+import com.facebook.work.bookmarks.bridge.DummyWorkBookmarksQuery;
+import com.facebook.work.groups.multicompany.bridge.DefaultMultiCompanyGroupIconProvider;
+import com.facebook.work.inlinecomposer.WorkComposerGroupsQuery;
+import com.facebook.work.postloginnux.PostLoginNuxManager;
+import com.facebook.xconfig.core.XConfigReader;
+import com.facebook.zero.DefaultMessageCapAccessor;
+import com.facebook.zero.DefaultZeroDeltaHandler;
+import com.facebook.zero.FbZeroFeatureVisibilityHelper;
+import com.facebook.zero.MessageCapAccessor;
+import com.facebook.zero.MessageCapKeyboardGuardController;
+import com.facebook.zero.MessageCapLogger;
+import com.facebook.zero.MessageCapOptinManager;
+import com.facebook.zero.carrier.fragment.CarrierManagerFragmentFactory;
+import com.facebook.zero.datacheck.ZeroDataCheckerRequestMaker;
+import com.facebook.zero.interstitial.ZeroInterstitialController;
+import com.facebook.zero.onboarding.utils.AssistedOnboardingLogger;
+import com.facebook.zero.service.ZeroHeaderRequestConditionalWorker;
+import com.facebook.zero.service.ZeroInterstitialEligibilityConditionalWorker;
+import com.facebook.zero.service.ZeroTokenConditionalWorker;
+import com.facebook.zero.service.ZeroUpdateStatusManager;
+import com.facebook.zero.ui.FbZeroDialogProviders.NoDataControlNoUpsellDialogProvider;
+import com.facebook.zero.upsell.IorgFb4aAndroidThreadUtil;
+import com.facebook.zero.upsell.IorgZeroFbBroadcastManager;
+import com.facebook.zero.upsell.service.FbUpsellPromoServiceManager;
+import com.facebook.zero.upsell.ui.ZeroUpsellDontShowAgainHandler;
+import com.facebook.zero.upsell.ui.screencontroller.VpnCallToHandleController;
+
+/* compiled from: vibrator */
+public final class FbInjectorImplTail {
+    public static <T> T m4968a(InjectorLike injectorLike, int i) {
+        switch (i >> 8) {
+            case 0:
+                return m4969b(injectorLike, i & 255);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return m4970c(injectorLike, i & 255);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return m4971d(injectorLike, i & 255);
+            case 3:
+                return m4972e(injectorLike, i & 255);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return m4973f(injectorLike, i & 255);
+            case 5:
+                return m4974g(injectorLike, i & 255);
+            case 6:
+                return m4975h(injectorLike, i & 255);
+            case 7:
+                return m4976i(injectorLike, i & 255);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return m4977j(injectorLike, i & 255);
+            case 9:
+                return m4978k(injectorLike, i & 255);
+            case 10:
+                return m4979l(injectorLike, i & 255);
+            case 11:
+                return m4980m(injectorLike, i & 255);
+            case 12:
+                return m4981n(injectorLike, i & 255);
+            case 13:
+                return m4982o(injectorLike, i & 255);
+            case 14:
+                return m4983p(injectorLike, i & 255);
+            case 15:
+                return m4984q(injectorLike, i & 255);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return m4985r(injectorLike, i & 255);
+            case 17:
+                return m4986s(injectorLike, i & 255);
+            case 18:
+                return m4987t(injectorLike, i & 255);
+            case 19:
+                return m4988u(injectorLike, i & 255);
+            case 20:
+                return m4989v(injectorLike, i & 255);
+            case 21:
+                return m4990w(injectorLike, i & 255);
+            case 22:
+                return m4991x(injectorLike, i & 255);
+            case 23:
+                return m4992y(injectorLike, i & 255);
+            case 24:
+                return m4993z(injectorLike, i & 255);
+            case 25:
+                return m4964A(injectorLike, i & 255);
+            case 26:
+                return m4965B(injectorLike, i & 255);
+            case 27:
+                return m4966C(injectorLike, i & 255);
+            case 28:
+                return m4967D(injectorLike, i & 255);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4969b(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 3:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 5:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 6:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 7:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 9:
+                return QuickExperimentMemoryCacheFuture.a(injectorLike);
+            case 10:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 11:
+                return QuickExperimentDeserializer.a(injectorLike);
+            case 12:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 13:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 14:
+                return new ViewerConfigurationMethod(GraphQLProtocolHelper.m9427a(injectorLike));
+            case 15:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 17:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 18:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 19:
+                return new AccountRecoverySearchAccountMethod(UniqueIdForDeviceHolderMethodAutoProvider.m4339b(injectorLike));
+            case 20:
+                return new AccountRecoverySendConfirmationCodeMethod(UniqueIdForDeviceHolderMethodAutoProvider.m4339b(injectorLike));
+            case 21:
+                return new AccountRecoveryValidateCodeMethod(UniqueIdForDeviceHolderMethodAutoProvider.m4339b(injectorLike));
+            case 22:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 23:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 24:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 25:
+                return AppCompatActivityOverrider.b(injectorLike);
+            case 26:
+                return AppCompatFragmentOverrider.a(injectorLike);
+            case 27:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 28:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 29:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 30:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 31:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 33:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 34:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 35:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 36:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 37:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 38:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 39:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 40:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 41:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 42:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 43:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 44:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 45:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 46:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 47:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 48:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 49:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 50:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 51:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 52:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 53:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 54:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 55:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 56:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 57:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 58:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 59:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 60:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 61:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 62:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 63:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 65:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 66:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 67:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 68:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 69:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 70:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 71:
+                return new BoostEventEditTargetingObjective(EditTargetingInfoCardComponent.b(injectorLike), new BoostEventEditTargetingComponent(AdInterfacesBoostEventTargetingViewConroller.d(injectorLike)), EditTargetingFooterComponent.b(injectorLike));
+            case 72:
+                return BoostEventObjective.b(injectorLike);
+            case 73:
+                return BoostPostBoostedComponentObjective.b(injectorLike);
+            case 74:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 75:
+                return new BoostPostEditTargetingObjective(EditTargetingInfoCardComponent.b(injectorLike), new EditTargetingComponent(AdInterfacesBoostPostTargetingViewController.d(injectorLike)), EditTargetingFooterComponent.b(injectorLike));
+            case 76:
+                return BoostPostInsightsObjective.b(injectorLike);
+            case 77:
+                return BoostPostObjective.b(injectorLike);
+            case 78:
+                return new BoostedComponentEditBudgetObjective(EditBoostedComponentMethod.a(injectorLike), AdInterfacesSavedButtonSpecProvider.b(injectorLike), BoostedComponentBudgetViewController.b(injectorLike), AdInterfacesSaveFooterViewController.b(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 79:
+                return BoostedComponentEditCreativeObjective.b(injectorLike);
+            case 80:
+                return new BoostedComponentEditDurationObjective(EditBoostedComponentMethod.a(injectorLike), AdInterfacesSavedButtonSpecProvider.b(injectorLike), AdInterfacesScheduleViewController.b(injectorLike), AdInterfacesSaveFooterViewController.b(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 81:
+                return BoostedComponentEditTargetingObjective.b(injectorLike);
+            case 82:
+                return LocalAwarenessObjective.b(injectorLike);
+            case 83:
+                return PageLikePromotionObjective.b(injectorLike);
+            case 84:
+                return PromoteCTAObjective.b(injectorLike);
+            case 85:
+                return PromoteProductObjective.b(injectorLike);
+            case 86:
+                return PromoteWebsiteObjective.b(injectorLike);
+            case 87:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 88:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 89:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 90:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 91:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 92:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 93:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 94:
+                return new FetchAccountsMethod(GraphQLQueryExecutor.m10435a(injectorLike));
+            case 95:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 96:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 97:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 98:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 99:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 100:
+                return new FetchInsightsMethod(GraphQLQueryExecutor.m10435a(injectorLike), AdInterfacesQueryBuilder.a(injectorLike));
+            case 101:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 102:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 103:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 104:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 105:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 106:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 107:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 108:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 109:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 110:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 111:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 112:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 113:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 114:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 115:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 116:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 117:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 118:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 119:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 120:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 121:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 122:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 123:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 124:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 125:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 126:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 127:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 129:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 130:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 131:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 132:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 133:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 134:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 135:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 136:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 137:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 138:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 139:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 140:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 141:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 142:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 143:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 144:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 145:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 146:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 147:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 148:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 149:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 150:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 151:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 152:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 153:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 154:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 155:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 156:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 157:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 158:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 159:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 160:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 161:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 162:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 163:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 164:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 165:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 166:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 167:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 168:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 169:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 170:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 171:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 172:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 173:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 174:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 175:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 176:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 177:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 178:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 179:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 180:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 181:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 182:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 183:
+                return new AdsPaymentsPickerScreenDataFetcher(FbErrorReporterImpl.m2317a(injectorLike), IdBasedProvider.m1811a(injectorLike, 9170), TasksManager.m14550b(injectorLike));
+            case 184:
+                return new AdsPaymentsPickerScreenDataMutator();
+            case 185:
+                return new AdsPaymentsPickerScreenOnActivityResultHandler(FbErrorReporterImpl.m2317a(injectorLike), AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike), SimplePickerScreenManager.a(injectorLike));
+            case 186:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 187:
+                return new AdsPaymentsPickerScreenSubScreenParamsGenerator((Context) injectorLike.getInstance(Context.class));
+            case 188:
+                return new AdsPaymentsRowItemViewFactory(SimpleRowItemViewFactory.a(injectorLike), AdsPaymentsExperimentsHelper.b(injectorLike), PostBusinessAddressMethod.b(injectorLike));
+            case 189:
+                return new AdsPaymentsSectionOrganizer();
+            case 190:
+                return new AdsPaymentsSimpleRowItemsGenerator((Context) injectorLike.getInstance(Context.class), SimplePickerScreenManager.a(injectorLike));
+            case 191:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 192:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 193:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 194:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 195:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 196:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 197:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 198:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 199:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 200:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 201:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 202:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 203:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 204:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 205:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 206:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 207:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 208:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 209:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 210:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 211:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 212:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 213:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 214:
+                return new FetchAldrinLoggedOutStatusMethod(SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 215:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 216:
+                return FetchAldrinUserStatusClient.b(injectorLike);
+            case 217:
+                return AldrinTransitionLauncher.a(injectorLike);
+            case 218:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 219:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 220:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 221:
+                return MemoryAnalyticsCounters.a(injectorLike);
+            case 222:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 223:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 224:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 225:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 226:
+                return BatteryStatusPeriodicReporter.a(injectorLike);
+            case 227:
+                return DBSizePeriodicReporter.a(injectorLike);
+            case 228:
+                return new ANRDetector(new ANRDetectorRunnable(), IdBasedProvider.m1811a(injectorLike, 4782), Handler_ForUiThreadMethodAutoProvider.m1701b(injectorLike));
+            case 229:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 230:
+                return new ANRReport((Context) injectorLike.getInstance(Context.class, ForAppContext.class), FbErrorReporterImpl.m2317a(injectorLike), QuickPerformanceLoggerMethodAutoProvider.m2859a(injectorLike));
+            case 231:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 232:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 233:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 234:
+                return ClassInstancesPeriodicReporter.a(injectorLike);
+            case 235:
+                return PistolFirePeriodicReporter.a(injectorLike);
+            case 236:
+                return ProcessStatusPeriodicReporter.a(injectorLike);
+            case 237:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 238:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 239:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 240:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 241:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 242:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            case 243:
+                return DeleteStoryMethod.a(injectorLike);
+            case 244:
+                return new HideFeedStoryMethod();
+            case 245:
+                return new NegativeFeedbackActionOnFeedMethod();
+            case 246:
+                return new SubmitResearchPollResponseMethod();
+            case 247:
+                return new SubmitSurveyResponseMethod();
+            case 248:
+                return FeedUnitUpdateReceivedCallback.a(injectorLike);
+            case 249:
+                return VpvUpdateReceivedCallback.a(injectorLike);
+            case 250:
+                return FeedDbCacheCleaner.a(injectorLike);
+            case 251:
+                return FeedMemoryCacheCleaner.a(injectorLike);
+            case 252:
+                return FeedUnitCacheMutator.a(injectorLike);
+            case 253:
+                return FeedUnitUpdateHandler.a(injectorLike);
+            case 254:
+                return VpvUpdateHandler.a(injectorLike);
+            case 255:
+                return MemInfoReaderMethodAutoProvider.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4970c(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return NewsFeedCacheSynchonizerHelper.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 3:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return new UserSetContactInfoMethod();
+            case 5:
+                return new UsersInviteMethod();
+            case 6:
+                return new SetNativeNameMethod();
+            case 7:
+                return SetProfilePhotoMethod.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 9:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 10:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 11:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 12:
+                return new NegativeFeedbackPostService(DefaultBlueServiceOperationFactory.m3782b(injectorLike));
+            case 13:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 14:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 15:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return new DeleteCommentMethod();
+            case 17:
+                return new EditCommentMethod();
+            case 18:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 19:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 20:
+                return SetNotifyMeMethod.a(injectorLike);
+            case 21:
+                return new ToggleLikeMethod();
+            case 22:
+                return new UFIServicesHandler(IdBasedSingletonScopeProvider.m1809a(injectorLike, 2289), IdBasedLazy.m1808a(injectorLike, 4829), IdBasedSingletonScopeProvider.m1810b(injectorLike, 4828), IdBasedLazy.m1808a(injectorLike, 4824), IdBasedLazy.m1808a(injectorLike, 4825), IdBasedLazy.m1808a(injectorLike, 9495), IdBasedLazy.m1808a(injectorLike, 9503), IdBasedLazy.m1808a(injectorLike, 9467), LocalStatsLoggerMethodAutoProvider.m13608a(injectorLike));
+            case 23:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 24:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 25:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 26:
+                return ReactionAPlaceForFooterCardPartDefinition.a(injectorLike);
+            case 27:
+                return ReactionAPlaceForHeaderCardPartDefinition.a(injectorLike);
+            case 28:
+                return ReactionAPlaceForStoryCardPartDefinition.a(injectorLike);
+            case 29:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 30:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 31:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 33:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 34:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 35:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 36:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 37:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 38:
+                return AppDiscoveryRootPartDefinition.a(injectorLike);
+            case 39:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 40:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 41:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 42:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 43:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 44:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 45:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 46:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 47:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 48:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 49:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 50:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 51:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 52:
+                return DefaultAppiraterDialogMaker.b(injectorLike);
+            case 53:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 54:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 55:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 56:
+                return new ProvideFeedbackScreenController(InputMethodManagerMethodAutoProvider.m12957b(injectorLike));
+            case 57:
+                return RateOnPlayStoreScreenController.b(injectorLike);
+            case 58:
+                return StarRatingScreenController.b(injectorLike);
+            case 59:
+                return new ThanksForFeedbackScreenController();
+            case 60:
+                return AssetDownloadConditionalWorker.b(injectorLike);
+            case 61:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 62:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 63:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 65:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 66:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 67:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 68:
+                return AssetDownloadPeriodicEventReporter.a(injectorLike);
+            case 69:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 70:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 71:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 72:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 73:
+                return AddFriendActionButton.a(injectorLike);
+            case 74:
+                return AppOpenActionButton.a(injectorLike);
+            case 75:
+                return ClaimCouponActionButton.a(injectorLike);
+            case 76:
+                return CollectionSaveActionButton.a(injectorLike);
+            case 77:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 78:
+                return LeadGenActionButton.a(injectorLike);
+            case 79:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 80:
+                return MessagePageActionButton.a(injectorLike);
+            case 81:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 82:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 83:
+                return PhotoGalleryLauncherHelper.a(injectorLike);
+            case 84:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 85:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 86:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 87:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 88:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 89:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 90:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 91:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 92:
+                return RecentUserIdsManager.b(injectorLike);
+            case 93:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 94:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 95:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 96:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 97:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 98:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 99:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 100:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 101:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 102:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 103:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 104:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 105:
+                return BackgroundLocationNuxInterstitialController.a(injectorLike);
+            case 106:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 107:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 108:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 109:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 110:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 111:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 112:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 113:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 114:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 115:
+                return GeofenceLocationTracker.a(injectorLike);
+            case 116:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 117:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 118:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 119:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 120:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 121:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 122:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 123:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 124:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 125:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 126:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 127:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 129:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 130:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 131:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 132:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 133:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 134:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 135:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 136:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 137:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 138:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 139:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 140:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 141:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 142:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 143:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 144:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 145:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 146:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 147:
+                return BackstageOnboardInterstitialController.b(injectorLike);
+            case 148:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 149:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 150:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 151:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 152:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 153:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 154:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 155:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 156:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 157:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 158:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 159:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 160:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 161:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 162:
+                return UserScopedComponentManager.a(injectorLike);
+            case 163:
+                return UserScopedCrossProcessBroadcastManager.b(injectorLike);
+            case 164:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 165:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 166:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 167:
+                return ImageResizerMethodAutoProvider.b(injectorLike);
+            case 168:
+                return ImageResizingModeMethodAutoProvider.b(injectorLike);
+            case 169:
+                return JavaImageResizer.b(injectorLike);
+            case 170:
+                return NativeImageProcessor.b(injectorLike);
+            case 171:
+                return NativeImageResizer.b(injectorLike);
+            case 172:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 173:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 174:
+                return WebpTranscoder.a(injectorLike);
+            case 175:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 176:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 177:
+                return BookmarkClient.a(injectorLike);
+            case 178:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 179:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 180:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 181:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 182:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 183:
+                return new MessengerBookmarkNuxInterstitialController(FbSharedPreferencesImpl.m1826a(injectorLike));
+            case 184:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 185:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 186:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 187:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 188:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 189:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 190:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 191:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 192:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 193:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 194:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 195:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 196:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 197:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 198:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 199:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 200:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 201:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 202:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 203:
+                return BugReporter.a(injectorLike);
+            case 204:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 205:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 206:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 207:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 208:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 209:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 210:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 211:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 212:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 213:
+                return BugReportRetryInvoker.b(injectorLike);
+            case 214:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 215:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 216:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 217:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 218:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 219:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 220:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 221:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 222:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 223:
+                return new RequestCaptchaMethod(UniqueIdForDeviceHolderMethodAutoProvider.m4339b(injectorLike));
+            case 224:
+                return new SolveCaptchaMethod(UniqueIdForDeviceHolderMethodAutoProvider.m4339b(injectorLike));
+            case 225:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 226:
+                return ProfileVideoIconBinder.a(injectorLike);
+            case 227:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 228:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 229:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 230:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 231:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 232:
+                return SocialSearchAttachmentPartDefinition.a(injectorLike);
+            case 233:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 234:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 235:
+                return SocialSearchMapFragmentAndUriIntentBuilder.a(injectorLike);
+            case 236:
+                return AddPlaceListItemToCommentMutationHelper.b(injectorLike);
+            case 237:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 238:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 239:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 240:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 241:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 242:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 243:
+                return CommerceEventBus.a(injectorLike);
+            case 244:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 245:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 246:
+                return CommerceNavigationUtil.a(injectorLike);
+            case 247:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 248:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 249:
+                return new InvoicesSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 250:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 251:
+                return InvoicesStyleRenderer.b(injectorLike);
+            case 252:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            case 253:
+                return InvoicesXMAClickHandler.b(injectorLike);
+            case 254:
+                return new InvoicesXMAModelCreator(FbErrorReporterImpl.m2317a(injectorLike));
+            case 255:
+                return NewsFeedCacheSyncPreRunChecker.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4971d(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return ProductDetailsFetcher.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return ProductDetailsFetcher.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return new SubmitItemForCheckoutMethod();
+            case 3:
+                return new ProductGroupFragmentFactory();
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 5:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 6:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 7:
+                return ProductDetailsFetcher.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 9:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 10:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 11:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 12:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 13:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 14:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 15:
+                return ProductDetailsFetcher.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 17:
+                return new AdminAddShopFragmentFactory();
+            case 18:
+                return new AdminEditShopFragmentFactory();
+            case 19:
+                return new AdminProductFragmentFactory();
+            case 20:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 21:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 22:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 23:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 24:
+                return FBAlertDialogBuilderWrapper.a(injectorLike);
+            case 25:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 26:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 27:
+                return new MerchantSubscriptionStatusUpdateMethod();
+            case 28:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 29:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 30:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 31:
+                return ProductDetailsFetcher.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return new AdCollectionViewFragmentFactory();
+            case 33:
+                return new CollectionViewFragmentFactory();
+            case 34:
+                return new StorefrontFragmentFactory();
+            case 35:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 36:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 37:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 38:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 39:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 40:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 41:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 42:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 43:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 44:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 45:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 46:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 47:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 48:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 49:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 50:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 51:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 52:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 53:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 54:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 55:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 56:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 57:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 58:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 59:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 60:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 61:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 62:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 63:
+                return ProductDetailsFetcher.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 65:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 66:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 67:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 68:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 69:
+                return AppInitLockFuture.a(injectorLike);
+            case 70:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 71:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 72:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 73:
+                return GkRefresherTask.b(injectorLike);
+            case 74:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 75:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 76:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 77:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 78:
+                return AppBuildInfoMethodAutoProvider.a(injectorLike);
+            case 79:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 80:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 81:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 82:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 83:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 84:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 85:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 86:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 87:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 88:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 89:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 90:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 91:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 92:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 93:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 94:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 95:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 96:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 97:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 98:
+                return InstallShortcutHelper.b(injectorLike);
+            case 99:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 100:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 101:
+                return new EncryptChannelRequestMethod(UDPPrimingHelper.m9443a(injectorLike));
+            case 102:
+                return new UDPPrimingServiceHandler(ApiMethodRunnerImpl.m15381a(injectorLike), IdBasedLazy.m1808a(injectorLike, 5165), IdleExecutor_DefaultIdleExecutorMethodAutoProvider.m2724a(injectorLike));
+            case 103:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 104:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 105:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 106:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 107:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 108:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 109:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 110:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 111:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 112:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 113:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 114:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 115:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 116:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 117:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 118:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 119:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 120:
+                return new AlbumsListControllerFactory(String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike), (Context) injectorLike.getInstance(Context.class), DefaultAndroidThreadUtil.m1646b(injectorLike), AlbumsFuturesGenerator.a(injectorLike), (AlbumsAdapterProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(AlbumsAdapterProvider.class), DelegatingPerformanceLogger.m2803a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 121:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 122:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 123:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 124:
+                return InlinePrivacySurveyController.b(injectorLike);
+            case 125:
+                return ComposerAnalyticsLogger.a(injectorLike);
+            case 126:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 127:
+                return PhotoSequences.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return WithTagPerformanceLogger.a(injectorLike);
+            case 129:
+                return AttachmentsValidator.a(injectorLike);
+            case 130:
+                return MediaItemMetaDataExtractor.b(injectorLike);
+            case 131:
+                return new PhotoTagExtractor(TagStore.a(injectorLike));
+            case 132:
+                return ComposerAlbumCapability.b(injectorLike);
+            case 133:
+                return ComposerCheckinCapability.a(injectorLike);
+            case 134:
+                return new ComposerCustomPublishModeCapability();
+            case 135:
+                return ComposerFacecastCapability.b(injectorLike);
+            case 136:
+                return new ComposerHeaderCapability(IdBasedSingletonScopeProvider.m1810b(injectorLike, 3219));
+            case 137:
+                return new ComposerImplicitLocationCapability(IdBasedLazy.m1808a(injectorLike, 9563));
+            case 138:
+                return ComposerMinutiaeCapability.b(injectorLike);
+            case 139:
+                return ComposerMultimediaCapability.b(injectorLike);
+            case 140:
+                return ComposerPhotoCapability.b(injectorLike);
+            case 141:
+                return new ComposerPostCompositionViewCapability(IdBasedSingletonScopeProvider.m1810b(injectorLike, 3219));
+            case 142:
+                return new ComposerRedSpaceCapability(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 143:
+                return new ComposerSlideshowCapability(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 144:
+                return new ComposerSouvenirCapability();
+            case 145:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 146:
+                return ComposerTagPeopleCapability.a(injectorLike);
+            case 147:
+                return new ComposerTargetMenuCapability();
+            case 148:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 149:
+                return new ComposerTransliterationCapability(ProductMethodAutoProvider.m4524b(injectorLike), TransliterationConfig.b(injectorLike));
+            case 150:
+                return new ComposerContentTypeController(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 151:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 152:
+                return ComposerCompostDraftController.b(injectorLike);
+            case 153:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 154:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 155:
+                return EventComposerAttachmentController.b(injectorLike);
+            case 156:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 157:
+                return new MinutiaeSimplePageComposerAttachmentController(GraphQLQueryExecutor.m10435a(injectorLike), ResourcesMethodAutoProvider.m6510a(injectorLike), ComposerFeedAttachmentViewBinder.b(injectorLike));
+            case 158:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 159:
+                return new ComposerInlineSproutsCapability(InlineSproutsQeWrapper.a(injectorLike));
+            case 160:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 161:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 162:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 163:
+                return PublishLifeEventMethod.a(injectorLike);
+            case 164:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 165:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 166:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 167:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 168:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 169:
+                return RidgeAnalyticsLogger.a(injectorLike);
+            case 170:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 171:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 172:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 173:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 174:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 175:
+                return MinutiaeIconPickerIntentHelper.a(injectorLike);
+            case 176:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 177:
+                return RidgeInterstitialController.b(injectorLike);
+            case 178:
+                return RidgeNewIntroScreenController.b(injectorLike);
+            case 179:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 180:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 181:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 182:
+                return MinutiaeVerbPickerPerformanceLogger.a(injectorLike);
+            case 183:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 184:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 185:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 186:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 187:
+                return new MinutiaeConditionalWorker(MinutiaeVerbsFetcher.a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), ActivityPickerAnalyticsLogger.a(injectorLike));
+            case 188:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 189:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 190:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 191:
+                return MinutiaeVerbsFetcher.a(injectorLike);
+            case 192:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 193:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 194:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 195:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 196:
+                return RidgeOptInController.b(injectorLike);
+            case 197:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 198:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 199:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 200:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 201:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 202:
+                return ComposerPluginRegistry.b(injectorLike);
+            case 203:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 204:
+                return new ComposerService(IdBasedLazy.m1808a(injectorLike, 1144), C0055x2995691a.m1881a(injectorLike), IdBasedLazy.m1808a(injectorLike, 2164));
+            case 205:
+                return new FetchReviewInBatchMethod(GraphQLProtocolHelper.m9427a(injectorLike));
+            case 206:
+                return PostReviewMethod.a(injectorLike);
+            case 207:
+                return ComposerPublishServiceHandler.b(injectorLike);
+            case 208:
+                return ComposerPublishServiceHelper.b(injectorLike);
+            case 209:
+                return CompostDraftStoryStore.a(injectorLike);
+            case 210:
+                return RecentlyUploadedStoryStore.a(injectorLike);
+            case 211:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 212:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 213:
+                return EditPostMethod.b(injectorLike);
+            case 214:
+                return new PollUploadMethod();
+            case 215:
+                return PublishPostMethod.b(injectorLike);
+            case 216:
+                return new PublishShareMethod(SystemClockMethodAutoProvider.m1498a(injectorLike), FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+            case 217:
+                return new SimplePhotoUploadMethod();
+            case 218:
+                return ComposerInstanceTracker.a(injectorLike);
+            case 219:
+                return ComposerSavedSessionController.b(injectorLike);
+            case 220:
+                return ComposerSavedSessionServiceHandler.a(injectorLike);
+            case 221:
+                return new GroupCommerceSellComposerIntercept(GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike), Locales.m2604a(injectorLike));
+            case 222:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 223:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 224:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 225:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 226:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 227:
+                return new ComposerDynamicTextStyleController((Context) injectorLike.getInstance(Context.class), FeedTextSizeExperimentHelper.m28684a(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 228:
+                return new FeedOnlyPostInterstitialController(TipSeenTracker.b(injectorLike));
+            case 229:
+                return new MinutiaeNuxBubbleInterstitialController(TipSeenTracker.b(injectorLike), ActivityPickerAnalyticsLogger.a(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 230:
+                return new RidgeNuxBubbleInterstitialController(TipSeenTracker.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 637), RidgeOptInController.b(injectorLike));
+            case 231:
+                return new TopicComposerNuxInterstitialController(TipSeenTracker.b(injectorLike), TopicFeedsTestUtil.m8789b(injectorLike));
+            case 232:
+                return new ComposerTopicSelectorFragmentFactory();
+            case 233:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 234:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 235:
+                return PublishModeTitleGenerator.b(injectorLike);
+            case 236:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 237:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 238:
+                return UnderwoodController.b(injectorLike);
+            case 239:
+                return UnderwoodLogger.a(injectorLike);
+            case 240:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 241:
+                return new ComposerScreenSizeUtil(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 242:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 243:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 244:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 245:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 246:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 247:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 248:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 249:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 250:
+                return new AccountConfirmationInterstitialController(IdBasedLazy.m1808a(injectorLike, 882));
+            case 251:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 252:
+                return ConfirmContactpointMethod.a(injectorLike);
+            case 253:
+                return ProductDetailsFetcher.b(injectorLike);
+            case 254:
+                return OpenIDConnectEmailConfirmationMethod.a(injectorLike);
+            case 255:
+                return ProductDetailsFetcher.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4972e(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 3:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 5:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 6:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 7:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 9:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 10:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 11:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 12:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 13:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 14:
+                return new MatchTopSMSContactsMethod(IdBasedProvider.m1811a(injectorLike, 4446), JsonFactoryMethodAutoProvider.m8062a(injectorLike), TelephonyManagerMethodAutoProvider.m3851b(injectorLike));
+            case 15:
+                return new SetContactLogsUploadSettingMethod();
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return new StartJourneysMethod(JsonFactoryMethodAutoProvider.m8062a(injectorLike));
+            case 17:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 18:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 19:
+                return ContactsReliabilityCheckConditionalWorker.b(injectorLike);
+            case 20:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 21:
+                return new FetchContactsCoefficientConditionalWorker(DefaultBlueServiceOperationFactory.m3782b(injectorLike));
+            case 22:
+                return DynamicContactDataCache.a(injectorLike);
+            case 23:
+                return ContactsUploadConditionalWorker.a(injectorLike);
+            case 24:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 25:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 26:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 27:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 28:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 29:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 30:
+                return ContactsOmnistoreQuery.a(injectorLike);
+            case 31:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 33:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 34:
+                return ContactsCollectionHolder.a(injectorLike);
+            case 35:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 36:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 37:
+                return OmnistoreInsertContactHandler.a(injectorLike);
+            case 38:
+                return UserTranscription.a(injectorLike);
+            case 39:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 40:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 41:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 42:
+                return BaseSearchableContactPickerListAdapter_ForDivebarListMethodAutoProvider.b(injectorLike);
+            case 43:
+                return MessagesContactPickerModule.a(DivebarContactPickerViewFactory.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 5374));
+            case 44:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 45:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 46:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 47:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 48:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 49:
+                return MessagesContactPickerModule.d(DivebarContactPickerViewFactory.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 5377));
+            case 50:
+                return MessagesContactPickerModule.b(DivebarContactPickerViewFactory.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 5378));
+            case 51:
+                return MessagesContactPickerModule.c(DivebarContactPickerViewFactory.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 5379));
+            case 52:
+                return null;
+            case 53:
+                return ContactPickerListFilter_ForDivebarListMethodAutoProvider.b(injectorLike);
+            case 54:
+                return MessagesContactPickerModule.a(SystemClockMethodAutoProvider.m1498a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), ContactPickerFriendFilter.a(injectorLike), ContactPickerNonFriendUsersFilter.b(injectorLike), Boolean_IsSmsBridgeEnabledMethodAutoProvider.b(injectorLike));
+            case 55:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 56:
+                return UnpinnedGroupsContactPickerListFilterProvider.a(SystemClockMethodAutoProvider.m1498a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), ContactPickerDbGroupFilter.b(injectorLike), ContactPickerServerGroupFilter.b(injectorLike));
+            case 57:
+                return ContactPickerListFilter_ForVoipGroupCallListMethodAutoProvider.b(injectorLike);
+            case 58:
+                return MessagesContactPickerModule.a(SystemClockMethodAutoProvider.m1498a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), ContactPickerFriendFilter.a(injectorLike), Boolean_IsVoipVideoEnabledMethodAutoProvider.b(injectorLike));
+            case 59:
+                return ContactPickerListFilterProviderForVoipSelectSearchList.a(SystemClockMethodAutoProvider.m1498a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), ContactPickerFriendFilter.a(injectorLike));
+            case 60:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 61:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 62:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 63:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return new CIContinuousSyncUserConsentFilterPredicate(String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike), IdBasedProvider.m1811a(injectorLike, 659));
+            case 65:
+                return new CIUserConsentFilterPredicate(String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike), IdBasedProvider.m1811a(injectorLike, 659));
+            case 66:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 67:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 68:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 69:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 70:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 71:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 72:
+                return ContactChatContextRefresher.a(injectorLike);
+            case 73:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 74:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 75:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 76:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 77:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 78:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 79:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 80:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 81:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 82:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 83:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 84:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 85:
+                return new DefaultExternalIntentHandler(IntentSanitizer.a(injectorLike));
+            case 86:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 87:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 88:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 89:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 90:
+                return FeedbackMutationHelper.b(injectorLike);
+            case 91:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 92:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 93:
+                return new FriendVoteInviteFragmentFactory();
+            case 94:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 95:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 96:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 97:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 98:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 99:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 100:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 101:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 102:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 103:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 104:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 105:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 106:
+                return new HoursPickerFragmentFactory();
+            case 107:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 108:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 109:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 110:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 111:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 112:
+                return new SuggestEditsFragmentFactory();
+            case 113:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 114:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 115:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 116:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 117:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 118:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 119:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 120:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 121:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 122:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 123:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 124:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 125:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 126:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 127:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 129:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 130:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 131:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 132:
+                return DataSavingsConfirmationDialogBuilder.a(injectorLike);
+            case 133:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 134:
+                return DumpsysDumper.a(injectorLike);
+            case 135:
+                return new HomeStoriesViewController(DbFeedHomeStoriesHandler.m9120a(injectorLike));
+            case 136:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 137:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 138:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 139:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 140:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 141:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 142:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 143:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 144:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 145:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 146:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 147:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 148:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 149:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 150:
+                return DeepLinkLoggingUtils.b(injectorLike);
+            case 151:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 152:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 153:
+                return PreJellyBeanDeviceMemoryInfoReader.a(injectorLike);
+            case 154:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 155:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 156:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 157:
+                return DeviceBasedLoginNuxInterstitialController.b(injectorLike);
+            case 158:
+                return new DeviceBasedLoginNuxV2InterstitialController(FbSharedPreferencesImpl.m1826a(injectorLike), DeviceBasedLoginActivityHelper.m8223b(injectorLike), IdBasedProvider.m1811a(injectorLike, 4442), DeviceBasedLoginNuxEligibilityController.b(injectorLike), Boolean_IsTabletMethodAutoProvider.m7864a(injectorLike));
+            case 159:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 160:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 161:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 162:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 163:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 164:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 165:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 166:
+                return DialtoneNewsFeedIntentUriBuilder.a(injectorLike);
+            case 167:
+                return DialtoneCacheManager.b(injectorLike);
+            case 168:
+                return new DialtoneActiveFilterPredicate(DialtoneControllerImpl.m8272a(injectorLike));
+            case 169:
+                return new DialtoneAvailableFilterPredicate(DialtoneControllerImpl.m8272a(injectorLike), DialtoneUiFeaturesAccessor.m4677a(injectorLike), IdBasedProvider.m1811a(injectorLike, 664));
+            case 170:
+                return new DirectInstallIntentHelper(FbObjectMapperMethodAutoProvider.m6609a(injectorLike), DirectInstallLogger.a(injectorLike), PackageManagerMethodAutoProvider.m2633a(injectorLike), FbNetworkManager.m3811a(injectorLike), DirectInstallConfig.a(injectorLike));
+            case 171:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 172:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 173:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 174:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 175:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 176:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 177:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 178:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 179:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 180:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 181:
+                return DirectInstallLogger.a(injectorLike);
+            case 182:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 183:
+                return new DivebarControllerDelegate(FbLocalBroadcastManagerMethodAutoProvider.m2958a(injectorLike), (DivebarFragmentInitializer) FavoritesDivebarInitializer.a(injectorLike), (DivebarFragmentInitializer) AbsentNowFragmentInitializer.a(injectorLike), (DivebarFragmentInitializer) BackstageFragmentInitializer.a(injectorLike), (DivebarFragmentInitializer) RedSpaceHomeFragmentFactory.b(injectorLike));
+            case 184:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 185:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 186:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 187:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 188:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 189:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 190:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 191:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 192:
+                return ContextItemsAdapter.b(injectorLike);
+            case 193:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 194:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 195:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 196:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 197:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 198:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 199:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 200:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 201:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 202:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 203:
+                return new PersonCardActivityResultHandler(IdBasedLazy.m1808a(injectorLike, 5272));
+            case 204:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 205:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 206:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 207:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 208:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 209:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 210:
+                return new EventsCancelEventFragmentFactory();
+            case 211:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 212:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 213:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 214:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 215:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 216:
+                return new EventCreationCategorySelectionFragmentFactory();
+            case 217:
+                return new EventCreationHostSelectionFragmentFactory();
+            case 218:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 219:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 220:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 221:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 222:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 223:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 224:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 225:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 226:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 227:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 228:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 229:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 230:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 231:
+                return EventsDashboardEarlyFetcher.a(injectorLike);
+            case 232:
+                return new EventsDashboardFragmentFactory(CurrentModuleHolder.m5545a(injectorLike), IdBasedProvider.m1811a(injectorLike, 53), IdBasedSingletonScopeProvider.m1810b(injectorLike, 1138), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 233:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 234:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 235:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 236:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 237:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 238:
+                return new EventsDiscoveryUpcomingEventsFragmentFactory();
+            case 239:
+                return EventsPager.b(injectorLike);
+            case 240:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 241:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 242:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 243:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 244:
+                return new EventsUpcomingBirthdaysFragmentFactory();
+            case 245:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 246:
+                return EventsBirthdayRowPartDefinition.a(injectorLike);
+            case 247:
+                return EventsDashboardDateBucketHeaderPartDefinition.a(injectorLike);
+            case 248:
+                return EventsDashboardEventRowPartDefinition.a(injectorLike);
+            case 249:
+                return EventsDashboardLoadingRowPartDefinition.a(injectorLike);
+            case 250:
+                return EventsDashboardNullStateRowPartDefinition.a(injectorLike);
+            case 251:
+                return EventsDashboardPromptRowPartDefinition.a(injectorLike);
+            case 252:
+                return EventsDashboardRootPartSelector.b(injectorLike);
+            case 253:
+                return AccountConfirmationServiceHandler.a(injectorLike);
+            case 254:
+                return EventsDashboardViewAllEventsRowPartDefinition.a(injectorLike);
+            case 255:
+                return EventsDashboardViewMoreEventsRowPartDefinition.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4973f(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 3:
+                return new EventsSubscriptionsFragmentFactory();
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return EventsSubscriptionsPager.b(injectorLike);
+            case 5:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 6:
+                return new EventsSuggestionsFragmentFactory();
+            case 7:
+                return EventsSuggestionsPager.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return EventAdminStatusRecord.a(injectorLike);
+            case 9:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 10:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 11:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 12:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 13:
+                return EventsDatabaseSupplier.a(injectorLike);
+            case 14:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 15:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return new EventsDiscoveryFragmentFactory(GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike));
+            case 17:
+                return new EventsDiscoveryLocationPickerFragmentFactory();
+            case 18:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 19:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 20:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 21:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 22:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 23:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 24:
+                return FetchEventFeedMethod.b(injectorLike);
+            case 25:
+                return new EventFeedStoryModerationHelper(DefaultAndroidThreadUtil.m1646b(injectorLike), FeedEventBus.m4573a(injectorLike), Toaster.m6454b(injectorLike), GraphPostService.m18477b(injectorLike));
+            case 26:
+                return EventPermalinkStoriesExtractor.b(injectorLike);
+            case 27:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 28:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 29:
+                return new CaspianFriendSelectorFragmentFactory();
+            case 30:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 31:
+                return new EventsExtendedInviteAddContactsButtonInterstitialController();
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 33:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 34:
+                return new EventsExtendedInviteTypeaheadDispatchStrategy((TypeaheadSuggestionListUtilProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(TypeaheadSuggestionListUtilProvider.class), EventsExtendedInviteTypeaheadSuggestionDeduper.a(injectorLike));
+            case 35:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 36:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 37:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 38:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 39:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 40:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 41:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 42:
+                return new InviteeReviewModeFragmentFactory();
+            case 43:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 44:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 45:
+                return EventEventLogger.b(injectorLike);
+            case 46:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 47:
+                return new EventsRsvpMutator(PrivateEventsRsvpMutator.b(injectorLike), PublicEventsRsvpMutator.b(injectorLike));
+            case 48:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 49:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 50:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 51:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 52:
+                return new EventsNotificationSettingsFragmentFactory();
+            case 53:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 54:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 55:
+                return EventPermalinkEarlyFetcher.a(injectorLike);
+            case 56:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 57:
+                return new EventsPermalinkFragmentFactory(CurrentModuleHolder.m5545a(injectorLike), EventPermalinkBazingaHelper.a(injectorLike));
+            case 58:
+                return PublicEventsActionBarGoingButtonSelector.a(injectorLike);
+            case 59:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 60:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 61:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 62:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 63:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 65:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 66:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 67:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 68:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 69:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 70:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 71:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 72:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 73:
+                return new EventGuestListFragmentFactory();
+            case 74:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 75:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 76:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 77:
+                return new EventHostsFragmentFactory();
+            case 78:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 79:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 80:
+                return EventCreateGroupHandler.a(injectorLike);
+            case 81:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 82:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 83:
+                return new EventMessageFriendsFragmentFactory();
+            case 84:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 85:
+                return new EventMessageGuestsFragmentFactory();
+            case 86:
+                return EventFeedComposerRootPartDefinition.a(injectorLike);
+            case 87:
+                return new EventPermalinkRootPartSelector(IdBasedLazy.m1808a(injectorLike, 5662), IdBasedLazy.m1808a(injectorLike, 5665), IdBasedLazy.m1808a(injectorLike, 5671), IdBasedLazy.m1808a(injectorLike, 1480));
+            case 88:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 89:
+                return PostingStoryProgressBarRootPartDefinition.a(injectorLike);
+            case 90:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 91:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 92:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 93:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 94:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 95:
+                return PinnedPostGroupPartDefinition.a(injectorLike);
+            case 96:
+                return PinnedPostHeaderPartDefinition.a(injectorLike);
+            case 97:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 98:
+                return EventDetailsUnitComponentPartDefinition.a(injectorLike);
+            case 99:
+                return EventGuestHScrollFacepileUnitComponentDefinition.a(injectorLike);
+            case 100:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 101:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 102:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 103:
+                return EventPhotoReminderRequestSender.a(injectorLike);
+            case 104:
+                return EventPhotoReminderUtil.a(injectorLike);
+            case 105:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 106:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 107:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 108:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 109:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 110:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 111:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 112:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 113:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 114:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 115:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 116:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 117:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 118:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 119:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 120:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 121:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 122:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 123:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 124:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 125:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 126:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 127:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 129:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 130:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 131:
+                return LocationPickerLauncher.b(injectorLike);
+            case 132:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 133:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 134:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 135:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 136:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 137:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 138:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 139:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 140:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 141:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 142:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 143:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 144:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 145:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 146:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 147:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 148:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 149:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 150:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 151:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 152:
+                return new AnswerCopyrightViolationMethod();
+            case 153:
+                return new DeleteLiveVideoMethod();
+            case 154:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 155:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 156:
+                return new VideoBroadcastCalculateStatsMethod();
+            case 157:
+                return new VideoBroadcastSealMethod();
+            case 158:
+                return new VideoBroadcastUpdateMethod();
+            case 159:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 160:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 161:
+                return new LiveCommentsMenuHelper(DefaultBlueServiceOperationFactory.m3782b(injectorLike), String_ViewerContextUserIdMethodAutoProvider.m5004b(injectorLike), Toaster.m6454b(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike));
+            case 162:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 163:
+                return LiveEventsStore.b(injectorLike);
+            case 164:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 165:
+                return new StreamingCommentsModel(GraphQLSubscriptionConnector.m9383a(injectorLike), DefaultAndroidThreadUtil.m1646b(injectorLike));
+            case 166:
+                return new VodEventsStore(DefaultAndroidThreadUtil.m1646b(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike));
+            case 167:
+                return FacecastDisplayLogger.a(injectorLike);
+            case 168:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 169:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 170:
+                return new LiveCommentDelayLoggingMethod();
+            case 171:
+                return new LiveVideoInviteFriendsMethod();
+            case 172:
+                return new LiveVideosWatchingEventsLoggingMethod();
+            case 173:
+                return new MutateLiveScribeMethod();
+            case 174:
+                return LiveStreamingReactionsModel.b(injectorLike);
+            case 175:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 176:
+                return new StreamingReactionsFireworkExplosionDrawable(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 177:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 178:
+                return new VodStreamingReactionsModel(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 179:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 180:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 181:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 182:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 183:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 184:
+                return MacerFaceDetector.b(injectorLike);
+            case 185:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 186:
+                return NativeFaceDetectorMethodAutoProvider.a(injectorLike);
+            case 187:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 188:
+                return FaceRecognitionModule.b(IdBasedSingletonScopeProvider.m1809a(injectorLike, 3966), IdBasedProvider.m1811a(injectorLike, 5766), IdBasedProvider.m1811a(injectorLike, 5768));
+            case 189:
+                return FaceRecognitionModule.a(IdBasedSingletonScopeProvider.m1809a(injectorLike, 3966), IdBasedProvider.m1811a(injectorLike, 5767), IdBasedProvider.m1811a(injectorLike, 5769));
+            case 190:
+                return ImagePipelineFaceBoxPrioritizer.a(injectorLike);
+            case 191:
+                return ImagePipelineFaceRecManager.a(injectorLike);
+            case 192:
+                return LegacyFaceBoxPrioritizer.a(injectorLike);
+            case 193:
+                return LegacyFaceRecManager.a(injectorLike);
+            case 194:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 195:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 196:
+                return SsoLoginUtilMethodAutoProvider.a(injectorLike);
+            case 197:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 198:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 199:
+                return Fb4aReactInstanceHolderSpec.b(injectorLike);
+            case 200:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 201:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 202:
+                return new ImmersiveReactFragmentFactory();
+            case 203:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 204:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 205:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 206:
+                return FbReactInstanceHolder.a(injectorLike);
+            case 207:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 208:
+                return JSCPerfPeriodicReporter.a(injectorLike);
+            case 209:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 210:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 211:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 212:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 213:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 214:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 215:
+                return FbRelayConfigModule.b(injectorLike);
+            case 216:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 217:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 218:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 219:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 220:
+                return BlueServiceOperation.b(injectorLike);
+            case 221:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 222:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 223:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 224:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 225:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 226:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 227:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 228:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 229:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 230:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 231:
+                return MasterTouchDelegateController.a(injectorLike);
+            case 232:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 233:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 234:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 235:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 236:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 237:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 238:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 239:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 240:
+                return FbUploaderSingletonWrapper.a(injectorLike);
+            case 241:
+                return NewsFeedIntentUriBuilder.a(injectorLike);
+            case 242:
+                return new ProfileListFragmentFactory();
+            case 243:
+                return new ReactorsListFragmentFactory();
+            case 244:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 245:
+                return new VpvLoggingToastDebugger(Toaster.m6454b(injectorLike));
+            case 246:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 247:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 248:
+                return new AwesomizerFragmentFactory(IdBasedProvider.m1811a(injectorLike, 3967), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 249:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 250:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 251:
+                return new DiscoverFragmentFactory();
+            case 252:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 253:
+                return new DiscoverTopicFragmentFactory();
+            case 254:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            case 255:
+                return HasEventDashboardFilterTypeImpl.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4974g(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return RefollowAdapter.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return new RefollowFragmentFactory();
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return RefollowAdapter.b(injectorLike);
+            case 3:
+                return new SeefirstFragmentFactory();
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return RefollowAdapter.b(injectorLike);
+            case 5:
+                return new UnfollowFragmentFactory();
+            case 6:
+                return FeedLoadingDebugInfo.a(injectorLike);
+            case 7:
+                return RefollowAdapter.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return FeedStorySubscriber.b(injectorLike);
+            case 9:
+                return new FollowUpFeedUnitFetcher(DefaultBlueServiceOperationFactory.m3782b(injectorLike), FbNetworkManager.m3811a(injectorLike), TasksManager.m14550b(injectorLike), (FbAppType) injectorLike.getInstance(FbAppType.class), InstagramUtils.m22703a(injectorLike), FollowUpStateCache.m14602a(injectorLike));
+            case 10:
+                return new FeedDiodeSwitcherInterstitialController(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 11:
+                return RefollowAdapter.b(injectorLike);
+            case 12:
+                return RefollowAdapter.b(injectorLike);
+            case 13:
+                return RefollowAdapter.b(injectorLike);
+            case 14:
+                return RefollowAdapter.b(injectorLike);
+            case 15:
+                return RefollowAdapter.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return RefollowAdapter.b(injectorLike);
+            case 17:
+                return RefollowAdapter.b(injectorLike);
+            case 18:
+                return RefollowAdapter.b(injectorLike);
+            case 19:
+                return new FeedDebugWriter(FeedUnitCache.m10541a(injectorLike), FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+            case 20:
+                return RefollowAdapter.b(injectorLike);
+            case 21:
+                return RefollowAdapter.b(injectorLike);
+            case 22:
+                return new EditHistoryFragmentFactory();
+            case 23:
+                return RefollowAdapter.b(injectorLike);
+            case 24:
+                return RefollowAdapter.b(injectorLike);
+            case 25:
+                return RefollowAdapter.b(injectorLike);
+            case 26:
+                return RefollowAdapter.b(injectorLike);
+            case 27:
+                return RefollowAdapter.b(injectorLike);
+            case 28:
+                return RefollowAdapter.b(injectorLike);
+            case 29:
+                return PromptTombstonePartDefinition.a(injectorLike);
+            case 30:
+                return RefollowAdapter.b(injectorLike);
+            case 31:
+                return RefollowAdapter.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return RefollowAdapter.b(injectorLike);
+            case 33:
+                return RefollowAdapter.b(injectorLike);
+            case 34:
+                return RefollowAdapter.b(injectorLike);
+            case 35:
+                return RefollowAdapter.b(injectorLike);
+            case 36:
+                return new CommentPermalinkFragmentFactory();
+            case 37:
+                return RefollowAdapter.b(injectorLike);
+            case 38:
+                return RefollowAdapter.b(injectorLike);
+            case 39:
+                return RefollowAdapter.b(injectorLike);
+            case 40:
+                return RefollowAdapter.b(injectorLike);
+            case 41:
+                return RefollowAdapter.b(injectorLike);
+            case 42:
+                return MediaReminderPromptsPromptPartDefinition.a(injectorLike);
+            case 43:
+                return RefollowAdapter.b(injectorLike);
+            case 44:
+                return RefollowAdapter.b(injectorLike);
+            case 45:
+                return RefollowAdapter.b(injectorLike);
+            case 46:
+                return MediaReminderPromptLargePartDefinition.a(injectorLike);
+            case 47:
+                return MediaReminderPromptSelector.a(injectorLike);
+            case 48:
+                return MediaReminderPromptSmallPartDefinition.a(injectorLike);
+            case 49:
+                return FeedImagesCacheStateSynchronizer.a(injectorLike);
+            case 50:
+                return RefollowAdapter.b(injectorLike);
+            case 51:
+                return FetchFollowUpFeedUnitMethod.b(injectorLike);
+            case 52:
+                return FetchFriendListFeedMethod.b(injectorLike);
+            case 53:
+                return FetchGoodFriendsFeedMethod.b(injectorLike);
+            case 54:
+                return FetchHashtagFeedMethod.b(injectorLike);
+            case 55:
+                return RefollowAdapter.b(injectorLike);
+            case 56:
+                return FetchPageFeedMethod.b(injectorLike);
+            case 57:
+                return new FetchPaginatedRelatedStoryMethod(GraphQLStoryHelper.m10197a(injectorLike), GraphQLImageHelper.m10139a(injectorLike), FetchFeedQueryUtil.m11402a(injectorLike), GraphQLProtocolHelper.m9427a(injectorLike));
+            case 58:
+                return FetchReactionFeedMethod.b(injectorLike);
+            case 59:
+                return FetchStoriesAboutPageFeedMethod.b(injectorLike);
+            case 60:
+                return FetchTopicFeedMethod.b(injectorLike);
+            case 61:
+                return new PlaceSaveMethod();
+            case 62:
+                return new PlaceUnsaveMethod();
+            case 63:
+                return new UpdateTimelineAppCollectionMethod();
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return new ClaimCouponMethod();
+            case 65:
+                return RefollowAdapter.b(injectorLike);
+            case 66:
+                return RefollowAdapter.b(injectorLike);
+            case 67:
+                return RefollowAdapter.b(injectorLike);
+            case 68:
+                return NativeThirdPartyUriClickHandler.a(injectorLike);
+            case 69:
+                return RefollowAdapter.b(injectorLike);
+            case 70:
+                return RefollowAdapter.b(injectorLike);
+            case 71:
+                return RefollowAdapter.b(injectorLike);
+            case 72:
+                return RefollowAdapter.b(injectorLike);
+            case 73:
+                return DefaultPermalinkTextPartDefinition.a(injectorLike);
+            case 74:
+                return PermalinkAggregatedStoryGroupPartDefinition.a(injectorLike);
+            case 75:
+                return RefollowAdapter.b(injectorLike);
+            case 76:
+                return PermalinkBasicGroupPartDefinition.a(injectorLike);
+            case 77:
+                return PermalinkEdgeStoryGroupPartDefinition.a(injectorLike);
+            case 78:
+                return RefollowAdapter.b(injectorLike);
+            case 79:
+                return PermalinkGraphQLStorySelectorPartDefinition.a(injectorLike);
+            case 80:
+                return RefollowAdapter.b(injectorLike);
+            case 81:
+                return PermalinkRootPartDefinition.a(injectorLike);
+            case 82:
+                return PermalinkSeeFirstTextHeaderPartDefinition.a(injectorLike);
+            case 83:
+                return PermalinkSharedStoryPartDefinition.a(injectorLike);
+            case 84:
+                return RefollowAdapter.b(injectorLike);
+            case 85:
+                return RefollowAdapter.b(injectorLike);
+            case 86:
+                return PermalinkTextComponentPartDefinition.a(injectorLike);
+            case 87:
+                return PermalinkTextHeaderPartDefinition.a(injectorLike);
+            case 88:
+                return RefollowAdapter.b(injectorLike);
+            case 89:
+                return PermalinkTextPartDefinition.a(injectorLike);
+            case 90:
+                return RefollowAdapter.b(injectorLike);
+            case 91:
+                return RefollowAdapter.b(injectorLike);
+            case 92:
+                return RefollowAdapter.b(injectorLike);
+            case 93:
+                return RefollowAdapter.b(injectorLike);
+            case 94:
+                return RefollowAdapter.b(injectorLike);
+            case 95:
+                return RefollowAdapter.b(injectorLike);
+            case 96:
+                return RefollowAdapter.b(injectorLike);
+            case 97:
+                return RefollowAdapter.b(injectorLike);
+            case 98:
+                return RefollowAdapter.b(injectorLike);
+            case 99:
+                return RefollowAdapter.b(injectorLike);
+            case 100:
+                return RefollowAdapter.b(injectorLike);
+            case 101:
+                return RefollowAdapter.b(injectorLike);
+            case 102:
+                return RefollowAdapter.b(injectorLike);
+            case 103:
+                return RefollowAdapter.b(injectorLike);
+            case 104:
+                return RefollowAdapter.b(injectorLike);
+            case 105:
+                return RefollowAdapter.b(injectorLike);
+            case 106:
+                return RefollowAdapter.b(injectorLike);
+            case 107:
+                return RefollowAdapter.b(injectorLike);
+            case 108:
+                return RefollowAdapter.b(injectorLike);
+            case 109:
+                return PhotosFeedMediaMetadataRootPartDefinition.a(injectorLike);
+            case 110:
+                return RefollowAdapter.b(injectorLike);
+            case 111:
+                return RefollowAdapter.b(injectorLike);
+            case 112:
+                return RefollowAdapter.b(injectorLike);
+            case 113:
+                return RefollowAdapter.b(injectorLike);
+            case 114:
+                return RefollowAdapter.b(injectorLike);
+            case 115:
+                return RefollowAdapter.b(injectorLike);
+            case 116:
+                return RefollowAdapter.b(injectorLike);
+            case 117:
+                return PhotosFeedStoryGroupPartDefinition.a(injectorLike);
+            case 118:
+                return RefollowAdapter.b(injectorLike);
+            case 119:
+                return RefollowAdapter.b(injectorLike);
+            case 120:
+                return RefollowAdapter.b(injectorLike);
+            case 121:
+                return RefollowAdapter.b(injectorLike);
+            case 122:
+                return RefollowAdapter.b(injectorLike);
+            case 123:
+                return RefollowAdapter.b(injectorLike);
+            case 124:
+                return RefollowAdapter.b(injectorLike);
+            case 125:
+                return RefollowAdapter.b(injectorLike);
+            case 126:
+                return RefollowAdapter.b(injectorLike);
+            case 127:
+                return RefollowAdapter.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return RefollowAdapter.b(injectorLike);
+            case 129:
+                return HoldoutUnitPartDefinition.a(injectorLike);
+            case 130:
+                return RefollowAdapter.b(injectorLike);
+            case 131:
+                return RefollowAdapter.b(injectorLike);
+            case 132:
+                return RefollowAdapter.b(injectorLike);
+            case 133:
+                return StoryAYMTHotPostFooterPartDefinition.a(injectorLike);
+            case 134:
+                return RefollowAdapter.b(injectorLike);
+            case 135:
+                return RefollowAdapter.b(injectorLike);
+            case 136:
+                return RefollowAdapter.b(injectorLike);
+            case 137:
+                return RefollowAdapter.b(injectorLike);
+            case 138:
+                return AlbumAttachmentHScrollPartDefinition.a(injectorLike);
+            case 139:
+                return RefollowAdapter.b(injectorLike);
+            case 140:
+                return AnimatedImageShareAttachmentSelectorPartDefinition.a(injectorLike);
+            case 141:
+                return AvatarAttachmentPartDefinition.a(injectorLike);
+            case 142:
+                return AvatarAttachmentUtil.a(injectorLike);
+            case 143:
+                return AvatarListAttachmentPartDefinition.a(injectorLike);
+            case 144:
+                return CenteredTextPartDefinition.a(injectorLike);
+            case 145:
+                return CouponAttachmentPartDefinition.a(injectorLike);
+            case 146:
+                return EventTicketAttachmentPartDefinition.a(injectorLike);
+            case 147:
+                return FileUploadAttachmentPartDefinition.a(injectorLike);
+            case 148:
+                return ImageShareAttachmentPartDefinition.a(injectorLike);
+            case 149:
+                return RefollowAdapter.b(injectorLike);
+            case 150:
+                return LifeEventAttachmentGroupPartDefinition.a(injectorLike);
+            case 151:
+                return RefollowAdapter.b(injectorLike);
+            case 152:
+                return RefollowAdapter.b(injectorLike);
+            case 153:
+                return MediaQuestionPollAttachmentPartDefinition.a(injectorLike);
+            case 154:
+                return MinutiaeAttachmentTextComponentPartDefinition.a(injectorLike);
+            case 155:
+                return MinutiaeAttachmentTextPartDefinition.a(injectorLike);
+            case 156:
+                return NoteAttachmentPartDefinition.a(injectorLike);
+            case 157:
+                return PollAttachmentSelectorPartDefinition.a(injectorLike);
+            case 158:
+                return QuestionAttachmentPartDefinition.a(injectorLike);
+            case 159:
+                return ReadingAttachmentPartDefinition.a(injectorLike);
+            case 160:
+                return RefollowAdapter.b(injectorLike);
+            case 161:
+                return SportsMatchAttachmentGroupPartDefinition.a(injectorLike);
+            case 162:
+                return RefollowAdapter.b(injectorLike);
+            case 163:
+                return RefollowAdapter.b(injectorLike);
+            case 164:
+                return RefollowAdapter.b(injectorLike);
+            case 165:
+                return RefollowAdapter.b(injectorLike);
+            case 166:
+                return RefollowAdapter.b(injectorLike);
+            case 167:
+                return TranscodedAnimatedImageShareAttachmentPartDefinition.a(injectorLike);
+            case 168:
+                return UnavailableAttachmentPartDefinition.a(injectorLike);
+            case 169:
+                return RefollowAdapter.b(injectorLike);
+            case 170:
+                return RefollowAdapter.b(injectorLike);
+            case 171:
+                return RefollowAdapter.b(injectorLike);
+            case 172:
+                return RefollowAdapter.b(injectorLike);
+            case 173:
+                return RefollowAdapter.b(injectorLike);
+            case 174:
+                return RefollowAdapter.b(injectorLike);
+            case 175:
+                return FollowShareAttachmentSelector.a(injectorLike);
+            case 176:
+                return InstagramAttachmentPartDefinition.a(injectorLike);
+            case 177:
+                return LargeImageAttachmentPartDefinition.a(injectorLike);
+            case 178:
+                return QuoteShareAttachmentGroupDefinition.a(injectorLike);
+            case 179:
+                return QuoteShareQuoteOnlyGroupDefinition.a(injectorLike);
+            case 180:
+                return RefollowAdapter.b(injectorLike);
+            case 181:
+                return RefollowAdapter.b(injectorLike);
+            case 182:
+                return QuoteShareWithVerticalBarPartDefinition.a(injectorLike);
+            case 183:
+                return RefollowAdapter.b(injectorLike);
+            case 184:
+                return RefollowAdapter.b(injectorLike);
+            case 185:
+                return VideoShareHighlightedAttachmentSelector.a(injectorLike);
+            case 186:
+                return RefollowAdapter.b(injectorLike);
+            case 187:
+                return EmptyPartDefinition.a(injectorLike);
+            case 188:
+                return EndOfFeedPartDefinition.a(injectorLike);
+            case 189:
+                return LoadingMorePartDefinition.a(injectorLike);
+            case 190:
+                return ScissorPartDefinition.a(injectorLike);
+            case 191:
+                return UnknownFeedUnitMultiRowGroupPartDefinition.a(injectorLike);
+            case 192:
+                return RefollowAdapter.b(injectorLike);
+            case 193:
+                return DefaultFriendableHeaderPartDefinition.a(injectorLike);
+            case 194:
+                return RefollowAdapter.b(injectorLike);
+            case 195:
+                return RefollowAdapter.b(injectorLike);
+            case 196:
+                return RefollowAdapter.b(injectorLike);
+            case 197:
+                return FriendableHeaderComponent.a(injectorLike);
+            case 198:
+                return FriendableHeaderComponentPartDefinition.a(injectorLike);
+            case 199:
+                return RefollowAdapter.b(injectorLike);
+            case 200:
+                return RefollowAdapter.b(injectorLike);
+            case 201:
+                return RefollowAdapter.b(injectorLike);
+            case 202:
+                return RefollowAdapter.b(injectorLike);
+            case 203:
+                return RefollowAdapter.b(injectorLike);
+            case 204:
+                return PinnedPostHeaderComponentPartDefinition.a(injectorLike);
+            case 205:
+                return RefollowAdapter.b(injectorLike);
+            case 206:
+                return RefollowAdapter.b(injectorLike);
+            case 207:
+                return RefollowAdapter.b(injectorLike);
+            case 208:
+                return RefollowAdapter.b(injectorLike);
+            case 209:
+                return RefollowAdapter.b(injectorLike);
+            case 210:
+                return RefollowAdapter.b(injectorLike);
+            case 211:
+                return RefollowAdapter.b(injectorLike);
+            case 212:
+                return RefollowAdapter.b(injectorLike);
+            case 213:
+                return new InstantArticleClickWithPositionListener(DefaultSecureContextHelper.m4636a(injectorLike));
+            case 214:
+                return RefollowAdapter.b(injectorLike);
+            case 215:
+                return RefollowAdapter.b(injectorLike);
+            case 216:
+                return RefollowAdapter.b(injectorLike);
+            case 217:
+                return RefollowAdapter.b(injectorLike);
+            case 218:
+                return new SeeFirstNuxInterstitialController(FbSharedPreferencesImpl.m1826a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 219:
+                return RefollowAdapter.b(injectorLike);
+            case 220:
+                return NewsFeedServiceHandler.b(injectorLike);
+            case 221:
+                return RefollowAdapter.b(injectorLike);
+            case 222:
+                return RefollowAdapter.b(injectorLike);
+            case 223:
+                return RefollowAdapter.b(injectorLike);
+            case 224:
+                return NewsFeedModule.m27769a(IdBasedLazy.m1808a(injectorLike, 10403), FbSharedPreferencesImpl.m1826a(injectorLike), IdBasedSingletonScopeProvider.m1809a(injectorLike, 2289), IdBasedProvider.m1811a(injectorLike, 5895));
+            case 225:
+                return RefollowAdapter.b(injectorLike);
+            case 226:
+                return RefollowAdapter.b(injectorLike);
+            case 227:
+                return FrescoSpannableImageRangeApplicator.a(injectorLike);
+            case 228:
+                return RefollowAdapter.b(injectorLike);
+            case 229:
+                return new PermalinkFragmentFactory();
+            case 230:
+                return RefollowAdapter.b(injectorLike);
+            case 231:
+                return RefollowAdapter.b(injectorLike);
+            case 232:
+                return RefollowAdapter.b(injectorLike);
+            case 233:
+                return RefollowAdapter.b(injectorLike);
+            case 234:
+                return RefollowAdapter.b(injectorLike);
+            case 235:
+                return TopicFeedFavoritesDragSortGridAdapter.b(injectorLike);
+            case 236:
+                return new TopicFeedsCustomizationInterstitialController();
+            case 237:
+                return new TopicFeedsSwitcherInterstitialController();
+            case 238:
+                return new TopicFeedsTooltipInterstitialController();
+            case 239:
+                return RefollowAdapter.b(injectorLike);
+            case 240:
+                return RefollowAdapter.b(injectorLike);
+            case 241:
+                return DisabledFeedStoryMenuHelper.a(injectorLike);
+            case 242:
+                return HScrollChainingViewControllerManager.a(injectorLike);
+            case 243:
+                return RefollowAdapter.b(injectorLike);
+            case 244:
+                return RefollowAdapter.b(injectorLike);
+            case 245:
+                return FullScreenVideoInflater.a(injectorLike);
+            case 246:
+                return RefollowAdapter.b(injectorLike);
+            case 247:
+                return RefollowAdapter.b(injectorLike);
+            case 248:
+                return RefollowAdapter.b(injectorLike);
+            case 249:
+                return VideoDeleteController.b(injectorLike);
+            case 250:
+                return RefollowAdapter.b(injectorLike);
+            case 251:
+                return RefollowAdapter.b(injectorLike);
+            case 252:
+                return AsyncFeedImagePrefetcher.a(injectorLike);
+            case 253:
+                return FeedImageLoaderFactory.a(injectorLike);
+            case 254:
+                return RefollowAdapter.b(injectorLike);
+            case 255:
+                return RefollowAdapter.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4975h(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return NekoPrefKeys.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return DeleteStoryHelper.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return NekoPrefKeys.a(injectorLike);
+            case 3:
+                return OfflinePostHeaderController.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return NekoPrefKeys.a(injectorLike);
+            case 5:
+                return NekoPrefKeys.a(injectorLike);
+            case 6:
+                return FeedClientSideInjectionTool.a(injectorLike);
+            case 7:
+                return NekoPrefKeys.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return NekoPrefKeys.a(injectorLike);
+            case 9:
+                return NekoPrefKeys.a(injectorLike);
+            case 10:
+                return NekoPrefKeys.a(injectorLike);
+            case 11:
+                return NekoPrefKeys.a(injectorLike);
+            case 12:
+                return NekoPrefKeys.a(injectorLike);
+            case 13:
+                return new ReactionsNuxTokensDrawable(ResourcesMethodAutoProvider.m6510a(injectorLike), IdBasedSingletonScopeProvider.m1810b(injectorLike, 1783));
+            case 14:
+                return NekoPrefKeys.a(injectorLike);
+            case 15:
+                return NekoPrefKeys.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return new BlinkAnimationTransformer(AwakeTimeSinceBootClockMethodAutoProvider.m1697a(injectorLike));
+            case 17:
+                return NekoPrefKeys.a(injectorLike);
+            case 18:
+                return new ThrobAnimationTransformer(AwakeTimeSinceBootClockMethodAutoProvider.m1697a(injectorLike));
+            case 19:
+                return NekoPrefKeys.a(injectorLike);
+            case 20:
+                return NekoPrefKeys.a(injectorLike);
+            case 21:
+                return NekoPrefKeys.a(injectorLike);
+            case 22:
+                return NekoPrefKeys.a(injectorLike);
+            case 23:
+                return NekoPrefKeys.a(injectorLike);
+            case 24:
+                return NekoPrefKeys.a(injectorLike);
+            case 25:
+                return NekoPrefKeys.a(injectorLike);
+            case 26:
+                return NekoPrefKeys.a(injectorLike);
+            case 27:
+                return NekoPrefKeys.a(injectorLike);
+            case 28:
+                return NekoPrefKeys.a(injectorLike);
+            case 29:
+                return EditingGalleryFeedbackLauncher.b(injectorLike);
+            case 30:
+                return NekoPrefKeys.a(injectorLike);
+            case 31:
+                return NekoPrefKeys.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return NekoPrefKeys.a(injectorLike);
+            case 33:
+                return NekoPrefKeys.a(injectorLike);
+            case 34:
+                return NekoPrefKeys.a(injectorLike);
+            case 35:
+                return NekoPrefKeys.a(injectorLike);
+            case 36:
+                return NekoPrefKeys.a(injectorLike);
+            case 37:
+                return new InlineReplyComposerController(PendingCommentInputCache.a(injectorLike));
+            case 38:
+                return NekoPrefKeys.a(injectorLike);
+            case 39:
+                return NekoPrefKeys.a(injectorLike);
+            case 40:
+                return NekoPrefKeys.a(injectorLike);
+            case 41:
+                return NekoPrefKeys.a(injectorLike);
+            case 42:
+                return new VideoCommentInterstitialController((Context) injectorLike.getInstance(Context.class), TipSeenTracker.b(injectorLike), Handler_ForUiThreadMethodAutoProvider.m1701b(injectorLike));
+            case 43:
+                return CommentReactionsNuxInterstitialController.a(injectorLike);
+            case 44:
+                return NekoPrefKeys.a(injectorLike);
+            case 45:
+                return NekoPrefKeys.a(injectorLike);
+            case 46:
+                return NekoPrefKeys.a(injectorLike);
+            case 47:
+                return NekoPrefKeys.a(injectorLike);
+            case 48:
+                return NekoPrefKeys.a(injectorLike);
+            case 49:
+                return NekoPrefKeys.a(injectorLike);
+            case 50:
+                return NekoPrefKeys.a(injectorLike);
+            case 51:
+                return NekoPrefKeys.a(injectorLike);
+            case 52:
+                return NekoPrefKeys.a(injectorLike);
+            case 53:
+                return CommentPhotoAttachmentPartDefinition.a(injectorLike);
+            case 54:
+                return NekoPrefKeys.a(injectorLike);
+            case 55:
+                return NekoPrefKeys.a(injectorLike);
+            case 56:
+                return CommentPlaceInfoAttachmentSelectorPartDefinition.a(injectorLike);
+            case 57:
+                return NekoPrefKeys.a(injectorLike);
+            case 58:
+                return NekoPrefKeys.a(injectorLike);
+            case 59:
+                return NekoPrefKeys.a(injectorLike);
+            case 60:
+                return CommentShareAttachmentPartDefinition.a(injectorLike);
+            case 61:
+                return CommentStickerAttachmentPartDefinition.a(injectorLike);
+            case 62:
+                return CommentStylingPartDefinition.a(injectorLike);
+            case 63:
+                return NekoPrefKeys.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return CommentVideoAttachmentPartDefinition.a(injectorLike);
+            case 65:
+                return FeedbackRootGroupPartDefinition.a(injectorLike);
+            case 66:
+                return NekoPrefKeys.a(injectorLike);
+            case 67:
+                return NekoPrefKeys.a(injectorLike);
+            case 68:
+                return LoadMoreCommentsPartDefinition.a(injectorLike);
+            case 69:
+                return OriginalPostButtonPartDefinition.a(injectorLike);
+            case 70:
+                return NekoPrefKeys.a(injectorLike);
+            case 71:
+                return NekoPrefKeys.a(injectorLike);
+            case 72:
+                return TopLevelCommentGroupPartDefinition.a(injectorLike);
+            case 73:
+                return TypingIndicatorGroupPartDefinition.a(injectorLike);
+            case 74:
+                return TypingIndicatorPartDefinition.a(injectorLike);
+            case 75:
+                return NekoPrefKeys.a(injectorLike);
+            case 76:
+                return NekoPrefKeys.a(injectorLike);
+            case 77:
+                return NekoPrefKeys.a(injectorLike);
+            case 78:
+                return NekoPrefKeys.a(injectorLike);
+            case 79:
+                return NekoPrefKeys.a(injectorLike);
+            case 80:
+                return NekoPrefKeys.a(injectorLike);
+            case 81:
+                return NekoPrefKeys.a(injectorLike);
+            case 82:
+                return NekoPrefKeys.a(injectorLike);
+            case 83:
+                return NekoPrefKeys.a(injectorLike);
+            case 84:
+                return NekoPrefKeys.a(injectorLike);
+            case 85:
+                return NekoPrefKeys.a(injectorLike);
+            case 86:
+                return NekoPrefKeys.a(injectorLike);
+            case 87:
+                return new CollageMediaGalleryLaunchHelper(IdBasedLazy.m1808a(injectorLike, 9351), IdBasedSingletonScopeProvider.m1810b(injectorLike, 9346), MediaGalleryAttachmentFilter.b(injectorLike), PostpostTaggingUtil.m28760a(injectorLike));
+            case 88:
+                return NekoPrefKeys.a(injectorLike);
+            case 89:
+                return NekoPrefKeys.a(injectorLike);
+            case 90:
+                return NekoPrefKeys.a(injectorLike);
+            case 91:
+                return NekoPrefKeys.a(injectorLike);
+            case 92:
+                return ListAttachmentRootPartDefinition.a(injectorLike);
+            case 93:
+                return NekoPrefKeys.a(injectorLike);
+            case 94:
+                return NekoPrefKeys.a(injectorLike);
+            case 95:
+                return NekoPrefKeys.a(injectorLike);
+            case 96:
+                return PollAttachmentListPartDefinition.a(injectorLike);
+            case 97:
+                return NekoPrefKeys.a(injectorLike);
+            case 98:
+                return NekoPrefKeys.a(injectorLike);
+            case 99:
+                return NekoPrefKeys.a(injectorLike);
+            case 100:
+                return NekoPrefKeys.a(injectorLike);
+            case 101:
+                return NekoPrefKeys.a(injectorLike);
+            case 102:
+                return NekoPrefKeys.a(injectorLike);
+            case 103:
+                return InlineVideoPartDefinition.a(injectorLike);
+            case 104:
+                return NekoPrefKeys.a(injectorLike);
+            case 105:
+                return new NetEgoStoryFooterButtonClickLoggingHandler(AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike), NewsFeedAnalyticsEventBuilder.m14112a(injectorLike));
+            case 106:
+                return NekoPrefKeys.a(injectorLike);
+            case 107:
+                return NekoPrefKeys.a(injectorLike);
+            case 108:
+                return NekoPrefKeys.a(injectorLike);
+            case 109:
+                return BlingBarRootPartDefinition.a(injectorLike);
+            case 110:
+                return ExperimentalBlingBarStyler.a(injectorLike);
+            case 111:
+                return NekoPrefKeys.a(injectorLike);
+            case 112:
+                return NekoPrefKeys.a(injectorLike);
+            case 113:
+                return NekoPrefKeys.a(injectorLike);
+            case 114:
+                return NekoPrefKeys.a(injectorLike);
+            case 115:
+                return NekoPrefKeys.a(injectorLike);
+            case 116:
+                return NekoPrefKeys.a(injectorLike);
+            case 117:
+                return NekoPrefKeys.a(injectorLike);
+            case 118:
+                return NekoPrefKeys.a(injectorLike);
+            case 119:
+                return GroupYouShouldJoinPartDefinition.a(injectorLike);
+            case 120:
+                return NekoPrefKeys.a(injectorLike);
+            case 121:
+                return NekoPrefKeys.a(injectorLike);
+            case 122:
+                return NekoPrefKeys.a(injectorLike);
+            case 123:
+                return NekoPrefKeys.a(injectorLike);
+            case 124:
+                return NekoPrefKeys.a(injectorLike);
+            case 125:
+                return NekoPrefKeys.a(injectorLike);
+            case 126:
+                return NekoPrefKeys.a(injectorLike);
+            case 127:
+                return NekoPrefKeys.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return CreateLiveVideoCallToActionPartDefinition.a(injectorLike);
+            case 129:
+                return ReactionsRetargetNuxInterstitialController.a(injectorLike);
+            case 130:
+                return FindGroupsGroupPartDefinition.a(injectorLike);
+            case 131:
+                return NekoPrefKeys.a(injectorLike);
+            case 132:
+                return FindPagesPartDefinition.a(injectorLike);
+            case 133:
+                return NekoPrefKeys.a(injectorLike);
+            case 134:
+                return NekoPrefKeys.a(injectorLike);
+            case 135:
+                return FitnessAttachmentPartSelector.a(injectorLike);
+            case 136:
+                return NekoPrefKeys.a(injectorLike);
+            case 137:
+                return NekoPrefKeys.a(injectorLike);
+            case 138:
+                return NekoPrefKeys.a(injectorLike);
+            case 139:
+                return NekoPrefKeys.a(injectorLike);
+            case 140:
+                return NekoPrefKeys.a(injectorLike);
+            case 141:
+                return NekoPrefKeys.a(injectorLike);
+            case 142:
+                return QuicksilverContentAttachmentGroupPartDefinition.a(injectorLike);
+            case 143:
+                return NekoPrefKeys.a(injectorLike);
+            case 144:
+                return NekoPrefKeys.a(injectorLike);
+            case 145:
+                return NekoPrefKeys.a(injectorLike);
+            case 146:
+                return AnniversaryPartDefinition.a(injectorLike);
+            case 147:
+                return NekoPrefKeys.a(injectorLike);
+            case 148:
+                return NekoPrefKeys.a(injectorLike);
+            case 149:
+                return NekoPrefKeys.a(injectorLike);
+            case 150:
+                return CulturalMomentAttachmentPartDefinition.a(injectorLike);
+            case 151:
+                return NekoPrefKeys.a(injectorLike);
+            case 152:
+                return NekoPrefKeys.a(injectorLike);
+            case 153:
+                return NekoPrefKeys.a(injectorLike);
+            case 154:
+                return NekoPrefKeys.a(injectorLike);
+            case 155:
+                return NekoPrefKeys.a(injectorLike);
+            case 156:
+                return NekoPrefKeys.a(injectorLike);
+            case 157:
+                return NekoPrefKeys.a(injectorLike);
+            case 158:
+                return FriendversaryCardAttachmentGroupPartDefinition.a(injectorLike);
+            case 159:
+                return NekoPrefKeys.a(injectorLike);
+            case 160:
+                return FriendversaryDataCardAttachmentGroupPartDefinition.a(injectorLike);
+            case 161:
+                return NekoPrefKeys.a(injectorLike);
+            case 162:
+                return NekoPrefKeys.a(injectorLike);
+            case 163:
+                return NekoPrefKeys.a(injectorLike);
+            case 164:
+                return NekoPrefKeys.a(injectorLike);
+            case 165:
+                return NekoPrefKeys.a(injectorLike);
+            case 166:
+                return NekoPrefKeys.a(injectorLike);
+            case 167:
+                return FriendversaryInProductBrandingAttachmentHeaderPartDefinition.a(injectorLike);
+            case 168:
+                return NekoPrefKeys.a(injectorLike);
+            case 169:
+                return FriendversaryOrFaceversaryCollageAttachmentGroupPartDefinition.a(injectorLike);
+            case 170:
+                return NekoPrefKeys.a(injectorLike);
+            case 171:
+                return NekoPrefKeys.a(injectorLike);
+            case 172:
+                return NekoPrefKeys.a(injectorLike);
+            case 173:
+                return NekoPrefKeys.a(injectorLike);
+            case 174:
+                return NekoPrefKeys.a(injectorLike);
+            case 175:
+                return NekoPrefKeys.a(injectorLike);
+            case 176:
+                return ThrowbackCollageAttachmentPartDefinition.a(injectorLike);
+            case 177:
+                return NekoPrefKeys.a(injectorLike);
+            case 178:
+                return NekoPrefKeys.a(injectorLike);
+            case 179:
+                return NekoPrefKeys.a(injectorLike);
+            case 180:
+                return NekoPrefKeys.a(injectorLike);
+            case 181:
+                return NekoPrefKeys.a(injectorLike);
+            case 182:
+                return NekoPrefKeys.a(injectorLike);
+            case 183:
+                return NekoPrefKeys.a(injectorLike);
+            case 184:
+                return ThrowbackGroupPartDefinition.a(injectorLike);
+            case 185:
+                return ThrowbackHeaderSelectorPartDefinition.a(injectorLike);
+            case 186:
+                return NekoPrefKeys.a(injectorLike);
+            case 187:
+                return NekoPrefKeys.a(injectorLike);
+            case 188:
+                return NekoPrefKeys.a(injectorLike);
+            case 189:
+                return ThrowbackPrivacyLabelComponentPartDefinition.a(injectorLike);
+            case 190:
+                return NekoPrefKeys.a(injectorLike);
+            case 191:
+                return ThrowbackPrivacyLabelPartDefinition.a(injectorLike);
+            case 192:
+                return NekoPrefKeys.a(injectorLike);
+            case 193:
+                return NekoPrefKeys.a(injectorLike);
+            case 194:
+                return NekoPrefKeys.a(injectorLike);
+            case 195:
+                return NekoPrefKeys.a(injectorLike);
+            case 196:
+                return NekoPrefKeys.a(injectorLike);
+            case 197:
+                return ThrowbackSimplePhotoAttachmentPartDefinition.a(injectorLike);
+            case 198:
+                return NekoPrefKeys.a(injectorLike);
+            case 199:
+                return NekoPrefKeys.a(injectorLike);
+            case 200:
+                return NekoPrefKeys.a(injectorLike);
+            case 201:
+                return NekoPrefKeys.a(injectorLike);
+            case 202:
+                return ThrowbackUnifiedSeeMorePartDefinition.a(injectorLike);
+            case 203:
+                return NekoPrefKeys.a(injectorLike);
+            case 204:
+                return NekoPrefKeys.a(injectorLike);
+            case 205:
+                return ThrowbackVideoCardAttachmentGroupPartDefinition.a(injectorLike);
+            case 206:
+                return ThrowbackVideoSharePartDefinition.a(injectorLike);
+            case 207:
+                return NekoPrefKeys.a(injectorLike);
+            case 208:
+                return NekoPrefKeys.a(injectorLike);
+            case 209:
+                return NekoPrefKeys.a(injectorLike);
+            case 210:
+                return NekoPrefKeys.a(injectorLike);
+            case 211:
+                return NekoPrefKeys.a(injectorLike);
+            case 212:
+                return NekoPrefKeys.a(injectorLike);
+            case 213:
+                return DefaultVideoPlaysBlingBarPartDefinition.a(injectorLike);
+            case 214:
+                return FeedDiscoveryDefaultBlingBarPartDefinition.a(injectorLike);
+            case 215:
+                return InstagramBlingBarPartDefinition.a(injectorLike);
+            case 216:
+                return LiveVideoCommercialBreakFooterPartDefinition.a(injectorLike);
+            case 217:
+                return NekoPrefKeys.a(injectorLike);
+            case 218:
+                return StoryEmptyFooterPartDefinition.a(injectorLike);
+            case 219:
+                return DefaultFooterComponentPartDefinition.a(injectorLike);
+            case 220:
+                return NekoPrefKeys.a(injectorLike);
+            case 221:
+                return NekoPrefKeys.a(injectorLike);
+            case 222:
+                return NekoPrefKeys.a(injectorLike);
+            case 223:
+                return NekoPrefKeys.a(injectorLike);
+            case 224:
+                return AutoTranslateComponentPartDefinition.a(injectorLike);
+            case 225:
+                return AutoTranslatePartDefinition.a(injectorLike);
+            case 226:
+                return NekoPrefKeys.a(injectorLike);
+            case 227:
+                return NekoPrefKeys.a(injectorLike);
+            case 228:
+                return NekoPrefKeys.a(injectorLike);
+            case 229:
+                return NekoPrefKeys.a(injectorLike);
+            case 230:
+                return GreetingCardAttachmentPartDefinition.a(injectorLike);
+            case 231:
+                return NekoPrefKeys.a(injectorLike);
+            case 232:
+                return NekoPrefKeys.a(injectorLike);
+            case 233:
+                return NekoPrefKeys.a(injectorLike);
+            case 234:
+                return NekoPrefKeys.a(injectorLike);
+            case 235:
+                return NekoPrefKeys.a(injectorLike);
+            case 236:
+                return NekoPrefKeys.a(injectorLike);
+            case 237:
+                return NekoPrefKeys.a(injectorLike);
+            case 238:
+                return GreetingCardPromoPartDefinition.a(injectorLike);
+            case 239:
+                return NekoPrefKeys.a(injectorLike);
+            case 240:
+                return NekoPrefKeys.a(injectorLike);
+            case 241:
+                return NekoPrefKeys.a(injectorLike);
+            case 242:
+                return NekoPrefKeys.a(injectorLike);
+            case 243:
+                return GroupCommerceItemAttachmentPartDefinition.a(injectorLike);
+            case 244:
+                return NekoPrefKeys.a(injectorLike);
+            case 245:
+                return NekoPrefKeys.a(injectorLike);
+            case 246:
+                return GroupCommerceItemMarkAsSoldAttachmentPartDefinition.a(injectorLike);
+            case 247:
+                return NekoPrefKeys.a(injectorLike);
+            case 248:
+                return NekoPrefKeys.a(injectorLike);
+            case 249:
+                return NekoPrefKeys.a(injectorLike);
+            case 250:
+                return NekoPrefKeys.a(injectorLike);
+            case 251:
+                return NekoPrefKeys.a(injectorLike);
+            case 252:
+                return GroupMemberWelcomeCallToActionPartDefinition.a(injectorLike);
+            case 253:
+                return NekoPrefKeys.a(injectorLike);
+            case 254:
+                return FindFriendsGroupPartDefinition.a(injectorLike);
+            case 255:
+                return NekoPrefKeys.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4976i(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return GroupTopStoriesPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 3:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return GroupsYouShouldCreateHScrollRowPartDefinition.a(injectorLike);
+            case 5:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 6:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 7:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return MobilePageAdminPanelPartDefinition.a(injectorLike);
+            case 9:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 10:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 11:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 12:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 13:
+                return InstagramPhotosFromFriendsPartDefinition.a(injectorLike);
+            case 14:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 15:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 17:
+                return InstagramPromoteUnitPartDefinition.a(injectorLike);
+            case 18:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 19:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 20:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 21:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 22:
+                return SharedInstantArticleContentAttachmentGroupPartDefinition.a(injectorLike);
+            case 23:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 24:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 25:
+                return new LoadingIndicatorManager(ShimmeringStoryPartDefinition.a(injectorLike), GlowingStoryPartDefinition.a(injectorLike), LoadingCoverPhotoPartDefinition.a(injectorLike));
+            case 26:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 27:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 28:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 29:
+                return GroupsMLEOverlayCallToActionPartDefinition.a(injectorLike);
+            case 30:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 31:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return MomentsCallToActionPartDefinition.a(injectorLike);
+            case 33:
+                return MultiShareSingleTextAttachmentPartDefinition.a(injectorLike);
+            case 34:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 35:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 36:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 37:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 38:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 39:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 40:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 41:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 42:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 43:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 44:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 45:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 46:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 47:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 48:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 49:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 50:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 51:
+                return MusicStoryAttachmentPartSelector.a(injectorLike);
+            case 52:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 53:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 54:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 55:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 56:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 57:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 58:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 59:
+                return SongClipPlayer.a(injectorLike);
+            case 60:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 61:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 62:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 63:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 65:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 66:
+                return FriendsLocationsPartDefinition.a(injectorLike);
+            case 67:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 68:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 69:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 70:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 71:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 72:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 73:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 74:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 75:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 76:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 77:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 78:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 79:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 80:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 81:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 82:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 83:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 84:
+                return OpenGraphAttachmentPartSelector.a(injectorLike);
+            case 85:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 86:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 87:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 88:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 89:
+                return new PromptFriendSelectorFragmentFactory();
+            case 90:
+                return SocialPromptFeedActionHandler.a(injectorLike);
+            case 91:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 92:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 93:
+                return PagesStoriesYouMissedPartDefinition.a(injectorLike);
+            case 94:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 95:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 96:
+                return PagesYouMayAdvertisePartDefinition.a(injectorLike);
+            case 97:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 98:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 99:
+                return PYMAGraphQLObjectivesPartDefinition.a(injectorLike);
+            case 100:
+                return PYMAPageLikeObjectiveBodyComponentPartDefinition.a(injectorLike);
+            case 101:
+                return PYMAPageLikeObjectiveBodyPartDefinition.a(injectorLike);
+            case 102:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 103:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 104:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 105:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 106:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 107:
+                return FutureFriendingHScrollPartDefinition.a(injectorLike);
+            case 108:
+                return FutureFriendingHeaderPartDefinition.a(injectorLike);
+            case 109:
+                return PaginatedPeopleYouMayInvitePartDefinition.a(injectorLike);
+            case 110:
+                return PeopleYouMayInviteHeaderPartDefinition.a(injectorLike);
+            case 111:
+                return PeopleYouMayInvitePagerPartDefinition.a(injectorLike);
+            case 112:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 113:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 114:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 115:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 116:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 117:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 118:
+                return PaginatedPeopleYouMayKnowPartDefinition.a(injectorLike);
+            case 119:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 120:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 121:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 122:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 123:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 124:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 125:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 126:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 127:
+                return QuickPromotionPeopleYouMayKnowPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 129:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 130:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 131:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 132:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 133:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 134:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 135:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 136:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 137:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 138:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 139:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 140:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 141:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 142:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 143:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 144:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 145:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 146:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 147:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 148:
+                return ContentBasedPagesYouMayLikePartDefinition.a(injectorLike);
+            case 149:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 150:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 151:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 152:
+                return PeopleYouShouldFollowPartDefinition.a(injectorLike);
+            case 153:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 154:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 155:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 156:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 157:
+                return QuickPromotionFeedUnitPartDefinition.a(injectorLike);
+            case 158:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 159:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 160:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 161:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 162:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 163:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 164:
+                return QuickPromotionSocialContextComponentPartDefinition.a(injectorLike);
+            case 165:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 166:
+                return QuickPromotionSocialContextPartDefinition.a(injectorLike);
+            case 167:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 168:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 169:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 170:
+                return ReactNativePartDefinition.a(injectorLike);
+            case 171:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 172:
+                return ResearchPollGroupPartDefinition.a(injectorLike);
+            case 173:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 174:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 175:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 176:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 177:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 178:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 179:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 180:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 181:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 182:
+                return new XOutGraphQLMutation(GraphQLQueryExecutor.m10435a(injectorLike), String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike));
+            case 183:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 184:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 185:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 186:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 187:
+                return PlaceReviewPartDefinition.a(injectorLike);
+            case 188:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 189:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 190:
+                return RichMediaAttachmentSelectorPartDefinition.a(injectorLike);
+            case 191:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 192:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 193:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 194:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 195:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 196:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 197:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 198:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 199:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 200:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 201:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 202:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 203:
+                return SavedCollectionPartDefinition.a(injectorLike);
+            case 204:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 205:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 206:
+                return ForSaleItemMessageSellerCallToActionPartDefinition.a(injectorLike);
+            case 207:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 208:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 209:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 210:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 211:
+                return SaleGroupsNearYouPartDefinition.a(injectorLike);
+            case 212:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 213:
+                return ShareMenuPopoverFactory.a(injectorLike);
+            case 214:
+                return FundraiserPageAttachmentGroupPartDefinition.a(injectorLike);
+            case 215:
+                return FundraiserPersonToCharityAttachmentGroupPartDefinition.a(injectorLike);
+            case 216:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 217:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 218:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 219:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 220:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 221:
+                return StoryGallerySurveyFeedUnitSelectorPartDefinition.a(injectorLike);
+            case 222:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 223:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 224:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 225:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 226:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 227:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 228:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 229:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 230:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 231:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 232:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 233:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 234:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 235:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 236:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 237:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 238:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 239:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 240:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 241:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 242:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 243:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 244:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 245:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 246:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 247:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 248:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 249:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 250:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 251:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 252:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 253:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 254:
+                return GroupTopStoriesHeaderPartDefinition.a(injectorLike);
+            case 255:
+                return StorySetPartDefinition.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4977j(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 3:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 5:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 6:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 7:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 9:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 10:
+                return SurveyGroupPartDefinition.a(injectorLike);
+            case 11:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 12:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 13:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 14:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 15:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return TopicCustomizationStoryHScrollRowPartDefinition.a(injectorLike);
+            case 17:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 18:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 19:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 20:
+                return TreehousePromotCallToActionPartDefinition.a(injectorLike);
+            case 21:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 22:
+                return AvatarVideoAttachmentSelectorPartDefinition.a(injectorLike);
+            case 23:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 24:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 25:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 26:
+                return VoiceSwitcherPartDefinition.a(injectorLike);
+            case 27:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 28:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 29:
+                return WorkTrendingGroupPartDefinition.a(injectorLike);
+            case 30:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 31:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 33:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 34:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 35:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 36:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 37:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 38:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 39:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 40:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 41:
+                return FriendsCenterGateKeepers.b(injectorLike);
+            case 42:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 43:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 44:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 45:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 46:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 47:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 48:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 49:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 50:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 51:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 52:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 53:
+                return new FriendsCenterConnectionAdapter(FriendsCenterCommonBinder.b(injectorLike));
+            case 54:
+                return FriendsCenterListAdapter.b(injectorLike);
+            case 55:
+                return new FriendsCenterFragmentFactory();
+            case 56:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 57:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 58:
+                return new ImmersivePeopleYouMayKnowFragmentFactory();
+            case 59:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 60:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 61:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 62:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 63:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return FriendRequestsEntityCardsLauncher.a(injectorLike);
+            case 65:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 66:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 67:
+                return new NewUserFriendingDialogController((Context) injectorLike.getInstance(Context.class), FbUriIntentHandler.m8626a(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 68:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 69:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 70:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 71:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 72:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 73:
+                return new ProfileShareFragmentFactory();
+            case 74:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 75:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 76:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 77:
+                return new FriendingSuggestionFragmentFactory();
+            case 78:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 79:
+                return new FriendListFragmentFactory();
+            case 80:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 81:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 82:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 83:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 84:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 85:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 86:
+                return FriendingButtonControllerWithCallback.b(injectorLike);
+            case 87:
+                return FriendingEventBus.a(injectorLike);
+            case 88:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 89:
+                return PYMKImpressionLogger.a(injectorLike);
+            case 90:
+                return new FriendableContactsChangedSubscriber(FriendingNavigator.a(injectorLike));
+            case 91:
+                return new FriendableContactsFetchedSubscriber(FriendingNavigator.a(injectorLike));
+            case 92:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 93:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 94:
+                return new AddFriendListMemberMethod();
+            case 95:
+                return new BlacklistPeopleYouMayInviteMethod(IdBasedProvider.m1811a(injectorLike, 4442));
+            case 96:
+                return new BlacklistPeopleYouMayKnowMethod();
+            case 97:
+                return new BlacklistPeopleYouShouldFollowMethod(IdBasedProvider.m1811a(injectorLike, 4442));
+            case 98:
+                return new BlockUserMethod();
+            case 99:
+                return FetchFriendsWhoUsedContactImporter.a(injectorLike);
+            case 100:
+                return MarkFriendRequestsSeenMethod.a(injectorLike);
+            case 101:
+                return new PokeUserMethod();
+            case 102:
+                return new RemoveFriendListMemberMethod();
+            case 103:
+                return new SetNotificationPreferenceMethod();
+            case 104:
+                return new UpdatePeopleYouMayKnowHistoryMethod();
+            case 105:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 106:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 107:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 108:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 109:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 110:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 111:
+                return MemePromptPartDefinition.a(injectorLike);
+            case 112:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 113:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 114:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 115:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 116:
+                return new SouvenirLayoutCreator();
+            case 117:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 118:
+                return SouvenirsFormattedStringHelper.a(injectorLike);
+            case 119:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 120:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 121:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 122:
+                return new SouvenirPromptModelFilter(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 123:
+                return SouvenirPromptsPromptPartDefinition.a(injectorLike);
+            case 124:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 125:
+                return SouvenirPromptSmallPartDefinition.a(injectorLike);
+            case 126:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 127:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 129:
+                return new TestSouvenirCreator(LocalMediaCursorMethodAutoProvider.b(injectorLike));
+            case 130:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 131:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 132:
+                return CoverPhotoPromptPartDefinition.a(injectorLike);
+            case 133:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 134:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 135:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 136:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 137:
+                return FriendsNearbyNewDataHolder.b(injectorLike);
+            case 138:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 139:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 140:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 141:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 142:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 143:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 144:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 145:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 146:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 147:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 148:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 149:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 150:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 151:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 152:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 153:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 154:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 155:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 156:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 157:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 158:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 159:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 160:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 161:
+                return new NearbyFriendsFragmentFactory();
+            case 162:
+                return new NearbyFriendsInviteMultipickerFragmentFactory();
+            case 163:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 164:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 165:
+                return new GametimeDashboardFragmentFactory();
+            case 166:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 167:
+                return ComposerUnitComponentPartDefinition.a(injectorLike);
+            case 168:
+                return GametimeRecentPlaysComponentPartDefinition.a(injectorLike);
+            case 169:
+                return GametimeSingleSportsPlayGroupPartDefinition.a(injectorLike);
+            case 170:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 171:
+                return GametimeSportsPlayFeedAttachmentPartDefinition.a(injectorLike);
+            case 172:
+                return GametimeSportsPlayUnitComponentPartDefinition.a(injectorLike);
+            case 173:
+                return GametimeSportsPlaysRootPartDefinition.a(injectorLike);
+            case 174:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 175:
+                return HeadToHeadUnitComponentPartDefinition.a(injectorLike);
+            case 176:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 177:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 178:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 179:
+                return GametimeFanFavoriteUnitComponentPartDefinition.a(injectorLike);
+            case 180:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 181:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 182:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 183:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 184:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 185:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 186:
+                return GametimeMatchUnitComponentPartDefinition.a(injectorLike);
+            case 187:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 188:
+                return GametimeTableRowComponentPartDefinition.a(injectorLike);
+            case 189:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 190:
+                return GametimeTableUnitComponentPartDefinition.a(injectorLike);
+            case 191:
+                return new GametimePlaysFragmentFactory();
+            case 192:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 193:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 194:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 195:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 196:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 197:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 198:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 199:
+                return new AudienceFragmentFactory();
+            case 200:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 201:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 202:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 203:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 204:
+                return NoContentFeedPartDefinition.a(injectorLike);
+            case 205:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 206:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 207:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 208:
+                return new BirthdayCardFragmentFactory();
+            case 209:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 210:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 211:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 212:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 213:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 214:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 215:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 216:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 217:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 218:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 219:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 220:
+                return ThrowbackAnniversaryCampaignGroupPartDefinition.a(injectorLike);
+            case 221:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 222:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 223:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 224:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 225:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 226:
+                return ThrowbackFeedPromotionSelectorPartDefinition.a(injectorLike);
+            case 227:
+                return ThrowbackFeedRootGroupPartDefinition.a(injectorLike);
+            case 228:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 229:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 230:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 231:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 232:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 233:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 234:
+                return ThrowbackFriendversaryCampaignGroupPartDefinition.a(injectorLike);
+            case 235:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 236:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 237:
+                return ThrowbackFriendversaryGroupPartDefinition.a(injectorLike);
+            case 238:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 239:
+                return ThrowbackGraphQLStorySelectorPartDefinition.a(injectorLike);
+            case 240:
+                return ThrowbackMissedMemoriesStoryGroupPartDefinition.a(injectorLike);
+            case 241:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 242:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 243:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 244:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 245:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 246:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 247:
+                return ThrowbackYearMarkerPartDefinition.a(injectorLike);
+            case 248:
+                return new ThrowbackFeedFragmentFactory();
+            case 249:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 250:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 251:
+                return new PublishFriendversaryCollageMethod(PublishPostMethod.b(injectorLike), FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+            case 252:
+                return new PublishGoodwillLifeEventMethod();
+            case 253:
+                return new PublishGoodwillVideoMethod();
+            case 254:
+                return StorySetSingleStoryGroupPartDefinition.a(injectorLike);
+            case 255:
+                return new GraphCursorDatabaseWorker(GraphCursorDatabase.a(injectorLike));
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4978k(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return ObservableThreadUtil.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return GraphQLDiskCachePeriodicReporter.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return FlatBufferDirectorySizeLimiter.a(injectorLike);
+            case 3:
+                return ObservableThreadUtil.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return ObservableThreadUtil.a(injectorLike);
+            case 5:
+                return ObservableThreadUtil.a(injectorLike);
+            case 6:
+                return ObservableThreadUtil.a(injectorLike);
+            case 7:
+                return ObservableThreadUtil.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return ObservableThreadUtil.a(injectorLike);
+            case 9:
+                return ObservableThreadUtil.a(injectorLike);
+            case 10:
+                return ObservableThreadUtil.a(injectorLike);
+            case 11:
+                return ObservableThreadUtil.a(injectorLike);
+            case 12:
+                return ObservableThreadUtil.a(injectorLike);
+            case 13:
+                return ObservableThreadUtil.a(injectorLike);
+            case 14:
+                return ObservableThreadUtil.a(injectorLike);
+            case 15:
+                return ObservableThreadUtil.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return ObservableThreadUtil.a(injectorLike);
+            case 17:
+                return ObservableThreadUtil.a(injectorLike);
+            case 18:
+                return ObservableThreadUtil.a(injectorLike);
+            case 19:
+                return ObservableThreadUtil.a(injectorLike);
+            case 20:
+                return GroupsCoverPhotoHandler.b(injectorLike);
+            case 21:
+                return ObservableThreadUtil.a(injectorLike);
+            case 22:
+                return ObservableThreadUtil.a(injectorLike);
+            case 23:
+                return ObservableThreadUtil.a(injectorLike);
+            case 24:
+                return ObservableThreadUtil.a(injectorLike);
+            case 25:
+                return ObservableThreadUtil.a(injectorLike);
+            case 26:
+                return ObservableThreadUtil.a(injectorLike);
+            case 27:
+                return ObservableThreadUtil.a(injectorLike);
+            case 28:
+                return new GroupsFileFragmentFactory();
+            case 29:
+                return ObservableThreadUtil.a(injectorLike);
+            case 30:
+                return ObservableThreadUtil.a(injectorLike);
+            case 31:
+                return ObservableThreadUtil.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return ObservableThreadUtil.a(injectorLike);
+            case 33:
+                return ObservableThreadUtil.a(injectorLike);
+            case 34:
+                return ObservableThreadUtil.a(injectorLike);
+            case 35:
+                return ObservableThreadUtil.a(injectorLike);
+            case 36:
+                return ObservableThreadUtil.a(injectorLike);
+            case 37:
+                return new GroupEditFavoritesFragmentFactory();
+            case 38:
+                return ObservableThreadUtil.a(injectorLike);
+            case 39:
+                return ObservableThreadUtil.a(injectorLike);
+            case 40:
+                return ObservableThreadUtil.a(injectorLike);
+            case 41:
+                return ObservableThreadUtil.a(injectorLike);
+            case 42:
+                return ObservableThreadUtil.a(injectorLike);
+            case 43:
+                return GroupEditFavoritesIntentBuilder.b(injectorLike);
+            case 44:
+                return ObservableThreadUtil.a(injectorLike);
+            case 45:
+                return ObservableThreadUtil.a(injectorLike);
+            case 46:
+                return ObservableThreadUtil.a(injectorLike);
+            case 47:
+                return new GroupEditNameDescFragmentFactory();
+            case 48:
+                return new GroupEditPrivacyFragmentFactory();
+            case 49:
+                return new GroupEditPurposeFragmentFactory();
+            case 50:
+                return ObservableThreadUtil.a(injectorLike);
+            case 51:
+                return new GroupEditSettingsFragmentFactory();
+            case 52:
+                return ObservableThreadUtil.a(injectorLike);
+            case 53:
+                return ObservableThreadUtil.a(injectorLike);
+            case 54:
+                return ObservableThreadUtil.a(injectorLike);
+            case 55:
+                return ObservableThreadUtil.a(injectorLike);
+            case 56:
+                return ObservableThreadUtil.a(injectorLike);
+            case 57:
+                return ObservableThreadUtil.a(injectorLike);
+            case 58:
+                return new GroupsEventsFragmentFactory();
+            case 59:
+                return ObservableThreadUtil.a(injectorLike);
+            case 60:
+                return ObservableThreadUtil.a(injectorLike);
+            case 61:
+                return ObservableThreadUtil.a(injectorLike);
+            case 62:
+                return new FB4AAddToGroupsFragmentFactory();
+            case 63:
+                return ObservableThreadUtil.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return ObservableThreadUtil.a(injectorLike);
+            case 65:
+                return new FB4AGroupsCreateFragmentFactory();
+            case 66:
+                return ObservableThreadUtil.a(injectorLike);
+            case 67:
+                return ObservableThreadUtil.a(injectorLike);
+            case 68:
+                return ObservableThreadUtil.a(injectorLike);
+            case 69:
+                return ObservableThreadUtil.a(injectorLike);
+            case 70:
+                return ObservableThreadUtil.a(injectorLike);
+            case 71:
+                return ObservableThreadUtil.a(injectorLike);
+            case 72:
+                return ObservableThreadUtil.a(injectorLike);
+            case 73:
+                return ObservableThreadUtil.a(injectorLike);
+            case 74:
+                return ObservableThreadUtil.a(injectorLike);
+            case 75:
+                return ObservableThreadUtil.a(injectorLike);
+            case 76:
+                return ObservableThreadUtil.a(injectorLike);
+            case 77:
+                return ObservableThreadUtil.a(injectorLike);
+            case 78:
+                return new FB4AGroupsCreationTabFragmentFactory(FB4AGroupsHubExperiments.a(injectorLike));
+            case 79:
+                return new FB4AGroupsDiscoverFragmentFactory(FB4AGroupsHubExperiments.a(injectorLike));
+            case 80:
+                return new FB4AGroupsGridFragmentFactory(FB4AGroupsHubExperiments.a(injectorLike));
+            case 81:
+                return new FB4AGroupsHubSearchFragmentFactory();
+            case 82:
+                return new FB4AGroupsDiscoverToolTipInterstitialController(GlyphColorizer.m11486a(injectorLike));
+            case 83:
+                return ObservableThreadUtil.a(injectorLike);
+            case 84:
+                return ObservableThreadUtil.a(injectorLike);
+            case 85:
+                return ObservableThreadUtil.a(injectorLike);
+            case 86:
+                return new FB4AGroupsMemberPickerFragmentFactory(QeInternalImplMethodAutoProvider.m3744a(injectorLike), IdBasedProvider.m1811a(injectorLike, 3967));
+            case 87:
+                return ObservableThreadUtil.a(injectorLike);
+            case 88:
+                return ObservableThreadUtil.a(injectorLike);
+            case 89:
+                return ObservableThreadUtil.a(injectorLike);
+            case 90:
+                return ObservableThreadUtil.a(injectorLike);
+            case 91:
+                return new GeneralGroupsReactFragmentFactory();
+            case 92:
+                return ObservableThreadUtil.a(injectorLike);
+            case 93:
+                return ObservableThreadUtil.a(injectorLike);
+            case 94:
+                return ObservableThreadUtil.a(injectorLike);
+            case 95:
+                return ObservableThreadUtil.a(injectorLike);
+            case 96:
+                return ObservableThreadUtil.a(injectorLike);
+            case 97:
+                return ObservableThreadUtil.a(injectorLike);
+            case 98:
+                return ObservableThreadUtil.a(injectorLike);
+            case 99:
+                return ObservableThreadUtil.a(injectorLike);
+            case 100:
+                return ObservableThreadUtil.a(injectorLike);
+            case 101:
+                return ObservableThreadUtil.a(injectorLike);
+            case 102:
+                return ObservableThreadUtil.a(injectorLike);
+            case 103:
+                return ObservableThreadUtil.a(injectorLike);
+            case 104:
+                return ObservableThreadUtil.a(injectorLike);
+            case 105:
+                return ObservableThreadUtil.a(injectorLike);
+            case 106:
+                return ObservableThreadUtil.a(injectorLike);
+            case 107:
+                return ObservableThreadUtil.a(injectorLike);
+            case 108:
+                return ObservableThreadUtil.a(injectorLike);
+            case 109:
+                return ObservableThreadUtil.a(injectorLike);
+            case 110:
+                return ObservableThreadUtil.a(injectorLike);
+            case 111:
+                return ObservableThreadUtil.a(injectorLike);
+            case 112:
+                return ObservableThreadUtil.a(injectorLike);
+            case 113:
+                return new CrossGroupForSalePostsFragmentFactory();
+            case 114:
+                return new GroupFeedFragmentFactory(QeInternalImplMethodAutoProvider.m3744a(injectorLike), IdBasedProvider.m1811a(injectorLike, 3967));
+            case 115:
+                return ObservableThreadUtil.a(injectorLike);
+            case 116:
+                return ObservableThreadUtil.a(injectorLike);
+            case 117:
+                return new GroupForSalePostFragmentFactory();
+            case 118:
+                return new GroupPendingPostsFragmentFactory(QeInternalImplMethodAutoProvider.m3744a(injectorLike), IdBasedProvider.m1811a(injectorLike, 3967));
+            case 119:
+                return new GroupPinnedPostFragmentFactory();
+            case 120:
+                return new GroupYourPostFragmentFactory();
+            case 121:
+                return ObservableThreadUtil.a(injectorLike);
+            case 122:
+                return ObservableThreadUtil.a(injectorLike);
+            case 123:
+                return ObservableThreadUtil.a(injectorLike);
+            case 124:
+                return ObservableThreadUtil.a(injectorLike);
+            case 125:
+                return FetchGroupFeedMethod.b(injectorLike);
+            case 126:
+                return ObservableThreadUtil.a(injectorLike);
+            case 127:
+                return ObservableThreadUtil.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return ObservableThreadUtil.a(injectorLike);
+            case 129:
+                return new HideApprovedStoryPartDefinition();
+            case 130:
+                return ObservableThreadUtil.a(injectorLike);
+            case 131:
+                return new HidePinnedStoryPartDefinition();
+            case 132:
+                return new HideUnpinnedStoryPartDefinition();
+            case 133:
+                return ObservableThreadUtil.a(injectorLike);
+            case 134:
+                return ObservableThreadUtil.a(injectorLike);
+            case 135:
+                return ObservableThreadUtil.a(injectorLike);
+            case 136:
+                return ObservableThreadUtil.a(injectorLike);
+            case 137:
+                return ObservableThreadUtil.a(injectorLike);
+            case 138:
+                return GroupsContextItemPresenter.a(injectorLike);
+            case 139:
+                return ObservableThreadUtil.a(injectorLike);
+            case 140:
+                return new GroupsSeedsComposerSellSomethingNuxInterstitialController();
+            case 141:
+                return ObservableThreadUtil.a(injectorLike);
+            case 142:
+                return ObservableThreadUtil.a(injectorLike);
+            case 143:
+                return ObservableThreadUtil.a(injectorLike);
+            case 144:
+                return ObservableThreadUtil.a(injectorLike);
+            case 145:
+                return ObservableThreadUtil.a(injectorLike);
+            case 146:
+                return GroupsGraphQLStorySelectorPartDefinition.a(injectorLike);
+            case 147:
+                return ObservableThreadUtil.a(injectorLike);
+            case 148:
+                return ObservableThreadUtil.a(injectorLike);
+            case 149:
+                return ObservableThreadUtil.a(injectorLike);
+            case 150:
+                return GroupsProductFeedGraphQLStorySelectorPartDefinition.a(injectorLike);
+            case 151:
+                return ObservableThreadUtil.a(injectorLike);
+            case 152:
+                return GroupsYourPostsGraphQLStorySelectorPartDefinition.a(injectorLike);
+            case 153:
+                return ModerationGroupPartDefinition.a(injectorLike);
+            case 154:
+                return ObservableThreadUtil.a(injectorLike);
+            case 155:
+                return ObservableThreadUtil.a(injectorLike);
+            case 156:
+                return ObservableThreadUtil.a(injectorLike);
+            case 157:
+                return ObservableThreadUtil.a(injectorLike);
+            case 158:
+                return ObservableThreadUtil.a(injectorLike);
+            case 159:
+                return ObservableThreadUtil.a(injectorLike);
+            case 160:
+                return ObservableThreadUtil.a(injectorLike);
+            case 161:
+                return ObservableThreadUtil.a(injectorLike);
+            case 162:
+                return ObservableThreadUtil.a(injectorLike);
+            case 163:
+                return ObservableThreadUtil.a(injectorLike);
+            case 164:
+                return ObservableThreadUtil.a(injectorLike);
+            case 165:
+                return ObservableThreadUtil.a(injectorLike);
+            case 166:
+                return GroupHiddenStatusUpdater.a(injectorLike);
+            case 167:
+                return ObservableThreadUtil.a(injectorLike);
+            case 168:
+                return GroupsFavoriteUpdater.a(injectorLike);
+            case 169:
+                return new GroupsOrderUpdater(GraphQLQueryExecutor.m10435a(injectorLike), String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike));
+            case 170:
+                return ObservableThreadUtil.a(injectorLike);
+            case 171:
+                return ObservableThreadUtil.a(injectorLike);
+            case 172:
+                return ObservableThreadUtil.a(injectorLike);
+            case 173:
+                return ObservableThreadUtil.a(injectorLike);
+            case 174:
+                return ObservableThreadUtil.a(injectorLike);
+            case 175:
+                return ObservableThreadUtil.a(injectorLike);
+            case 176:
+                return ObservableThreadUtil.a(injectorLike);
+            case 177:
+                return new GroupInfoFragmentFactory();
+            case 178:
+                return ObservableThreadUtil.a(injectorLike);
+            case 179:
+                return new GroupReactReportedPostFragmentFactory();
+            case 180:
+                return ObservableThreadUtil.a(injectorLike);
+            case 181:
+                return ObservableThreadUtil.a(injectorLike);
+            case 182:
+                return ObservableThreadUtil.a(injectorLike);
+            case 183:
+                return ObservableThreadUtil.a(injectorLike);
+            case 184:
+                return ObservableThreadUtil.a(injectorLike);
+            case 185:
+                return ObservableThreadUtil.a(injectorLike);
+            case 186:
+                return new GroupMembershipFragmentFactory();
+            case 187:
+                return new GroupSuggestAdminFragmentFactory();
+            case 188:
+                return ObservableThreadUtil.a(injectorLike);
+            case 189:
+                return MembershipIntentBuilder.a(injectorLike);
+            case 190:
+                return new GroupsMultiTierAdminNuxInterstitialController();
+            case 191:
+                return ObservableThreadUtil.a(injectorLike);
+            case 192:
+                return ObservableThreadUtil.a(injectorLike);
+            case 193:
+                return ObservableThreadUtil.a(injectorLike);
+            case 194:
+                return ObservableThreadUtil.a(injectorLike);
+            case 195:
+                return ObservableThreadUtil.a(injectorLike);
+            case 196:
+                return ObservableThreadUtil.a(injectorLike);
+            case 197:
+                return new GroupAddInviteMemberSearchListLoader(TasksManager.m14550b(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), IdBasedProvider.m1811a(injectorLike, 4442));
+            case 198:
+                return new GroupAddMemberFriendSearchListLoader(IdBasedProvider.m1811a(injectorLike, 4442), (UserFriendsSearchListLoaderProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(UserFriendsSearchListLoaderProvider.class));
+            case 199:
+                return new GroupAddMemberSearchListLoader((SuggestedSearchMemberListLoaderProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(SuggestedSearchMemberListLoaderProvider.class));
+            case 200:
+                return ObservableThreadUtil.a(injectorLike);
+            case 201:
+                return ObservableThreadUtil.a(injectorLike);
+            case 202:
+                return ObservableThreadUtil.a(injectorLike);
+            case 203:
+                return ObservableThreadUtil.a(injectorLike);
+            case 204:
+                return ObservableThreadUtil.a(injectorLike);
+            case 205:
+                return ObservableThreadUtil.a(injectorLike);
+            case 206:
+                return new GroupsMemberRequestsFragmentFactory();
+            case 207:
+                return ObservableThreadUtil.a(injectorLike);
+            case 208:
+                return ObservableThreadUtil.a(injectorLike);
+            case 209:
+                return ObservableThreadUtil.a(injectorLike);
+            case 210:
+                return GroupsClient.b(injectorLike);
+            case 211:
+                return ObservableThreadUtil.a(injectorLike);
+            case 212:
+                return ObservableThreadUtil.a(injectorLike);
+            case 213:
+                return ObservableThreadUtil.a(injectorLike);
+            case 214:
+                return ObservableThreadUtil.a(injectorLike);
+            case 215:
+                return ObservableThreadUtil.a(injectorLike);
+            case 216:
+                return ObservableThreadUtil.a(injectorLike);
+            case 217:
+                return ObservableThreadUtil.a(injectorLike);
+            case 218:
+                return ObservableThreadUtil.a(injectorLike);
+            case 219:
+                return ObservableThreadUtil.a(injectorLike);
+            case 220:
+                return ObservableThreadUtil.a(injectorLike);
+            case 221:
+                return ObservableThreadUtil.a(injectorLike);
+            case 222:
+                return ObservableThreadUtil.a(injectorLike);
+            case 223:
+                return ObservableThreadUtil.a(injectorLike);
+            case 224:
+                return ObservableThreadUtil.a(injectorLike);
+            case 225:
+                return ObservableThreadUtil.a(injectorLike);
+            case 226:
+                return ObservableThreadUtil.a(injectorLike);
+            case 227:
+                return ObservableThreadUtil.a(injectorLike);
+            case 228:
+                return new GroupAlbumFragmentFactory();
+            case 229:
+                return new GroupsPhotosFragmentFactory();
+            case 230:
+                return ObservableThreadUtil.a(injectorLike);
+            case 231:
+                return ObservableThreadUtil.a(injectorLike);
+            case 232:
+                return ObservableThreadUtil.a(injectorLike);
+            case 233:
+                return ObservableThreadUtil.a(injectorLike);
+            case 234:
+                return ObservableThreadUtil.a(injectorLike);
+            case 235:
+                return ObservableThreadUtil.a(injectorLike);
+            case 236:
+                return ObservableThreadUtil.a(injectorLike);
+            case 237:
+                return ObservableThreadUtil.a(injectorLike);
+            case 238:
+                return ObservableThreadUtil.a(injectorLike);
+            case 239:
+                return ObservableThreadUtil.a(injectorLike);
+            case 240:
+                return DefaultGroupSubscriptionController.b(injectorLike);
+            case 241:
+                return ObservableThreadUtil.a(injectorLike);
+            case 242:
+                return ObservableThreadUtil.a(injectorLike);
+            case 243:
+                return new GroupSubscriptionFragmentFactory();
+            case 244:
+                return new GroupsStartSideConversationFragmentFactory();
+            case 245:
+                return ObservableThreadUtil.a(injectorLike);
+            case 246:
+                return ObservableThreadUtil.a(injectorLike);
+            case 247:
+                return ObservableThreadUtil.a(injectorLike);
+            case 248:
+                return ObservableThreadUtil.a(injectorLike);
+            case 249:
+                return ObservableThreadUtil.a(injectorLike);
+            case 250:
+                return ObservableThreadUtil.a(injectorLike);
+            case 251:
+                return ObservableThreadUtil.a(injectorLike);
+            case 252:
+                return ObservableThreadUtil.a(injectorLike);
+            case 253:
+                return ObservableThreadUtil.a(injectorLike);
+            case 254:
+                return ObservableThreadUtil.a(injectorLike);
+            case 255:
+                return ObservableThreadUtil.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4979l(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 3:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 5:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 6:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 7:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 9:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 10:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 11:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 12:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 13:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 14:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 15:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 17:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 18:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 19:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 20:
+                return new FriendFinderIntroFragmentFactory();
+            case 21:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 22:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 23:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 24:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 25:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 26:
+                return UserAccountNUXInterstitialController.a(injectorLike);
+            case 27:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 28:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 29:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 30:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 31:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 33:
+                return new FriendFinderMethod();
+            case 34:
+                return new FriendFinderPYMKMethod();
+            case 35:
+                return new SetContinuousContactsUploadMethod(UniqueIdForDeviceHolderMethodAutoProvider.m4339b(injectorLike));
+            case 36:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 37:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 38:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 39:
+                return DeviceOwnerDataFetcher.a(injectorLike);
+            case 40:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 41:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 42:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 43:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 44:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 45:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 46:
+                return CategoryBrowserLauncherImpl.a(injectorLike);
+            case 47:
+                return ImageOverlayQueryBuilder.a(injectorLike);
+            case 48:
+                return ProfilePictureOverlayActivityLauncher.a(injectorLike);
+            case 49:
+                return ProfilePictureOverlayAnalyticsLogger.a(injectorLike);
+            case 50:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 51:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 52:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 53:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 54:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 55:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 56:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 57:
+                return ProfilePictureOverlayPivotQueryExecutor.a(injectorLike);
+            case 58:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 59:
+                return PageProfilePictureOverlaysQueryBuilder.a(injectorLike);
+            case 60:
+                return SwipeableOverlaysRequestFactory.a(injectorLike);
+            case 61:
+                return DelayEmpathyManager.a(injectorLike);
+            case 62:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 63:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 65:
+                return PassthroughRequestEngine.a(injectorLike);
+            case 66:
+                return TigonRequestEngine.a(injectorLike);
+            case 67:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 68:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 69:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 70:
+                return FbHttpClientImpl.a(injectorLike);
+            case 71:
+                return FbHttpClientRequestExecutor.a(injectorLike);
+            case 72:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 73:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 74:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 75:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 76:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 77:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 78:
+                return FbTorProxyFactory.a(injectorLike);
+            case 79:
+                return new OnionAnalyticsLogger(AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike));
+            case 80:
+                return OnionPreferenceListener.a(injectorLike);
+            case 81:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 82:
+                return OrbotLauncher.a(injectorLike);
+            case 83:
+                return new ProxyUpdater(FbErrorReporterImpl.m2317a(injectorLike));
+            case 84:
+                return TorIntegrityChecker.a(injectorLike);
+            case 85:
+                return TorWebViewProxyManager.a(injectorLike);
+            case 86:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 87:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 88:
+                return TorProxyListenersInitializerImpl.a(injectorLike);
+            case 89:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 90:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 91:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 92:
+                return new DelayBasedQPViewController(FbSharedPreferencesImpl.m1826a(injectorLike));
+            case 93:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 94:
+                return null;
+            case 95:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 96:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 97:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 98:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 99:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 100:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 101:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 102:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 103:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 104:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 105:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 106:
+                return ImagePipelinePeriodicReporter.a(injectorLike);
+            case 107:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 108:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 109:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 110:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 111:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 112:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 113:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 114:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 115:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 116:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 117:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 118:
+                return InstantShoppingDocumentFetcher.a(injectorLike);
+            case 119:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 120:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 121:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 122:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 123:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 124:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 125:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 126:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 127:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 129:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 130:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 131:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 132:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 133:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 134:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 135:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 136:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 137:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 138:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 139:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 140:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 141:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 142:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 143:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 144:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 145:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 146:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 147:
+                return new SaveNuxInterstitialController(TipSeenTracker.b(injectorLike));
+            case 148:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 149:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 150:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 151:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 152:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 153:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 154:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 155:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 156:
+                return LogInterstitialMethod.a(injectorLike);
+            case 157:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 158:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 159:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 160:
+                return ZeroInterstitialActivityResultHandler.a(injectorLike);
+            case 161:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 162:
+                return new DefaultDataControlWithoutUpsellDialogProvider();
+            case 163:
+                return new DefaultUpsellWithDataControlDialogProvider();
+            case 164:
+                return new DefaultUpsellWithoutDataControlDialogProvider();
+            case 165:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 166:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 167:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 168:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 169:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 170:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 171:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 172:
+                return new BorrowLoanConfirmController(IorgZeroFbBroadcastManager.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 4034), IorgFb4aAnalyticsLogger.a(injectorLike), IorgFb4aAndroidThreadUtil.a(injectorLike), FbUpsellPromoServiceManager.a(injectorLike));
+            case 173:
+                return new BuyConfirmController(IorgFb4aAndroidThreadUtil.a(injectorLike), IorgFb4aAnalyticsLogger.a(injectorLike), FbUpsellPromoServiceManager.a(injectorLike));
+            case 174:
+                return new BuyFailurePromoController(IorgZeroFbBroadcastManager.b(injectorLike), FbZeroFeatureVisibilityHelper.m7916a(injectorLike), IdBasedProvider.m1811a(injectorLike, 4034), IorgFb4aAnalyticsLogger.a(injectorLike));
+            case 175:
+                return new BuyMaybeController(IorgZeroFbBroadcastManager.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 4034), IorgFb4aAnalyticsLogger.a(injectorLike));
+            case 176:
+                return new BuySuccessController(IorgZeroFbBroadcastManager.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 4034), IorgFb4aAnalyticsLogger.a(injectorLike));
+            case 177:
+                return new FetchUpsellsSpinnerController(IorgFb4aAndroidThreadUtil.a(injectorLike), IorgFb4aAnalyticsLogger.a(injectorLike), FbZeroFeatureVisibilityHelper.m7916a(injectorLike), FbUpsellPromoServiceManager.a(injectorLike), IdBasedProvider.m1811a(injectorLike, 4033));
+            case 178:
+                return new PromoListScreenController(IorgFb4aAnalyticsLogger.a(injectorLike), IdBasedProvider.m1811a(injectorLike, 4033), FbZeroFeatureVisibilityHelper.m7916a(injectorLike), (UpsellDontShowAgainHandler) ZeroUpsellDontShowAgainHandler.b(injectorLike));
+            case 179:
+                return new ShowLoanController(IorgZeroFbBroadcastManager.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 4034), IorgFb4aAnalyticsLogger.a(injectorLike));
+            case 180:
+                return new UpsellStandardDataChargesController(IorgFb4aAnalyticsLogger.a(injectorLike));
+            case 181:
+                return new UseDataOrStayInFreeController((UpsellDontShowAgainHandler) ZeroUpsellDontShowAgainHandler.b(injectorLike), IorgFb4aAnalyticsLogger.a(injectorLike));
+            case 182:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 183:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 184:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 185:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 186:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 187:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 188:
+                return DefaultShareComposerLauncher.a(injectorLike);
+            case 189:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 190:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 191:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 192:
+                return MediaGalleryModule.a();
+            case 193:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 194:
+                return PhotosContract.a(injectorLike);
+            case 195:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 196:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 197:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 198:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 199:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 200:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 201:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 202:
+                return new BookmarkMenuFragmentFactory();
+            case 203:
+                return new BookmarkSectionFragmentFactory();
+            case 204:
+                return new FacewebFragmentFactory();
+            case 205:
+                return new FriendRequestsFragmentFactory();
+            case 206:
+                return new NearbyPlacesFragmentFactory(IdBasedProvider.m1811a(injectorLike, 718));
+            case 207:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 208:
+                return new TabQuickPromotionLauncher((Context) injectorLike.getInstance(Context.class), DefaultSecureContextHelper.m4636a(injectorLike), InterstitialManager.m8082a(injectorLike), ComponentName_FragmentChromeActivityMethodAutoProvider.m19211b(injectorLike));
+            case 209:
+                return new UberbarFragmentFactory();
+            case 210:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 211:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 212:
+                return DefaultPhotoIntentBuilder.a(injectorLike);
+            case 213:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 214:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 215:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 216:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 217:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 218:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 219:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 220:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 221:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 222:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 223:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 224:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 225:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 226:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 227:
+                return DisableMessengerUriIntentBuilder.a(injectorLike);
+            case 228:
+                return new HasUnreadMessagesFilterPredicate(IdBasedProvider.m1811a(injectorLike, 2567));
+            case 229:
+                return MessengerMSiteUriIntentBuilder.a(injectorLike);
+            case 230:
+                return MessengerRedirectUriIntentBuilder.a(injectorLike);
+            case 231:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 232:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 233:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 234:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 235:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 236:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 237:
+                return PlatformMediaUploadActivityReceiver.a(injectorLike);
+            case 238:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 239:
+                return new PlatformServiceGetInstallDataRequest();
+            case 240:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 241:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 242:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 243:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 244:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 245:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 246:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 247:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 248:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 249:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 250:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 251:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 252:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 253:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            case 254:
+                return AppLinksUtil.a(injectorLike);
+            case 255:
+                return RecentActiveGroupsListAdapter.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4980m(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 3:
+                return FacewebUriIntentBuilder.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 5:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 6:
+                return LegacyFacebookUriRedirector.a(injectorLike);
+            case 7:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 9:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 10:
+                return StaticUriIntentMapper.a(injectorLike);
+            case 11:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 12:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 13:
+                return LogoutHelper.b(injectorLike);
+            case 14:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 15:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 17:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 18:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 19:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 20:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 21:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 22:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 23:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 24:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 25:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 26:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 27:
+                return new AutoSyncLoggedInUserLocaleConditionalWorker(FbSharedPreferencesImpl.m1826a(injectorLike), SingleMethodRunnerImpl.m11724a(injectorLike), GetUserLocaleMethod.a(injectorLike));
+            case 28:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 29:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 30:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 31:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 33:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 34:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 35:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 36:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 37:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 38:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 39:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 40:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 41:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 42:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 43:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 44:
+                return LivePhotosMediaDownloader.a(injectorLike);
+            case 45:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 46:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 47:
+                return new AddPhotoMenuFragmentFactory();
+            case 48:
+                return new PageMenuManagementFragmentFactory();
+            case 49:
+                return new PageMenuManagementLinkMenuFragmentFactory();
+            case 50:
+                return new PagePhotoMenuFragmentFactory();
+            case 51:
+                return new ShowAllPhotosByCategoryFragmentFactory();
+            case 52:
+                return new StructuredMenuFragmentFactory();
+            case 53:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 54:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 55:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 56:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 57:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 58:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 59:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 60:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 61:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 62:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 63:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 65:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 66:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 67:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 68:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 69:
+                return new AddPhotoMenuMoreTabNuxController(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 70:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 71:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 72:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 73:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 74:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 75:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 76:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 77:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 78:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 79:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 80:
+                return new AndroidPlatformFbLocationContinuousListener(FbLocationStatusUtil.m8253a(injectorLike), LocationManagerMethodAutoProvider.m8262b(injectorLike), FbZeroFeatureVisibilityHelper.m7916a(injectorLike));
+            case 81:
+                return AndroidPlatformFbLocationManager.b(injectorLike);
+            case 82:
+                return new AndroidPlatformFbLocationPassiveListener(LocationManagerMethodAutoProvider.m8262b(injectorLike.getApplicationInjector()));
+            case 83:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 84:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 85:
+                return new GooglePlayFbLocationContinuousListener(FbLocationStatusUtil.m8253a(injectorLike), GooglePlayGoogleApiClientFactory.m25054b(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 86:
+                return new GooglePlayFbLocationPassiveListener(GooglePlayGoogleApiClientFactory.m25054b(injectorLike.getApplicationInjector()), FbErrorReporterImpl.m2317a(injectorLike));
+            case 87:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 88:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 89:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 90:
+                return GooglePlayLocationServicesSettingsManager.b(injectorLike);
+            case 91:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 92:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 93:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 94:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 95:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 96:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 97:
+                return new LocationSettingsFragmentFactory();
+            case 98:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 99:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 100:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 101:
+                return new LookNowPermalinkFragmentFactory();
+            case 102:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 103:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 104:
+                return LoomBridgeListener.b(injectorLike);
+            case 105:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 106:
+                return MalwareScanner.a(injectorLike);
+            case 107:
+                return ExternalMapLauncher.a(injectorLike);
+            case 108:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 109:
+                return GenericMapsFragmentAndUriIntentBuilder.a(injectorLike);
+            case 110:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 111:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 112:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 113:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 114:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 115:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 116:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 117:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 118:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 119:
+                return MarketplaceUnseenCountFetcher.b(injectorLike);
+            case 120:
+                return MarketplaceTabFragmentFactory.a(injectorLike);
+            case 121:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 122:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 123:
+                return new SegmentedVideoTranscodeSession(VideoResizer.a(injectorLike), TempFileManager.a(injectorLike), (VideoMetadataExtractor) DefaultVideoMetadataExtractor.b(injectorLike));
+            case 124:
+                return VideoTranscodeSession.b(injectorLike);
+            case 125:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 126:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 127:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 129:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 130:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 131:
+                return new MegaphoneExtraDataFetcher(ProfileQuestionFetcher.a(injectorLike), IdentityGrowthMegaphoneStoryData.a(injectorLike));
+            case 132:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 133:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 134:
+                return OtherAppMemoryUsageReporter.a(injectorLike);
+            case 135:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 136:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 137:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 138:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 139:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 140:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 141:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 142:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 143:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 144:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 145:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 146:
+                return MessagesReliabilityLogger.b(injectorLike);
+            case 147:
+                return new ReliabilityLoggerStaleEntriesConditionalWorker(AggregatedReliabilityLogger.a(injectorLike));
+            case 148:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 149:
+                return OmniPickerAnalyticsLogger.a(injectorLike);
+            case 150:
+                return CreateThreadReliabilityLogger.a(injectorLike);
+            case 151:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 152:
+                return FetchThreadTracer.a(injectorLike);
+            case 153:
+                return ApplinkHelper.b(injectorLike);
+            case 154:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 155:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 156:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 157:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 158:
+                return GQLAppAttributionQueryHelper.a(injectorLike);
+            case 159:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 160:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 161:
+                return new PlatformLaunchDialogHelper(BetterLinkMovementMethod.a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike), (Context) injectorLike.getInstance(Context.class), ErrorDialogs.m14522a(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike), PlatformAttributionLogging.a(injectorLike), ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 162:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 163:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 164:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 165:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 166:
+                return AttributionHelper.b(injectorLike);
+            case 167:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 168:
+                return AudioCache.a(injectorLike);
+            case 169:
+                return AudioClipPlayer.b(injectorLike);
+            case 170:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 171:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 172:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 173:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 174:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 175:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 176:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 177:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 178:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 179:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 180:
+                return new OmnistoreKeyJustWrittenFilterPredicate(SystemClockMethodAutoProvider.m1498a(injectorLike), BannerTriggersCache.a(injectorLike));
+            case 181:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 182:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 183:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 184:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 185:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 186:
+                return BlockingUtils.b(injectorLike);
+            case 187:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 188:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 189:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 190:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 191:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 192:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 193:
+                return AgentTermsStatusHelper.b(injectorLike);
+            case 194:
+                return new AgentItemReceiptSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 195:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 196:
+                return new AgentItemReceiptStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 197:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 198:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 199:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 200:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 201:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 202:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 203:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 204:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 205:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 206:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 207:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 208:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 209:
+                return new RetailItemSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 210:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 211:
+                return new RetailItemStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 212:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 213:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 214:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 215:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 216:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 217:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 218:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 219:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 220:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 221:
+                return new CommerceBubbleAgentItemSuggestionSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 222:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 223:
+                return new CommerceBubbleCancellationSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 224:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 225:
+                return new CommerceBubbleReceiptAndCancellationStyleRenderer((Context) injectorLike.getInstance(Context.class), MessengerCommerceAnalyticsLogger.b(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike));
+            case 226:
+                return new CommerceBubbleReceiptSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 227:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 228:
+                return new CommerceBubbleRetailItemSuggestionStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 229:
+                return new CommerceBubbleShipmentSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 230:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 231:
+                return new CommerceBubbleShipmentTrackingSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 232:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 233:
+                return new CommerceBubbleShippingNotificationStyleRenderer((Context) injectorLike.getInstance(Context.class), MessengerCommerceAnalyticsLogger.b(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike));
+            case 234:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 235:
+                return new CommerceBubbleSubscriptionSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 236:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 237:
+                return new CommerceBubbleSubscriptionStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 238:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 239:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 240:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 241:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 242:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 243:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 244:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 245:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 246:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 247:
+                return new RetailPromotionSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 248:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 249:
+                return new RetailPromotionStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 250:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 251:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 252:
+                return BusinessAnalyticsLogger.b(injectorLike);
+            case 253:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 254:
+                return BookmarkIntentUriBuilder.a(injectorLike);
+            case 255:
+                return BusinessUriMapper.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4981n(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 3:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 5:
+                return new BusinessMutationHelper(GraphQLQueryExecutor.m10435a(injectorLike));
+            case 6:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 7:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return new BusinessGreetingContentsLoader(GraphQLQueryExecutor.m10435a(injectorLike), IdBasedProvider.m1811a(injectorLike, 4443));
+            case 9:
+                return new BusinessNuxContentsLoader(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike));
+            case 10:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 11:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 12:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 13:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 14:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 15:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 17:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 18:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 19:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 20:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 21:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 22:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 23:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 24:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 25:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 26:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 27:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 28:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 29:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 30:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 31:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 33:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 34:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 35:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 36:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 37:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 38:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 39:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 40:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 41:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 42:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 43:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 44:
+                return RideOauthHelper.b(injectorLike);
+            case 45:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 46:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 47:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 48:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 49:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 50:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 51:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 52:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 53:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 54:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 55:
+                return new RideOrderBubbleSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 56:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 57:
+                return new RideOrderBubbleStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 58:
+                return new RideReceiptBubbleSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 59:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 60:
+                return new RideReceiptBubbleStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 61:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 62:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 63:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 65:
+                return ArchiveThreadManager.a(injectorLike);
+            case 66:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 67:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 68:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 69:
+                return CacheInsertThreadsHandler_FacebookMessagesMethodAutoProvider.a(injectorLike);
+            case 70:
+                return CacheInsertThreadsHandler_SmsMessagesMethodAutoProvider.a(injectorLike);
+            case 71:
+                return CacheInsertThreadsHandler_TincanMessagesMethodAutoProvider.a(injectorLike);
+            case 72:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 73:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 74:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 75:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 76:
+                return GloballyDeletedMessagesPlaceholderCache.a(injectorLike);
+            case 77:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 78:
+                return ReadThreadManager.a(injectorLike);
+            case 79:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 80:
+                return SpamThreadManager.a(injectorLike);
+            case 81:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 82:
+                return ThreadParticipantUtils.a(injectorLike);
+            case 83:
+                return ThreadRecipientUtil.b(injectorLike);
+            case 84:
+                return ThreadSummaryStitching.b(injectorLike);
+            case 85:
+                return ThreadUnreadCountUtil.a(injectorLike);
+            case 86:
+                return ThreadsCacheUpdateRateLimiter.a(injectorLike);
+            case 87:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 88:
+                return ChatHeadsBroadcaster.a(injectorLike);
+            case 89:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 90:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 91:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 92:
+                return SkewedTimestampHandler.a(injectorLike);
+            case 93:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 94:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 95:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 96:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 97:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 98:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 99:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 100:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 101:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 102:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 103:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 104:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 105:
+                return ComposerShortcutsAnalyticsLogger.a(injectorLike);
+            case 106:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 107:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 108:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 109:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 110:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 111:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 112:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 113:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 114:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 115:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 116:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 117:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 118:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 119:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 120:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 121:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 122:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 123:
+                return SimpleConnectionStatusMonitor.a(injectorLike);
+            case 124:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 125:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 126:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 127:
+                return new ContactPickerFavoriteEditFilter(FbHandlerThreadFactory.m3575a(injectorLike), Boolean_IsSmsBridgeEnabledMethodAutoProvider.b(injectorLike), SmsIntegrationState.a(injectorLike), UserIterators.a(injectorLike), PhoneContactsLoader.b(injectorLike), PhoneContactFacebookUserDeduper.a(injectorLike));
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return ContactPickerFriendFilter.a(injectorLike);
+            case 129:
+                return new ContactPickerNotOnMessengerFriendsFilter(FbHandlerThreadFactory.m3575a(injectorLike), UserIterators.a(injectorLike));
+            case 130:
+                return ContactPickerPaymentEligibleContactsFilter.b(injectorLike);
+            case 131:
+                return new ContactPickerPhoneContactsFilter(FbHandlerThreadFactory.m3575a(injectorLike), PhoneUserIterators.a(injectorLike), RuntimePermissionsUtil.m13589b(injectorLike));
+            case 132:
+                return ContactPickerRowsFactory.b(injectorLike);
+            case 133:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 134:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 135:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 136:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 137:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 138:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 139:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 140:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 141:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 142:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 143:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 144:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 145:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 146:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 147:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 148:
+                return ContactsYouMayKnowMutationHandler.b(injectorLike);
+            case 149:
+                return new ContactsYouMayKnowNoticeHelper(FbSharedPreferencesImpl.m1826a(injectorLike), ContactsYouMayKnowLogger.b(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 150:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 151:
+                return ContextItemsFuturesGenerator.b(injectorLike);
+            case 152:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 153:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 154:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 155:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 156:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 157:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 158:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 159:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 160:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 161:
+                return CustomThreadsHoldout.a(injectorLike);
+            case 162:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 163:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 164:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 165:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 166:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 167:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 168:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 169:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 170:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 171:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 172:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 173:
+                return DbInsertThreadsHandler.a(injectorLike);
+            case 174:
+                return DbSendHandler.a(injectorLike);
+            case 175:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 176:
+                return new DbMessageMetadataSerialization(FbErrorReporterImpl.m2317a(injectorLike), FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+            case 177:
+                return new DbMessagePlatformMetadataSerialization(FbErrorReporterImpl.m2317a(injectorLike), FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+            case 178:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 179:
+                return DbCache.a(injectorLike);
+            case 180:
+                return DbMessageCache.a(injectorLike);
+            case 181:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 182:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 183:
+                return DbThreadParticipantsUtil.a(injectorLike);
+            case 184:
+                return DbThreadsPropertyUtil.a(injectorLike);
+            case 185:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 186:
+                return MessagesDbContract.a(injectorLike);
+            case 187:
+                return MessagesProviderTable.a(injectorLike);
+            case 188:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 189:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 190:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 191:
+                return ThreadsDatabaseSupplier.a(injectorLike);
+            case 192:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 193:
+                return ThreadsDbPropertiesContract.a(injectorLike);
+            case 194:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 195:
+                return ThreadsProviderTable.a(injectorLike);
+            case 196:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 197:
+                return DefaultSendDeliveryReceiptManager.b(injectorLike);
+            case 198:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 199:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 200:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 201:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 202:
+                return SendDeliveryReceiptRetryManager.a(injectorLike);
+            case 203:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 204:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 205:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 206:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 207:
+                return GlobalEmojiSkinToneHelper.a(injectorLike);
+            case 208:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 209:
+                return MessagingEmojiGatingUtil.b(injectorLike);
+            case 210:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 211:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 212:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 213:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 214:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 215:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 216:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 217:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 218:
+                return new EphemeralMessageProgressManager(EphemeralProgressUtil.b(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike));
+            case 219:
+                return MessageLifetimeStringHelper.b(injectorLike);
+            case 220:
+                return ModifyThreadEphemeralityHelper.b(injectorLike);
+            case 221:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 222:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 223:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 224:
+                return LightweightEventsGatekeepers.b(injectorLike);
+            case 225:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 226:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 227:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 228:
+                return EventReminderMutator.b(injectorLike);
+            case 229:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 230:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 231:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 232:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 233:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 234:
+                return MessageForwardHandler.b(injectorLike);
+            case 235:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 236:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 237:
+                return GroupAdminController.b(injectorLike);
+            case 238:
+                return GroupsAdminLogger.b(injectorLike);
+            case 239:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 240:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 241:
+                return GQLGroupInfoQueryHelper.b(injectorLike);
+            case 242:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 243:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 244:
+                return GroupJoinableLinksLogger.a(injectorLike);
+            case 245:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 246:
+                return new GroupNotificationsHandler(JoinableLinksGatekeepers.a(injectorLike), GroupAdminController.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 8006), ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 247:
+                return GroupShareSheetCreator.b(injectorLike);
+            case 248:
+                return GroupThreadActionHandler.b(injectorLike);
+            case 249:
+                return new GroupThreadModelUpgrader(IdBasedProvider.m1811a(injectorLike, 3597));
+            case 250:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 251:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 252:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 253:
+                return CTAPostbackActionHandler.b(injectorLike);
+            case 254:
+                return InboxUnitFetcherHelper.b(injectorLike);
+            case 255:
+                return new InboxUnitGraphQLQueryExecutorHelper(ConnectivityManagerMethodAutoProvider.m3847b(injectorLike), InboxUnitFetcherHelper.b(injectorLike));
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4982o(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return InboxUnitLoader.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return InboxUnitLoader.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return InboxUnitFetcherWithOmnistore.a(injectorLike);
+            case 3:
+                return InboxUnitFetcherWithUnitStore.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return InboxUnitLoader.b(injectorLike);
+            case 5:
+                return InboxUnitLoader.b(injectorLike);
+            case 6:
+                return InboxUnitLoader.b(injectorLike);
+            case 7:
+                return InboxUnitLoader.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return InboxUnitLoader.b(injectorLike);
+            case 9:
+                return InboxUnitLoader.b(injectorLike);
+            case 10:
+                return InboxUnitLoader.b(injectorLike);
+            case 11:
+                return InboxUnitLoader.b(injectorLike);
+            case 12:
+                return InboxUnitLoader.b(injectorLike);
+            case 13:
+                return InboxUnitLoader.b(injectorLike);
+            case 14:
+                return InboxUnitLoader.b(injectorLike);
+            case 15:
+                return InboxUnitLoader.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return InboxUnitLoader.b(injectorLike);
+            case 17:
+                return InboxUnitLoader.b(injectorLike);
+            case 18:
+                return LinkHandlingHelper.a(injectorLike);
+            case 19:
+                return InboxUnitLoader.b(injectorLike);
+            case 20:
+                return InboxUnitLoader.b(injectorLike);
+            case 21:
+                return InboxUnitLoader.b(injectorLike);
+            case 22:
+                return InboxUnitLoader.b(injectorLike);
+            case 23:
+                return InboxUnitLoader.b(injectorLike);
+            case 24:
+                return InboxUnitLoader.b(injectorLike);
+            case 25:
+                return InboxUnitLoader.b(injectorLike);
+            case 26:
+                return RemoteLogOutHelper.a(injectorLike);
+            case 27:
+                return InboxUnitLoader.b(injectorLike);
+            case 28:
+                return MediaDownloadManager.a(injectorLike);
+            case 29:
+                return MediaDownloadServiceHandler.b(injectorLike);
+            case 30:
+                return InboxUnitLoader.b(injectorLike);
+            case 31:
+                return InboxUnitLoader.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return InboxUnitLoader.b(injectorLike);
+            case 33:
+                return InboxUnitLoader.b(injectorLike);
+            case 34:
+                return InboxUnitLoader.b(injectorLike);
+            case 35:
+                return InboxUnitLoader.b(injectorLike);
+            case 36:
+                return InboxUnitLoader.b(injectorLike);
+            case 37:
+                return MessengerStartVideoEditHelper.b(injectorLike);
+            case 38:
+                return InboxUnitLoader.b(injectorLike);
+            case 39:
+                return InboxUnitLoader.b(injectorLike);
+            case 40:
+                return InboxUnitLoader.b(injectorLike);
+            case 41:
+                return InboxUnitLoader.b(injectorLike);
+            case 42:
+                return InboxUnitLoader.b(injectorLike);
+            case 43:
+                return InboxUnitLoader.b(injectorLike);
+            case 44:
+                return MediaRetryQueue.a(injectorLike);
+            case 45:
+                return InboxUnitLoader.b(injectorLike);
+            case 46:
+                return InboxUnitLoader.b(injectorLike);
+            case 47:
+                return InboxUnitLoader.b(injectorLike);
+            case 48:
+                return InboxUnitLoader.b(injectorLike);
+            case 49:
+                return InboxUnitLoader.b(injectorLike);
+            case 50:
+                return MediaResourceChecker.b(injectorLike);
+            case 51:
+                return InboxUnitLoader.b(injectorLike);
+            case 52:
+                return InboxUnitLoader.b(injectorLike);
+            case 53:
+                return MediaUploadErrorHelper.a(injectorLike);
+            case 54:
+                return InboxUnitLoader.b(injectorLike);
+            case 55:
+                return InboxUnitLoader.b(injectorLike);
+            case 56:
+                return InboxUnitLoader.b(injectorLike);
+            case 57:
+                return MediaUploadServiceHelper.a(injectorLike);
+            case 58:
+                return InboxUnitLoader.b(injectorLike);
+            case 59:
+                return InboxUnitLoader.b(injectorLike);
+            case 60:
+                return InboxUnitLoader.b(injectorLike);
+            case 61:
+                return InboxUnitLoader.b(injectorLike);
+            case 62:
+                return InboxUnitLoader.b(injectorLike);
+            case 63:
+                return InboxUnitLoader.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return InboxUnitLoader.b(injectorLike);
+            case 65:
+                return ComposeModule.a(IdBasedProvider.m1811a(injectorLike, 4168));
+            case 66:
+                return InboxUnitLoader.b(injectorLike);
+            case 67:
+                return InboxUnitLoader.b(injectorLike);
+            case 68:
+                return InboxUnitLoader.b(injectorLike);
+            case 69:
+                return InboxUnitLoader.b(injectorLike);
+            case 70:
+                return InboxUnitLoader.b(injectorLike);
+            case 71:
+                return InboxUnitLoader.b(injectorLike);
+            case 72:
+                return InboxUnitLoader.b(injectorLike);
+            case 73:
+                return InboxUnitLoader.b(injectorLike);
+            case 74:
+                return InboxUnitLoader.b(injectorLike);
+            case 75:
+                return InboxUnitLoader.b(injectorLike);
+            case 76:
+                return InboxUnitLoader.b(injectorLike);
+            case 77:
+                return InboxUnitLoader.b(injectorLike);
+            case 78:
+                return InboxUnitLoader.b(injectorLike);
+            case 79:
+                return InboxUnitLoader.b(injectorLike);
+            case 80:
+                return InboxUnitLoader.b(injectorLike);
+            case 81:
+                return InboxUnitLoader.b(injectorLike);
+            case 82:
+                return InboxUnitLoader.b(injectorLike);
+            case 83:
+                return new MessageRequestsHeaderLoader(MessageRequestsSnippetFetcher.a(injectorLike), DefaultAppChoreographer.m1621a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike));
+            case 84:
+                return InboxUnitLoader.b(injectorLike);
+            case 85:
+                return InboxUnitLoader.b(injectorLike);
+            case 86:
+                return InboxUnitLoader.b(injectorLike);
+            case 87:
+                return InboxUnitLoader.b(injectorLike);
+            case 88:
+                return InboxUnitLoader.b(injectorLike);
+            case 89:
+                return InboxUnitLoader.b(injectorLike);
+            case 90:
+                return ContentAppAttributionFactory.b(injectorLike);
+            case 91:
+                return InboxUnitLoader.b(injectorLike);
+            case 92:
+                return InboxUnitLoader.b(injectorLike);
+            case 93:
+                return MessagesCollectionMerger.a(injectorLike);
+            case 94:
+                return InboxUnitLoader.b(injectorLike);
+            case 95:
+                return ThreadKeyMethodAutoProvider.a(injectorLike);
+            case 96:
+                return InboxUnitLoader.b(injectorLike);
+            case 97:
+                return InboxUnitLoader.b(injectorLike);
+            case 98:
+                return InboxUnitLoader.b(injectorLike);
+            case 99:
+                return new FlowerCornersDrawable(DefaultChoreographerWrapper.m11555a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike), new FlowerElementsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike)));
+            case 100:
+                return InboxUnitLoader.b(injectorLike);
+            case 101:
+                return MomentsInviteLogger.a(injectorLike);
+            case 102:
+                return InboxUnitLoader.b(injectorLike);
+            case 103:
+                return new MomentsInviteSnippetCreator((Context) injectorLike.getInstance(Context.class), GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike));
+            case 104:
+                return InboxUnitLoader.b(injectorLike);
+            case 105:
+                return new MomentsInviteStyleRenderer((Context) injectorLike.getInstance(Context.class));
+            case 106:
+                return MomentsLaunchHelper.b(injectorLike);
+            case 107:
+                return InboxUnitLoader.b(injectorLike);
+            case 108:
+                return InboxUnitLoader.b(injectorLike);
+            case 109:
+                return InboxUnitLoader.b(injectorLike);
+            case 110:
+                return InboxUnitLoader.b(injectorLike);
+            case 111:
+                return InboxUnitLoader.b(injectorLike);
+            case 112:
+                return MontageInboxComposerLoader.b(injectorLike);
+            case 113:
+                return InboxUnitLoader.b(injectorLike);
+            case 114:
+                return InboxUnitLoader.b(injectorLike);
+            case 115:
+                return new MessengerSurveyInterstitialController();
+            case 116:
+                return InboxUnitLoader.b(injectorLike);
+            case 117:
+                return new MessagingNullStatesLogger(AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike));
+            case 118:
+                return InboxUnitLoader.b(injectorLike);
+            case 119:
+                return InboxUnitLoader.b(injectorLike);
+            case 120:
+                return InboxUnitLoader.b(injectorLike);
+            case 121:
+                return InboxUnitLoader.b(injectorLike);
+            case 122:
+                return InboxUnitLoader.b(injectorLike);
+            case 123:
+                return InboxUnitLoader.b(injectorLike);
+            case 124:
+                return InboxUnitLoader.b(injectorLike);
+            case 125:
+                return NotificationPolicyEngine.a(injectorLike);
+            case 126:
+                return MessagesNotificationClient.a(injectorLike);
+            case 127:
+                return InboxUnitLoader.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return InboxUnitLoader.b(injectorLike);
+            case 129:
+                return ThreadViewParticleEffectResolver.b(injectorLike);
+            case 130:
+                return InboxUnitLoader.b(injectorLike);
+            case 131:
+                return InboxUnitLoader.b(injectorLike);
+            case 132:
+                return InboxUnitLoader.b(injectorLike);
+            case 133:
+                return InboxUnitLoader.b(injectorLike);
+            case 134:
+                return InboxUnitLoader.b(injectorLike);
+            case 135:
+                return InboxUnitLoader.b(injectorLike);
+            case 136:
+                return PaymentTransactionCache.a(injectorLike);
+            case 137:
+                return PaymentCurrencyUtil.a(injectorLike);
+            case 138:
+                return InboxUnitLoader.b(injectorLike);
+            case 139:
+                return InboxUnitLoader.b(injectorLike);
+            case 140:
+                return InboxUnitLoader.b(injectorLike);
+            case 141:
+                return InboxUnitLoader.b(injectorLike);
+            case 142:
+                return InboxUnitLoader.b(injectorLike);
+            case 143:
+                return InboxUnitLoader.b(injectorLike);
+            case 144:
+                return InboxUnitLoader.b(injectorLike);
+            case 145:
+                return InboxUnitLoader.b(injectorLike);
+            case 146:
+                return InboxUnitLoader.b(injectorLike);
+            case 147:
+                return InboxUnitLoader.b(injectorLike);
+            case 148:
+                return InboxUnitLoader.b(injectorLike);
+            case 149:
+                return InboxUnitLoader.b(injectorLike);
+            case 150:
+                return InboxUnitLoader.b(injectorLike);
+            case 151:
+                return InboxUnitLoader.b(injectorLike);
+            case 152:
+                return InboxUnitLoader.b(injectorLike);
+            case 153:
+                return InboxUnitLoader.b(injectorLike);
+            case 154:
+                return InboxUnitLoader.b(injectorLike);
+            case 155:
+                return InboxUnitLoader.b(injectorLike);
+            case 156:
+                return InboxUnitLoader.b(injectorLike);
+            case 157:
+                return InboxUnitLoader.b(injectorLike);
+            case 158:
+                return InboxUnitLoader.b(injectorLike);
+            case 159:
+                return PaymentDialogsBuilder.a(injectorLike);
+            case 160:
+                return InboxUnitLoader.b(injectorLike);
+            case 161:
+                return new MessengerPayAddCardFormAnalyticsEventSelector();
+            case 162:
+                return new MessengerPayAddCardFormConfigurator((Context) injectorLike.getInstance(Context.class));
+            case 163:
+                return new MessengerPayAddCardFormMutator((Context) injectorLike.getInstance(Context.class), IdBasedProvider.m1811a(injectorLike, 3596), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), CardFormProtocolUtil.a(injectorLike), PaymentProtocolUtil.a(injectorLike));
+            case 164:
+                return InboxUnitLoader.b(injectorLike);
+            case 165:
+                return new MessengerPayAddCardFormStyleRenderer((Context) injectorLike.getInstance(Context.class), FbErrorReporterImpl.m2317a(injectorLike));
+            case 166:
+                return new MessengerPayAddCardFormViewController((Context) injectorLike.getInstance(Context.class), PaymentProtocolUtil.a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike));
+            case 167:
+                return new MessengerPayEditCardFormAnalyticsEventSelector();
+            case 168:
+                return new MessengerPayEditCardFormConfigurator((Context) injectorLike.getInstance(Context.class));
+            case 169:
+                return MessengerPayEditCardFormMutator.c(injectorLike);
+            case 170:
+                return InboxUnitLoader.b(injectorLike);
+            case 171:
+                return new MessengerPayEditCardFormStyleRenderer(SimpleCardFormConfigurator.b(injectorLike));
+            case 172:
+                return new MessengerPayRequireCvvFormConfigurator((Context) injectorLike.getInstance(Context.class));
+            case 173:
+                return new MessengerPayRequireCvvFormMutator((Context) injectorLike.getInstance(Context.class), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), CardFormProtocolUtil.a(injectorLike));
+            case 174:
+                return InboxUnitLoader.b(injectorLike);
+            case 175:
+                return new MessengerCommerceShippingAddressMutator((Context) injectorLike.getInstance(Context.class), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), PaymentProtocolUtil.a(injectorLike), IdBasedProvider.m1811a(injectorLike, 3596));
+            case 176:
+                return new MessengerCommerceShippingStateInputValidator(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 177:
+                return InboxUnitLoader.b(injectorLike);
+            case 178:
+                return new MessengerCommerceShippingStyleRenderer();
+            case 179:
+                return new MessengerCommerceShippingZipInputValidator(ResourcesMethodAutoProvider.m6510a(injectorLike), BillingZipInputValidator.b(injectorLike));
+            case 180:
+                return InboxUnitLoader.b(injectorLike);
+            case 181:
+                return PaymentMethodVerificationController.b(injectorLike);
+            case 182:
+                return PaymentMethodVerificationNuxDialogsHelper.b(injectorLike);
+            case 183:
+                return InboxUnitLoader.b(injectorLike);
+            case 184:
+                return InboxUnitLoader.b(injectorLike);
+            case 185:
+                return InboxUnitLoader.b(injectorLike);
+            case 186:
+                return InboxUnitLoader.b(injectorLike);
+            case 187:
+                return InboxUnitLoader.b(injectorLike);
+            case 188:
+                return InboxUnitLoader.b(injectorLike);
+            case 189:
+                return InboxUnitLoader.b(injectorLike);
+            case 190:
+                return InboxUnitLoader.b(injectorLike);
+            case 191:
+                return InboxUnitLoader.b(injectorLike);
+            case 192:
+                return InboxUnitLoader.b(injectorLike);
+            case 193:
+                return InboxUnitLoader.b(injectorLike);
+            case 194:
+                return InboxUnitLoader.b(injectorLike);
+            case 195:
+                return InboxUnitLoader.b(injectorLike);
+            case 196:
+                return InboxUnitLoader.b(injectorLike);
+            case 197:
+                return InboxUnitLoader.b(injectorLike);
+            case 198:
+                return InboxUnitLoader.b(injectorLike);
+            case 199:
+                return new FetchIncomingPaymentRequestsConditionalWorker(PaymentProtocolUtil.a(injectorLike));
+            case 200:
+                return InboxUnitLoader.b(injectorLike);
+            case 201:
+                return InboxUnitLoader.b(injectorLike);
+            case 202:
+                return InboxUnitLoader.b(injectorLike);
+            case 203:
+                return InboxUnitLoader.b(injectorLike);
+            case 204:
+                return InboxUnitLoader.b(injectorLike);
+            case 205:
+                return InboxUnitLoader.b(injectorLike);
+            case 206:
+                return InboxUnitLoader.b(injectorLike);
+            case 207:
+                return InboxUnitLoader.b(injectorLike);
+            case 208:
+                return InboxUnitLoader.b(injectorLike);
+            case 209:
+                return InboxUnitLoader.b(injectorLike);
+            case 210:
+                return InboxUnitLoader.b(injectorLike);
+            case 211:
+                return InboxUnitLoader.b(injectorLike);
+            case 212:
+                return InboxUnitLoader.b(injectorLike);
+            case 213:
+                return InboxUnitLoader.b(injectorLike);
+            case 214:
+                return InboxUnitLoader.b(injectorLike);
+            case 215:
+                return InboxUnitLoader.b(injectorLike);
+            case 216:
+                return InboxUnitLoader.b(injectorLike);
+            case 217:
+                return InboxUnitLoader.b(injectorLike);
+            case 218:
+                return InboxUnitLoader.b(injectorLike);
+            case 219:
+                return InboxUnitLoader.b(injectorLike);
+            case 220:
+                return InboxUnitLoader.b(injectorLike);
+            case 221:
+                return InboxUnitLoader.b(injectorLike);
+            case 222:
+                return InboxUnitLoader.b(injectorLike);
+            case 223:
+                return InboxUnitLoader.b(injectorLike);
+            case 224:
+                return InboxUnitLoader.b(injectorLike);
+            case 225:
+                return InboxUnitLoader.b(injectorLike);
+            case 226:
+                return InboxUnitLoader.b(injectorLike);
+            case 227:
+                return InboxUnitLoader.b(injectorLike);
+            case 228:
+                return InboxUnitLoader.b(injectorLike);
+            case 229:
+                return InboxUnitLoader.b(injectorLike);
+            case 230:
+                return InboxUnitLoader.b(injectorLike);
+            case 231:
+                return InboxUnitLoader.b(injectorLike);
+            case 232:
+                return InboxUnitLoader.b(injectorLike);
+            case 233:
+                return InboxUnitLoader.b(injectorLike);
+            case 234:
+                return PaymentProtocolUtil.a(injectorLike);
+            case 235:
+                return InboxUnitLoader.b(injectorLike);
+            case 236:
+                return InboxUnitLoader.b(injectorLike);
+            case 237:
+                return InboxUnitLoader.b(injectorLike);
+            case 238:
+                return InboxUnitLoader.b(injectorLike);
+            case 239:
+                return InboxUnitLoader.b(injectorLike);
+            case 240:
+                return InboxUnitLoader.b(injectorLike);
+            case 241:
+                return InboxUnitLoader.b(injectorLike);
+            case 242:
+                return InboxUnitLoader.b(injectorLike);
+            case 243:
+                return InboxUnitLoader.b(injectorLike);
+            case 244:
+                return InboxUnitLoader.b(injectorLike);
+            case 245:
+                return InboxUnitLoader.b(injectorLike);
+            case 246:
+                return InboxUnitLoader.b(injectorLike);
+            case 247:
+                return InboxUnitLoader.b(injectorLike);
+            case 248:
+                return InboxUnitLoader.b(injectorLike);
+            case 249:
+                return InboxUnitLoader.b(injectorLike);
+            case 250:
+                return InboxUnitLoader.b(injectorLike);
+            case 251:
+                return InboxUnitLoader.b(injectorLike);
+            case 252:
+                return InboxUnitLoader.b(injectorLike);
+            case 253:
+                return InboxUnitLoader.b(injectorLike);
+            case 254:
+                return InboxUnitLoader.b(injectorLike);
+            case 255:
+                return InboxUnitLoader.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4983p(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return AddShippingAddressMethod.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return AddShippingAddressMethod.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 3:
+                return AddShippingAddressMethod.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 5:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 6:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 7:
+                return AddShippingAddressMethod.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 9:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 10:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 11:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 12:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 13:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 14:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 15:
+                return AddShippingAddressMethod.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 17:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 18:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 19:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 20:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 21:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 22:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 23:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 24:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 25:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 26:
+                return DeltaNewPaymentRequestHandler.a(injectorLike);
+            case 27:
+                return DeltaNewTransferHandler.a(injectorLike);
+            case 28:
+                return DeltaPaymentEnableHandler.a(injectorLike);
+            case 29:
+                return DeltaPaymentMethodHandler.a(injectorLike);
+            case 30:
+                return DeltaPaymentNoOpHandler.a(injectorLike);
+            case 31:
+                return DeltaPaymentRequestStatusHandler.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return DeltaPinCodeHandler.a(injectorLike);
+            case 33:
+                return DeltaPlatformItemInterestHandler.a(injectorLike);
+            case 34:
+                return DeltaTransferStatusHandler.a(injectorLike);
+            case 35:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 36:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 37:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 38:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 39:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 40:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 41:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 42:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 43:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 44:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 45:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 46:
+                return new DefaultPaymentBubbleViewController();
+            case 47:
+                return new PaymentRowMessageItemHelper(PaymentProtocolUtil.a(injectorLike), PaymentTransactionCache.a(injectorLike), PaymentRequestCache.a(injectorLike), PaymentCardCache.a(injectorLike));
+            case 48:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 49:
+                return new RequestActionButtonsPaymentBubbleViewController(PaymentRequestUtil.a(injectorLike));
+            case 50:
+                return new RequestDetailsPaymentBubbleViewController(ResourcesMethodAutoProvider.m6510a(injectorLike), PaymentRequestUtil.a(injectorLike));
+            case 51:
+                return new RequestDollarAmountPaymentBubbleViewController(PaymentCurrencyUtil.a(injectorLike));
+            case 52:
+                return new RequestHeaderPaymentBubbleViewController(ResourcesMethodAutoProvider.m6510a(injectorLike), PaymentRequestUtil.a(injectorLike));
+            case 53:
+                return new RequestLoadingPaymentBubbleViewController();
+            case 54:
+                return new RequestRecipientNamePaymentBubbleViewController(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 55:
+                return new RequestThemePaymentBubbleViewController();
+            case 56:
+                return new TransactionActionButtonsPaymentBubbleViewController();
+            case 57:
+                return new TransactionDetailsPaymentBubbleViewController(ResourcesMethodAutoProvider.m6510a(injectorLike), PaymentTransactionUtil.a(injectorLike));
+            case 58:
+                return new TransactionDollarAmountPaymentBubbleViewController(PaymentCurrencyUtil.a(injectorLike));
+            case 59:
+                return new TransactionHeaderPaymentBubbleViewController(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 60:
+                return new TransactionLoadingPaymentBubbleViewController();
+            case 61:
+                return new TransactionRecipientNamePaymentBubbleViewController(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 62:
+                return new TransactionSupplementaryPaymentBubbleViewController();
+            case 63:
+                return new TransactionThemePaymentBubbleViewController();
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 65:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 66:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 67:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 68:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 69:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 70:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 71:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 72:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 73:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 74:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 75:
+                return PaymentViewUtil.b(injectorLike);
+            case 76:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 77:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 78:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 79:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 80:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 81:
+                return new GroupCommerceMessengerPayLogger(AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike));
+            case 82:
+                return new MCMessengerPayInitializer();
+            case 83:
+                return new MCMessengerPayLoader(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), PaymentCardsFetcher.a(injectorLike), PaymentPinProtocolUtil.a(injectorLike), PaymentMethodsInfoCache.a(injectorLike), PaymentProtocolUtil.a(injectorLike));
+            case 84:
+                return MCMessengerPayLogger.b(injectorLike);
+            case 85:
+                return MCMessengerPaySender.b(injectorLike);
+            case 86:
+                return new MPMessengerPayInitializer();
+            case 87:
+                return MPMessengerPayLoader.b(injectorLike);
+            case 88:
+                return MPMessengerPayLogger.b(injectorLike);
+            case 89:
+                return MPMessengerPaySender.b(injectorLike);
+            case 90:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 91:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 92:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 93:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 94:
+                return new OrionMessengerPayIneligibleRecipientHandler(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 95:
+                return new OrionMessengerPayInitializer();
+            case 96:
+                return OrionMessengerPayLoader.b(injectorLike);
+            case 97:
+                return new OrionMessengerPayLogger(AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike));
+            case 98:
+                return new OrionMessengerPaySender(PaymentCurrencyUtil.a(injectorLike), CompositeMessengerPayLogger.b(injectorLike));
+            case 99:
+                return new OrionRequestAckMessengerPayInitializer(PaymentCurrencyUtil.a(injectorLike), OrionRequestAckMessengerPayLogger.b(injectorLike));
+            case 100:
+                return OrionRequestAckMessengerPayLogger.b(injectorLike);
+            case 101:
+                return OrionRequestAckMessengerPaySender.b(injectorLike);
+            case 102:
+                return new OrionRequestMessengerPayIneligibleRecipientHandler(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 103:
+                return OrionRequestMessengerPayLoader.b(injectorLike);
+            case 104:
+                return OrionRequestMessengerPayLogger.b(injectorLike);
+            case 105:
+                return OrionRequestMessengerPaySender.b(injectorLike);
+            case 106:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 107:
+                return new MCheckoutRowViewHolderFactory();
+            case 108:
+                return new MCheckoutRowsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike), SimpleCheckoutManager.a(injectorLike));
+            case 109:
+                return MCheckoutSender.c(injectorLike);
+            case 110:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 111:
+                return new MCheckoutStyleRenderer();
+            case 112:
+                return new MCheckoutSubScreenParamsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 113:
+                return MessengerCommerceCheckoutDataLoader.c(injectorLike);
+            case 114:
+                return new MessengerCommerceCheckoutDataMutator(PaymentProtocolUtil.a(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 115:
+                return new MessengerCommerceCheckoutRowViewHolderFactory();
+            case 116:
+                return new MessengerCommerceCheckoutRowsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike), SimpleCheckoutManager.a(injectorLike), PaymentCurrencyUtil.a(injectorLike));
+            case 117:
+                return MessengerCommerceCheckoutSender.c(injectorLike);
+            case 118:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 119:
+                return new MessengerCommerceCheckoutStyleRenderer();
+            case 120:
+                return new MessengerCommerceCheckoutSubScreenParamsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 121:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 122:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 123:
+                return new PagesCommerceMessengerPayLoader(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), PaymentMethodsInfoCache.a(injectorLike), PaymentProtocolUtil.a(injectorLike));
+            case 124:
+                return PagesCommerceMessengerPaySender.b(injectorLike);
+            case 125:
+                return new PagesCommercePostPurchaseActionHandler((Context) injectorLike.getInstance(Context.class));
+            case 126:
+                return new CommercePaymentMethodsPickerScreenOnActivityResultHandler(FbErrorReporterImpl.m2317a(injectorLike), AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike), SimplePickerScreenManager.a(injectorLike));
+            case 127:
+                return new CommercePaymentMethodsPickerScreenRowItemViewFactory(PaymentMethodsRowItemViewFactory.b(injectorLike));
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return new CommercePaymentMethodsPickerScreenRowItemsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike), (Context) injectorLike.getInstance(Context.class), SimplePickerScreenManager.a(injectorLike));
+            case 129:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 130:
+                return new CommercePaymentMethodsPickerScreenSubScreenParamsGenerator((Context) injectorLike.getInstance(Context.class));
+            case 131:
+                return new CommercePaymentMethodsSectionOrganizer();
+            case 132:
+                return new CommercePickerScreenStyleRender();
+            case 133:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 134:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 135:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 136:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 137:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 138:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 139:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 140:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 141:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 142:
+                return OutgoingPhoneCallManager.a(injectorLike);
+            case 143:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 144:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 145:
+                return new PhotoRemindersNuxInterstitialController(PhotoRemindersGatingUtil.b(injectorLike), PhotoRemindersNuxTriggerManager.a(injectorLike));
+            case 146:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 147:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 148:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 149:
+                return PhotoRemindersInboxDataLoader.b(injectorLike);
+            case 150:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 151:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 152:
+                return PhotoSuggestionManagerMethodAutoProvider.a(injectorLike);
+            case 153:
+                return PhotoRemindersCollectionCallback.a(injectorLike);
+            case 154:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 155:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 156:
+                return MediaSizeUtil.a(injectorLike);
+            case 157:
+                return MessengerThreadTileViewDataFactory.a(injectorLike);
+            case 158:
+                return UserTileViewParamsFactory.a(injectorLike);
+            case 159:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 160:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 161:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 162:
+                return PlatformShareUploadManager.a(injectorLike);
+            case 163:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 164:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 165:
+                return NotificationPrefsWatcher.a(injectorLike);
+            case 166:
+                return ThreadNotificationPrefsSyncUtil.a(injectorLike);
+            case 167:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 168:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 169:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 170:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 171:
+                return ViewerContextHelperForContentProviders.a(injectorLike);
+            case 172:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 173:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 174:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 175:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 176:
+                return new ClockSkewBannerEligibleFilterPredicate(EstimatedServerClock.a(injectorLike));
+            case 177:
+                return new ContactLogsUploadFilterPredicate(ContactLogsUploadSettings.b(injectorLike));
+            case 178:
+                return new ContactsUploadEnabledFilterPredicate(ContactUploadStatusHelper.b(injectorLike));
+            case 179:
+                return new HasMadeRtcCallContextualFilterPredicate(RecentCallsDb.a(injectorLike));
+            case 180:
+                return new HasNoProfilePicturePredicate(IdBasedProvider.m1811a(injectorLike, 3595));
+            case 181:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 182:
+                return new PhotoRemindersEverEnabledFilterPredicate(PhotoRemindersGatingUtil.b(injectorLike));
+            case 183:
+                return new PhotoRemindersNuxEligibleFilterPredicate(PhotoRemindersNuxTriggerManager.a(injectorLike));
+            case 184:
+                return QuickPromotionMessengerInterstitialController.a(injectorLike);
+            case 185:
+                return new QuickPromotionThreadListBannerController((QuickPromotionControllerDelegateProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(QuickPromotionControllerDelegateProvider.class));
+            case 186:
+                return new QuickPromotionThreadViewBannerController((QuickPromotionControllerDelegateProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(QuickPromotionControllerDelegateProvider.class));
+            case 187:
+                return new SmsTakeoverDelayedReadOnlyThreadViewBannerEligibleFilterPredicate(FbSharedPreferencesImpl.m1826a(injectorLike), SmsIntegrationState.a(injectorLike), IdBasedSingletonScopeProvider.m1810b(injectorLike, 609));
+            case 188:
+                return new SmsTakeoverFullThreadViewBannerEligibleFilterPredicate(FbSharedPreferencesImpl.m1826a(injectorLike), SmsIntegrationState.a(injectorLike));
+            case 189:
+                return new SmsTakeoverRecentReadOnlyThreadViewBannerEligibleFilterPredicate(FbSharedPreferencesImpl.m1826a(injectorLike), SmsIntegrationState.a(injectorLike), IdBasedSingletonScopeProvider.m1810b(injectorLike, 609));
+            case 190:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 191:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 192:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 193:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 194:
+                return RTCAdminMsgRenderer.b(injectorLike);
+            case 195:
+                return new RTCAdminMsgSnippetCreator();
+            case 196:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 197:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 198:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 199:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 200:
+                return SeenHeadCircleOverflowRendererProvider.b(injectorLike);
+            case 201:
+                return new ThreadItemSeenHeadsDrawableController(IdBasedProvider.m1811a(injectorLike, 3608), (Context) injectorLike.getInstance(Context.class), IdBasedLazy.m1808a(injectorLike, 8336), RTLUtil.m6553a(injectorLike));
+            case 202:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 203:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 204:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 205:
+                return OutgoingMessageFactory.a(injectorLike);
+            case 206:
+                return PendingThreadsManager.a(injectorLike);
+            case 207:
+                return PostSendMessageManager_FacebookMessagesMethodAutoProvider.a(injectorLike);
+            case 208:
+                return PostSendMessageManager_SmsMessagesMethodAutoProvider.a(injectorLike);
+            case 209:
+                return SendFailureNotifier.a(injectorLike);
+            case 210:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 211:
+                return SendMessageManager.a(injectorLike);
+            case 212:
+                return SendMessageToPendingThreadManager.a(injectorLike);
+            case 213:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 214:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 215:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 216:
+                return SendApiHandler.a(injectorLike);
+            case 217:
+                return SendMessageExceptionHelper.a(injectorLike);
+            case 218:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 219:
+                return SendViaGraphHandler.a(injectorLike);
+            case 220:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 221:
+                return SendDialogUtils.b(injectorLike);
+            case 222:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 223:
+                return new AcceptMessageRequestsMethod();
+            case 224:
+                return new AddAdminsToGroupMethod();
+            case 225:
+                return new AddMembersMethod(PickedUserUtils.a(injectorLike));
+            case 226:
+                return new AddMontageViewerMethod();
+            case 227:
+                return new AddPinnedThreadMethod();
+            case 228:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 229:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 230:
+                return new com.facebook.messaging.service.methods.BlockUserMethod();
+            case 231:
+                return new CreateGroupMethod(IdBasedProvider.m1811a(injectorLike, 4442), PickedUserUtils.a(injectorLike));
+            case 232:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 233:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 234:
+                return new DeleteMessagesMethod();
+            case 235:
+                return new DeleteThreadMethod();
+            case 236:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 237:
+                return new FetchDeliveryReceiptsMethod(new DeliveryReceiptsDeserializer(IdBasedProvider.m1811a(injectorLike, 372)));
+            case 238:
+                return new FetchGroupInviteLinkMethod();
+            case 239:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 240:
+                return FetchMessageMethod.b(injectorLike);
+            case 241:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 242:
+                return FetchMoreMessagesMethod.b(injectorLike);
+            case 243:
+                return new FetchMoreThreadsMethod(FetchThreadsFqlHelper.b(injectorLike));
+            case 244:
+                return new FetchPinnedThreadsGQLMethod(GraphQLProtocolHelper.m9427a(injectorLike), GQLThreadsConverter.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 3595));
+            case 245:
+                return new FetchPinnedThreadsMethod(SystemClockMethodAutoProvider.m1498a(injectorLike), FetchThreadsFqlHelper.b(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 246:
+                return new FetchThreadGQLMethod(GraphQLProtocolHelper.m9427a(injectorLike), GQLThreadQueryHelper.b(injectorLike), GQLThreadsConverter.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 3596));
+            case 247:
+                return new FetchThreadListMethod(FetchThreadsFqlHelper.b(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), IdBasedProvider.m1811a(injectorLike, 4060));
+            case 248:
+                return FetchThreadMethod.b(injectorLike);
+            case 249:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 250:
+                return new GetAuthenticatedAttachmentUrlMethod();
+            case 251:
+                return new IgnoreMessageRequestsMethod();
+            case 252:
+                return AddShippingAddressMethod.a(injectorLike);
+            case 253:
+                return new MarkFolderSeenMethod();
+            case 254:
+                return new MarkFolderSeenMqttHandler(MqttPushServiceClientManagerImpl.m22138a(injectorLike));
+            case 255:
+                return MarkReadThreadMethod.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4984q(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return new MessagingServiceGatekeeper(GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike));
+            case 3:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 5:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 6:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 7:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 9:
+                return new PostGameScoreMethod();
+            case 10:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 11:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 12:
+                return new RemoveAdminsFromGroupMethod();
+            case 13:
+                return new RemoveMemberMethod(IdBasedProvider.m1811a(injectorLike, 4442), PickedUserUtils.a(injectorLike));
+            case 14:
+                return new RemoveMontageViewerMethod();
+            case 15:
+                return SearchThreadNameAndParticipantsMethod.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 17:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 18:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 19:
+                return new SendMessageToPendingThreadMethod(PickedUserUtils.a(injectorLike), SendMessageParameterHelper.b(injectorLike));
+            case 20:
+                return new SetThreadEphemeralityMethod(UniqueIdGenerator.m21968a(injectorLike));
+            case 21:
+                return new SetThreadImageMethod(MediaResourceBodyFactory.a(injectorLike));
+            case 22:
+                return new SetThreadMuteUntilMethod();
+            case 23:
+                return new SetThreadNameMethod();
+            case 24:
+                return new SetThreadParticipantNicknameMethod();
+            case 25:
+                return new SetThreadThemeMethod();
+            case 26:
+                return new SetUserSettingsMethod();
+            case 27:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 28:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 29:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 30:
+                return new UnpinThreadMethod(PinnedThreadsUtils.a(injectorLike));
+            case 31:
+                return new UpdatePinnedThreadsMethod(PinnedThreadsUtils.a(injectorLike));
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return WebMarkThreadsHandler.a(injectorLike);
+            case 33:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 34:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 35:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 36:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 37:
+                return new ImageShareSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 38:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 39:
+                return new ImageShareStyleRenderer((Context) injectorLike.getInstance(Context.class), IdBasedSingletonScopeProvider.m1810b(injectorLike, 7898), FbDraweeControllerBuilder.m19410b(injectorLike));
+            case 40:
+                return new LinkShareSnippetCreator((Context) injectorLike.getInstance(Context.class));
+            case 41:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 42:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 43:
+                return new ShareStyleRenderer((Context) injectorLike.getInstance(Context.class), IdBasedSingletonScopeProvider.m1810b(injectorLike, 7898), FbErrorReporterImpl.m2317a(injectorLike));
+            case 44:
+                return MediaCheckHelper.b(injectorLike);
+            case 45:
+                return SendAsMessageUtil.a(injectorLike);
+            case 46:
+                return MessengerShortcutHelper.a(injectorLike);
+            case 47:
+                return MmsSmsErrorCache.a(injectorLike);
+            case 48:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 49:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 50:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 51:
+                return new SmsSpecialThreadManager(ContentResolverMethodAutoProvider.m3641b(injectorLike));
+            case 52:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 53:
+                return SmsTakeoverNuxController.b(injectorLike);
+            case 54:
+                return SmsThreadManager.a(injectorLike);
+            case 55:
+                return AnonymousSmsThreadStateHelper.a(injectorLike);
+            case 56:
+                return new SmsTakeoverContactsObserver(AwakeTimeSinceBootClockMethodAutoProvider.m1697a(injectorLike), Handler_ForNonUiThreadMethodAutoProvider.m5523b(injectorLike), ContentResolverMethodAutoProvider.m3641b(injectorLike), LocalFbBroadcastManager.m2946a(injectorLike));
+            case 57:
+                return new SmsTakeoverStateChangedHandler((Context) injectorLike.getInstance(Context.class), SuggestionsCache.a(injectorLike), MmsSmsCacheUpdateAction.b(injectorLike), LocalFbBroadcastManager.m2946a(injectorLike), MmsSmsPendingSendQueue.a(injectorLike));
+            case 58:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 59:
+                return ReadonlyModeMarkThreadDbHandler.a(injectorLike);
+            case 60:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 61:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 62:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 63:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 65:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 66:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 67:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 68:
+                return SmsPermissionsUtil.a(injectorLike);
+            case 69:
+                return MmsSmsCacheUpdateAction.b(injectorLike);
+            case 70:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 71:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 72:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 73:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 74:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 75:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 76:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 77:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 78:
+                return MmsSmsConfig.b(injectorLike);
+            case 79:
+                return MmsSmsPendingSendQueue.a(injectorLike);
+            case 80:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 81:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 82:
+                return SmsSender.b(injectorLike);
+            case 83:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 84:
+                return new SMSMigrationAnalyticsLogger(AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike));
+            case 85:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 86:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 87:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 88:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 89:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 90:
+                return new AnonymousSmsThreadHelper(EstimatedServerClock.a(injectorLike), SmsContactUtil.a(injectorLike), SmsTakeoverMultiverseExperimentHelper.b(injectorLike), SmsPermissionsUtil.a(injectorLike), (Context) injectorLike.getInstance(Context.class));
+            case 91:
+                return GentleNotificationChecker.a(injectorLike);
+            case 92:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 93:
+                return ReadOnlyModeObserver.b(injectorLike);
+            case 94:
+                return HighestTimestampUtil.b(injectorLike);
+            case 95:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 96:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 97:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 98:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 99:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 100:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 101:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 102:
+                return MessagesSyncLoggedInUserFetcher.a(injectorLike);
+            case 103:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 104:
+                return MessagesSyncThreadsFetcher.a(injectorLike);
+            case 105:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 106:
+                return MessagesDeltaEnsuredDataFetcher.a(injectorLike);
+            case 107:
+                return MessagesDeltaHandlerSupplier.a(injectorLike);
+            case 108:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 109:
+                return MessagesSyncPayloadHandler.a(injectorLike);
+            case 110:
+                return NewMessageHandlerHelper.a(injectorLike);
+            case 111:
+                return DeltaAdminAddedToGroupThreadHandler.a(injectorLike);
+            case 112:
+                return DeltaAdminRemovedFromGroupThreadHandler.a(injectorLike);
+            case 113:
+                return DeltaAdminTextMessageHandler.a(injectorLike);
+            case 114:
+                return DeltaApprovalModeHandler.a(injectorLike);
+            case 115:
+                return DeltaApprovalQueueHandler.a(injectorLike);
+            case 116:
+                return DeltaBroadcastMessageHandler.a(injectorLike);
+            case 117:
+                return DeltaDeliveredReceiptHandler.a(injectorLike);
+            case 118:
+                return DeltaFolderCountHandler.a(injectorLike);
+            case 119:
+                return DeltaForcedFetchHandler.a(injectorLike);
+            case 120:
+                return DeltaGenieMessageHandler.a(injectorLike);
+            case 121:
+                return DeltaJoinableModeHandler.a(injectorLike);
+            case 122:
+                return DeltaMarkReadHandler.a(injectorLike);
+            case 123:
+                return DeltaMarkUnreadHandler.a(injectorLike);
+            case 124:
+                return DeltaMessageDeleteHandler.a(injectorLike);
+            case 125:
+                return DeltaMontageMessageHandler.a(injectorLike);
+            case 126:
+                return DeltaNewMessageHandler.a(injectorLike);
+            case 127:
+                return DeltaNoOpHandler.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return DeltaP2PPaymentMessageHandler.a(injectorLike);
+            case 129:
+                return DeltaParticipantLeftGroupThreadHandler.a(injectorLike);
+            case 130:
+                return DeltaParticipantsAddedToGroupThreadHandler.a(injectorLike);
+            case 131:
+                return DeltaRTCEventLogHandler.a(injectorLike);
+            case 132:
+                return DeltaReadReceiptHandler.a(injectorLike);
+            case 133:
+                return DeltaReplaceMessageHandler.a(injectorLike);
+            case 134:
+                return DeltaSentMessageHandler.a(injectorLike);
+            case 135:
+                return DeltaThreadActionHandler.a(injectorLike);
+            case 136:
+                return DeltaThreadDeleteHandler.a(injectorLike);
+            case 137:
+                return DeltaThreadFolderHandler.a(injectorLike);
+            case 138:
+                return DeltaThreadImageHandler.a(injectorLike);
+            case 139:
+                return DeltaThreadMuteSettingsHandler.a(injectorLike);
+            case 140:
+                return DeltaThreadNameHandler.a(injectorLike);
+            case 141:
+                return DeltaThreadRtcCallInfoHandler.a(injectorLike);
+            case 142:
+                return DeltaZeroRatingHandler.a(injectorLike);
+            case 143:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 144:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 145:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 146:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 147:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 148:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 149:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 150:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 151:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 152:
+                return new ConversationRequestsThreadListFetcher(GQLUserConverter.a(injectorLike), GQLThreadsConverter.b(injectorLike), GQLThreadQueryHelper.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 3596), GQLThreadsLogger.b(injectorLike));
+            case 153:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 154:
+                return GQLSearchThreadNameAndParticipantsHelper.b(injectorLike);
+            case 155:
+                return GQLThreadQueryHelper.b(injectorLike);
+            case 156:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 157:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 158:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 159:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 160:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 161:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 162:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 163:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 164:
+                return ThreadViewOpenHelper.b(injectorLike);
+            case 165:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 166:
+                return CryptoEngine.a(injectorLike);
+            case 167:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 168:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 169:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 170:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 171:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 172:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 173:
+                return MasterKeyChain.a(injectorLike);
+            case 174:
+                return ThreadEncryptionKeyCache.a(injectorLike);
+            case 175:
+                return TincanDatabaseSupplier.a(injectorLike);
+            case 176:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 177:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 178:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 179:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 180:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 181:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 182:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 183:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 184:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 185:
+                return MessageExpirationHelper.a(injectorLike);
+            case 186:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 187:
+                return MessengerCryptoSessionStorage.a(injectorLike);
+            case 188:
+                return MessengerIdentityKeyStore.a(injectorLike);
+            case 189:
+                return TincanIncomingDispatcher.a(injectorLike);
+            case 190:
+                return TincanSendMessageManager.a(injectorLike);
+            case 191:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 192:
+                return MessengerThreadNameViewDataFactory.a(injectorLike);
+            case 193:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 194:
+                return ThreadNameViewComputer_DefaultThreadNameViewComputerMethodAutoProvider.b(injectorLike);
+            case 195:
+                return ThreadNameViewComputer_NamesOnlyThreadNameViewComputerMethodAutoProvider.b(injectorLike);
+            case 196:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 197:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 198:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 199:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 200:
+                return MessengerUserCheckHelper.b(injectorLike);
+            case 201:
+                return MessagesUserInfoRefresher.a(injectorLike);
+            case 202:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 203:
+                return MessagingUsernameGraphQLHandler.b(injectorLike);
+            case 204:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 205:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 206:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 207:
+                return LaunchTimelineHelper.b(injectorLike);
+            case 208:
+                return AnchorableToast.b(injectorLike);
+            case 209:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 210:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 211:
+                return new SnippetGenerator(StyleAssociation.a(injectorLike), (SnippetCreator) new DefaultFallbackSnippetCreator((Context) injectorLike.getInstance(Context.class)));
+            case 212:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 213:
+                return StyleRendererManager.a(injectorLike);
+            case 214:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 215:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 216:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 217:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 218:
+                return MessengerWearDispatcher.a(injectorLike);
+            case 219:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 220:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 221:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 222:
+                return MessengerWearSoftAlarm.a(injectorLike);
+            case 223:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 224:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 225:
+                return MiniPreviewCoverPhotoProcessor.a(injectorLike);
+            case 226:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 227:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 228:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 229:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 230:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 231:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 232:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 233:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 234:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 235:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 236:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 237:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 238:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 239:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 240:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 241:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 242:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 243:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 244:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 245:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 246:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 247:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 248:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 249:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 250:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 251:
+                return TextIconPartDefinition.a(injectorLike);
+            case 252:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 253:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 254:
+                return MarkSpamThreadMethod.a(injectorLike);
+            case 255:
+                return MarkSpamThreadMethod.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4985r(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return NearbySearchAnalytics.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return NearbySearchAnalytics.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 3:
+                return NearbySearchAnalytics.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 5:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 6:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 7:
+                return NearbySearchAnalytics.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 9:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 10:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 11:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 12:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 13:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 14:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 15:
+                return NearbySearchAnalytics.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 17:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 18:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 19:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 20:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 21:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 22:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 23:
+                return SetSearchPlaceViewBinder.a(injectorLike);
+            case 24:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 25:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 26:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 27:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 28:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 29:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 30:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 31:
+                return NearbySearchAnalytics.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 33:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 34:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 35:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 36:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 37:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 38:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 39:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 40:
+                return NotificationsActivityListener.a(injectorLike);
+            case 41:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 42:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 43:
+                return new NotificationSettingsFragmentFactory();
+            case 44:
+                return new NotificationsFriendingFragmentFactory();
+            case 45:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 46:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 47:
+                return PushNotificationDbHelper.a(injectorLike);
+            case 48:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 49:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 50:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 51:
+                return SystemTrayNotificationBuilder.b(injectorLike);
+            case 52:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 53:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 54:
+                return NotificationsFeedItemPartDefinition.a(injectorLike);
+            case 55:
+                return NotificationsFeedRootPartDefinition.a(injectorLike);
+            case 56:
+                return NotificationsSectionHeaderPartDefinition.a(injectorLike);
+            case 57:
+                return TodayNotificationSinglePartDefinition.a(injectorLike);
+            case 58:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 59:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 60:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 61:
+                return NotificationsInlineFeedbackNuxInterstitialController.a(injectorLike);
+            case 62:
+                return new FetchNotificationURIMethod();
+            case 63:
+                return new GetNotificationsSettingsMethod();
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return new GraphNotificationsChangeSeenStateMethod();
+            case 65:
+                return new NotificationsChangeSettingsMethod();
+            case 66:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 67:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 68:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 69:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 70:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 71:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 72:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 73:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 74:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 75:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 76:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 77:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 78:
+                return NotificationSettingsRootGroupPartDefinition.a(injectorLike);
+            case 79:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 80:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 81:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 82:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 83:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 84:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 85:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 86:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 87:
+                return NotificationSubscriptionsManager.a(injectorLike);
+            case 88:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 89:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 90:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 91:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 92:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 93:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 94:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 95:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 96:
+                return new NotificationSettingsAlertsFragmentFactory();
+            case 97:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 98:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 99:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 100:
+                return MusicPreviewNuxBubbleInterstitialController.a(injectorLike);
+            case 101:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 102:
+                return new SeeFirstPromptNuxController(SeeFirstNuxManager.a(injectorLike));
+            case 103:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 104:
+                return new ResetNuxStatusMethod();
+            case 105:
+                return new UpdateNuxStatusMethod();
+            case 106:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 107:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 108:
+                return new OffersDetailPageFragmentFactory();
+            case 109:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 110:
+                return new OffersWalletFragmentFactory();
+            case 111:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 112:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 113:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 114:
+                return OfflineIntentManager.a(injectorLike);
+            case 115:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 116:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 117:
+                return OmnistoreCallbackRegistration.getInstance__com_facebook_omnistore_module_OmnistoreCallbackRegistration__INJECTED_BY_TemplateInjector(injectorLike);
+            case 118:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 119:
+                return CollectionIndexingFunction_ContactsCollectionMethodAutoProvider.a(injectorLike);
+            case 120:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 121:
+                return OmnistoreIndexerRegistration.getInstance__com_facebook_omnistore_module_OmnistoreIndexerRegistration__INJECTED_BY_TemplateInjector(injectorLike);
+            case 122:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 123:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 124:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 125:
+                return new FetchPinnedThreadsConditionalWorker(DefaultBlueServiceOperationFactory.m3782b(injectorLike), FetchPinnedThreadsSyncComponent.a(injectorLike));
+            case 126:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 127:
+                return NearbySearchAnalytics.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 129:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 130:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 131:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 132:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 133:
+                return new MessageCapButtonController((MessageCapAccessor) DefaultMessageCapAccessor.a(injectorLike), MessageCapOptinManager.a(injectorLike), TipSeenTracker.b(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike), IdBasedLazy.m1808a(injectorLike, 11791), DefaultAndroidThreadUtil.m1646b(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike), SpringSystem.m7835b(injectorLike));
+            case 134:
+                return ReactKeyboard.b(injectorLike);
+            case 135:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 136:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 137:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 138:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 139:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 140:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 141:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 142:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 143:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 144:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 145:
+                return new PhoneContactUiHelper(FbPhoneNumberUtils.b(injectorLike), ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 146:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 147:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 148:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 149:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 150:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 151:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 152:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 153:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 154:
+                CommerceLocalNotificationHelper commerceLocalNotificationHelper = new CommerceLocalNotificationHelper();
+                commerceLocalNotificationHelper.a = IdBasedSingletonScopeProvider.m1810b(injectorLike, 2895);
+                return commerceLocalNotificationHelper;
+            case 155:
+                ContactsUploadNotificationHandler contactsUploadNotificationHandler = new ContactsUploadNotificationHandler();
+                Lazy b = IdBasedSingletonScopeProvider.m1810b(injectorLike, 2895);
+                Lazy b2 = IdBasedSingletonScopeProvider.m1810b(injectorLike, 30);
+                contactsUploadNotificationHandler.a = b;
+                contactsUploadNotificationHandler.b = b2;
+                return contactsUploadNotificationHandler;
+            case 156:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 157:
+                return SmsFallbackNumberNotificationHandler.b(injectorLike);
+            case 158:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 159:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 160:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 161:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 162:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 163:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 164:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 165:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 166:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 167:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 168:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 169:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 170:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 171:
+                return ThreadListContextMenuHelper.b(injectorLike);
+            case 172:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 173:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 174:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 175:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 176:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 177:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 178:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 179:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 180:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 181:
+                return AddMontageViewerHelper.b(injectorLike);
+            case 182:
+                return new AddToContactListHelper(DefaultBlueServiceOperationFactory.m3782b(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike));
+            case 183:
+                return new AdminMessageWithLinkViewModelFactory(EphemeralGatingUtil.m22102b(injectorLike), ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 184:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 185:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 186:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 187:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 188:
+                return GroupPhotoSettingsDialogFactory.b(injectorLike);
+            case 189:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 190:
+                InternalAttributionCallToActionHelper internalAttributionCallToActionHelper = new InternalAttributionCallToActionHelper();
+                internalAttributionCallToActionHelper.a = IdBasedLazy.m1808a(injectorLike, 7858);
+                return internalAttributionCallToActionHelper;
+            case 191:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 192:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 193:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 194:
+                return MessageListAdapter.b(injectorLike);
+            case 195:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 196:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 197:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 198:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 199:
+                return NewMessageAnchorController.b(injectorLike);
+            case 200:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 201:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 202:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 203:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 204:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 205:
+                return RowItemUiUtil.a(injectorLike);
+            case 206:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 207:
+                return RowMessageItemGenerator.a(injectorLike);
+            case 208:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 209:
+                return new ThreadEventReminderLoader(DefaultBlueServiceOperationFactory.m3782b(injectorLike), C0087xd695ba9d.m2486a(injectorLike));
+            case 210:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 211:
+                return ThreadPaymentRiskFlowHelper.b(injectorLike);
+            case 212:
+                return new ThreadViewDebugHelper(NotificationSettingsUtil.b(injectorLike));
+            case 213:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 214:
+                return ThreadViewLoader.b(injectorLike);
+            case 215:
+                return ThreadViewLowDataModeUtils.a(injectorLike);
+            case 216:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 217:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 218:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 219:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 220:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 221:
+                return ThreadViewOperationsHelper.b(injectorLike);
+            case 222:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 223:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 224:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 225:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 226:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 227:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 228:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 229:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 230:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 231:
+                return EphemeralToggleButtonHelper.b(injectorLike);
+            case 232:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 233:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 234:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 235:
+                return MessageListHelperForListView.b(injectorLike);
+            case 236:
+                return MessageListHelperForRecyclerView.b(injectorLike);
+            case 237:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 238:
+                return MontageReplyMessageViewHelper.b(injectorLike);
+            case 239:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 240:
+                return SmsThreadViewButtonsHelper.b(injectorLike);
+            case 241:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 242:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 243:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 244:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 245:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 246:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 247:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 248:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 249:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 250:
+                return new PagesBrowserFragmentFactory();
+            case 251:
+                return new PagesBrowserListFragmentFactory();
+            case 252:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 253:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 254:
+                return NearbySearchAnalytics.b(injectorLike);
+            case 255:
+                return NearbySearchAnalytics.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4986s(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return PagesCommonActionBarDataMutator.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return new ReportPlaceMethod();
+            case 3:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return PagesBanUserAnalytics.a(injectorLike);
+            case 5:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 6:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 7:
+                return PagesContactInboxTimeUtils.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 9:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 10:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 11:
+                return new PageEditPageFragmentFactory(GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike));
+            case 12:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 13:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 14:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 15:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return PageEventBus.a(injectorLike);
+            case 17:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 18:
+                return new PageFriendInviterFragmentFactory();
+            case 19:
+                return new FetchFriendsYouMayInviteMethod(GraphQLProtocolHelper.m9427a(injectorLike));
+            case 20:
+                return new SendPageLikeInviteMethod();
+            case 21:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 22:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 23:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 24:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 25:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 26:
+                return PagesAnalytics.a(injectorLike);
+            case 27:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 28:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 29:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 30:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 31:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return new PagesPhotosFragmentUtils(ViewerContextMethodAutoProvider.m5006b(injectorLike), ViewerContextManagerProvider.m2496b(injectorLike), IdBasedSingletonScopeProvider.m1810b(injectorLike, 2928), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 33:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 34:
+                return FooterWithBadgeComponentPartDefinition.a(injectorLike);
+            case 35:
+                return LargeProfileImageBlockComponentPartDefinition.a(injectorLike);
+            case 36:
+                return PageAddressNavigationUnitComponentPartDefinition.a(injectorLike);
+            case 37:
+                return PageAdminFeedStoryComponentPartDefinition.a(injectorLike);
+            case 38:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 39:
+                return PageAppointmentStatusUnitComponentPartDefinition.a(injectorLike);
+            case 40:
+                return PageContactInfoStackUnitComponentPartDefinition.a(injectorLike);
+            case 41:
+                return PageContextRowWithBadgeComponentPartDefinition.a(injectorLike);
+            case 42:
+                return PageCreatePhotoAlbumUnitComponentPartDefinition.a(injectorLike);
+            case 43:
+                return PageInfoDescriptionUnitComponentPartDefinition.a(injectorLike);
+            case 44:
+                return PageInfoRatingsAndReviewsUnitComponentPartDefinition.a(injectorLike);
+            case 45:
+                return PageInfoRowUnitComponentPartDefinition.a(injectorLike);
+            case 46:
+                return PageInfoWriteFirstReviewUnitComponentPartDefinition.a(injectorLike);
+            case 47:
+                return PageInlineComposerUnitComponentPartDefinition.a(injectorLike);
+            case 48:
+                return PageInsightsOverviewCardMetricUnitComponentPartDefinition.a(injectorLike);
+            case 49:
+                return PageMessageBlockComponentPartDefinition.a(injectorLike);
+            case 50:
+                return PageNuxUnitComponentPartDefinition.a(injectorLike);
+            case 51:
+                return PageOpenHoursUnitComponentPartDefinition.a(injectorLike);
+            case 52:
+                return PagePhotoAlbumUnitComponentPartDefinition.a(injectorLike);
+            case 53:
+                return PagePhotoAlbumsUnitComponentPartDefinition.a(injectorLike);
+            case 54:
+                return PagePhotosUnitComponentPartDefinition.a(injectorLike);
+            case 55:
+                return PageSocialContextImageBlockUnitComponentPartDefinition.a(injectorLike);
+            case 56:
+                return PageVeryResponsiveToMessagesBadgeUnitComponentPartDefinition.a(injectorLike);
+            case 57:
+                return PagesFeaturedServiceItemsUnitComponentPartDefinition.a(injectorLike);
+            case 58:
+                return PagesMapUnitComponentPartDefinition.a(injectorLike);
+            case 59:
+                return PagesServiceItemUnitComponentPartDefinition.a(injectorLike);
+            case 60:
+                return PostCommentsModerationBlockUnitComponentPartDefinition.a(injectorLike);
+            case 61:
+                return PromotionBlockComponentPartDefinition.a(injectorLike);
+            case 62:
+                return ReactionFullWidthActionButtonComponentPartDefinition.a(injectorLike);
+            case 63:
+                return ReactionSegmentedProgressBarComponentPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 65:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 66:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 67:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 68:
+                return new ActivityResultHandlerResolver(ProviderLazy.m1699a(new ActivityResultHandler(injectorLike.getScopeAwareInjector()), injectorLike.getScopeAwareInjector()));
+            case 69:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 70:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 71:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 72:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 73:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 74:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 75:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 76:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 77:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 78:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 79:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 80:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 81:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 82:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 83:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 84:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 85:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 86:
+                return PageCallToActionAutoFillProviderImpl.a(injectorLike);
+            case 87:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 88:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 89:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 90:
+                return PageCallToActionAnalytics.b(injectorLike);
+            case 91:
+                return PageCallToActionUtil.a(injectorLike);
+            case 92:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 93:
+                return PageHeaderEarlyFetcher.a(injectorLike);
+            case 94:
+                return PageHeaderFetchQueryExecutor.b(injectorLike);
+            case 95:
+                return PageReactionInitialFetcher.a(injectorLike);
+            case 96:
+                return new PagesSurfaceAddDeleteTabUtil(GraphQLQueryExecutor.m10435a(injectorLike), TasksManager.m14550b(injectorLike));
+            case 97:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 98:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 99:
+                return new PagesProfileVideoViewportListener();
+            case 100:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 101:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 102:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 103:
+                return PageRelatedPagesUnitComponentPartDefinition.a(injectorLike);
+            case 104:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 105:
+                return new PageViewerContextApiMethod(IdBasedSingletonScopeProvider.m1810b(injectorLike, 494));
+            case 106:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 107:
+                return ViewerContextUtil.b(injectorLike);
+            case 108:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 109:
+                return PagesInfoCache.a(injectorLike);
+            case 110:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 111:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 112:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 113:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 114:
+                return new Fb4aPagesNotificationsFragmentFactory();
+            case 115:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 116:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 117:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 118:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 119:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 120:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 121:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 122:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 123:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 124:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 125:
+                return PagesFollowActionHelper.b(injectorLike);
+            case 126:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 127:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 129:
+                return PageContextRowsPlaceholderUnitComponentPartDefinition.a(injectorLike);
+            case 130:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 131:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 132:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 133:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 134:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 135:
+                return PageIdentityMapUtil.a(injectorLike);
+            case 136:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 137:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 138:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 139:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 140:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 141:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 142:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 143:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 144:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 145:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 146:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 147:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 148:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 149:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 150:
+                return PageContextItemsAddCoverPhotoHandler.a(injectorLike);
+            case 151:
+                return new PageContextItemsAddPageInfoHandler(FbErrorReporterImpl.m2317a(injectorLike), PlaceSuggestionsIntentBuilder.a(injectorLike), PagesAnalytics.a(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike));
+            case 152:
+                return new PageContextItemsAddPhotoMenuHandler(FbUriIntentHandler.m8626a(injectorLike));
+            case 153:
+                return PageContextItemsAddProfilePhotoHandler.a(injectorLike);
+            case 154:
+                return new PageContextItemsAddReviewHandler(ComposerLauncherImpl.m14892a(injectorLike), (DefaultPageSurfaceIntentBuilder) FbAndroidPageSurfaceIntentBuilder.b(injectorLike));
+            case 155:
+                return new PageContextItemsAddressPlaceQuestionHandler(PageContextItemsPlaceQuestionHandler.b(injectorLike));
+            case 156:
+                return new PageContextItemsCallHandler(ActivityMethodAutoProvider.m6475b(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike));
+            case 157:
+                return new PageContextItemsCategoryPlaceQuestionHandler(PageContextItemsPlaceQuestionHandler.b(injectorLike));
+            case 158:
+                return PageContextItemsClickHandlerImpl.b(injectorLike);
+            case 159:
+                return PageContextItemsFallbackHandler.b(injectorLike);
+            case 160:
+                return new PageContextItemsInsightsHandler(PageScopedEventBus.a(injectorLike));
+            case 161:
+                return PageContextItemsInviteFriendsLikePageHandler.a(injectorLike);
+            case 162:
+                return new PageContextItemsLaunchComposerHandler(ComposerIntentLauncher.m19715b(injectorLike), ComposerLauncherImpl.m14892a(injectorLike), (DefaultPageSurfaceIntentBuilder) FbAndroidPageSurfaceIntentBuilder.b(injectorLike));
+            case 163:
+                return new PageContextItemsMessagePageHandler(FbUriIntentHandler.m8626a(injectorLike));
+            case 164:
+                return new PageContextItemsMessageResponsivenessHandler(PageAdminUtils.a(injectorLike), Fb4aUriIntentMapper.m8640a(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike), PageEventBus.a(injectorLike), ProductMethodAutoProvider.m4524b(injectorLike));
+            case 165:
+                return new PageContextItemsPageDetailsHandler((DefaultPageSurfaceIntentBuilder) FbAndroidPageSurfaceIntentBuilder.b(injectorLike));
+            case 166:
+                return new PageContextItemsPageTipsHandler((Context) injectorLike.getInstance(Context.class), PagesReactionManager.b(injectorLike), FbUriIntentHandler.m8626a(injectorLike));
+            case 167:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 168:
+                return new PageContextItemsReactionHandler((Context) injectorLike.getInstance(Context.class), PagesReactionManager.b(injectorLike), FbUriIntentHandler.m8626a(injectorLike));
+            case 169:
+                return new PageContextItemsReviewsHandler((Context) injectorLike.getInstance(Context.class), ReviewsListLauncher.a(injectorLike), PagesAnalytics.a(injectorLike));
+            case 170:
+                return new PageContextItemsSubscribeToNearbyEventsHandler((DefaultPageSurfaceIntentBuilder) FbAndroidPageSurfaceIntentBuilder.b(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 171:
+                return new PageContextItemsViewMenuHandler(PageContextItemsFallbackHandler.b(injectorLike), IdBasedSingletonScopeProvider.m1809a(injectorLike, 2128), DefaultSecureContextHelper.m4636a(injectorLike), Fb4aUriIntentMapper.m8640a(injectorLike));
+            case 172:
+                return new PageContextItemsViewWebsiteHandler((Context) injectorLike.getInstance(Context.class), DefaultSecureContextHelper.m4636a(injectorLike));
+            case 173:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 174:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 175:
+                return new PageAlbumFragmentFactory();
+            case 176:
+                return new PageCallToActionFragmentFactory();
+            case 177:
+                return new PageChildLocationsFragmentFactory();
+            case 178:
+                return new PageContactInboxFragmentFactory();
+            case 179:
+                return new PageEventsListFragmentFactory();
+            case 180:
+                return new PageIdentityFragmentFactory(PageViewReferrerUtils.a(injectorLike), AdminedPagesRamCache.a(injectorLike), PagesExperimentUtils.a(injectorLike));
+            case 181:
+                return new PageInformationFragmentFactory();
+            case 182:
+                return new PageManagerCoverPhotoFragmentFactory();
+            case 183:
+                return new PageReactionFragmentFactory();
+            case 184:
+                return new PageResidenceFragmentFactory();
+            case 185:
+                return new PageServiceFragmentFactory();
+            case 186:
+                return new PageSingleServiceFragmentFactory();
+            case 187:
+                return new PageVideoHubFragmentFactory();
+            case 188:
+                return new PageVideoListAllVideosFragmentFactory(PagesAnalytics.a(injectorLike), PagesExperimentUtils.a(injectorLike));
+            case 189:
+                return new PageVideoListFragmentFactory(PagesAnalytics.a(injectorLike));
+            case 190:
+                return new PageVistorPostsFragmentFactory();
+            case 191:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 192:
+                return FbAndroidPageSurfaceIntentBuilder.b(injectorLike);
+            case 193:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 194:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 195:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 196:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 197:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 198:
+                return PageIdentityPinnedPostGroupPartDefinition.a(injectorLike);
+            case 199:
+                return PageIdentityPinnedPostHeaderPartDefinition.a(injectorLike);
+            case 200:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 201:
+                return PagesManagerProfilePicUpdateListener.a(injectorLike);
+            case 202:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 203:
+                return new PagesLaunchpointFragmentFactory();
+            case 204:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 205:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 206:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 207:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 208:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 209:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 210:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 211:
+                return new SimpleCheckoutDataLoader(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), PaymentPinProtocolUtil.a(injectorLike), IdBasedProvider.m1811a(injectorLike, 9225), IdBasedProvider.m1811a(injectorLike, 9170));
+            case 212:
+                return new SimpleCheckoutDataMutator();
+            case 213:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 214:
+                return new SimpleCheckoutOnActivityResultHandler();
+            case 215:
+                return new SimpleCheckoutSender();
+            case 216:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 217:
+                return new SimpleCheckoutStyleRenderer();
+            case 218:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 219:
+                return new SimpleCheckoutRowViewHolderFactory();
+            case 220:
+                return new SimpleCheckoutRowsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike), SimpleCheckoutManager.a(injectorLike));
+            case 221:
+                return new SimpleCheckoutSubScreenParamsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 222:
+                return new SimpleCheckoutStateMachineHandler((Context) injectorLike.getInstance(Context.class), SimpleCheckoutManager.a(injectorLike));
+            case 223:
+                return new SimpleCheckoutStateMachineOrganizer();
+            case 224:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 225:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 226:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 227:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 228:
+                return new SimpleConfirmationOnActivityResultHandler();
+            case 229:
+                return new SimpleConfirmationRowViewHolderFactory();
+            case 230:
+                return new SimpleConfirmationRowsGenerator(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 231:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 232:
+                return new SimplePostPurchaseActionHandler((Context) injectorLike.getInstance(Context.class));
+            case 233:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 234:
+                return new EmailContactInfoFormMutator(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), ContactInfoProtocolUtil.a(injectorLike));
+            case 235:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 236:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 237:
+                return new SimpleContactInfoFormMutator();
+            case 238:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 239:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 240:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 241:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 242:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 243:
+                return new SimpleContactInputValidator();
+            case 244:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 245:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 246:
+                return new SimpleCardFormAnalyticsEventSelector();
+            case 247:
+                return SimpleCardFormConfigurator.b(injectorLike);
+            case 248:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 249:
+                return new SimpleCardFormMutator((Context) injectorLike.getInstance(Context.class), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), CardFormProtocolUtil.a(injectorLike));
+            case 250:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 251:
+                return new SimpleCardFormStyleRenderer();
+            case 252:
+                return new SimpleCardFormViewController();
+            case 253:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 254:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            case 255:
+                return PagesCommonActionBarServiceHandler.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4987t(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 3:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 5:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 6:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 7:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 9:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 10:
+                return PaymentMethodsInfoCache.a(injectorLike);
+            case 11:
+                return new PaymentMethodsPickerScreenDataFetcher(FbErrorReporterImpl.m2317a(injectorLike), IdBasedProvider.m1811a(injectorLike, 9170), TasksManager.m14550b(injectorLike));
+            case 12:
+                return new PaymentMethodsPickerScreenDataMutator();
+            case 13:
+                return new PaymentMethodsPickerScreenOnActivityResultHandler(FbErrorReporterImpl.m2317a(injectorLike), AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike), SimplePickerScreenManager.a(injectorLike));
+            case 14:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 15:
+                return new PaymentMethodsPickerScreenStyleRenderer();
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return new PaymentMethodsPickerScreenSubScreenParamsGenerator((Context) injectorLike.getInstance(Context.class));
+            case 17:
+                return PaymentMethodsRowItemViewFactory.b(injectorLike);
+            case 18:
+                return new PaymentMethodsRowItemsGenerator((Context) injectorLike.getInstance(Context.class), SimplePickerScreenManager.a(injectorLike));
+            case 19:
+                return new PaymentMethodsSectionOrganizer();
+            case 20:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 21:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 22:
+                return new SimplePickerScreenDataMutator();
+            case 23:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 24:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 25:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 26:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 27:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 28:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 29:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 30:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 31:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 33:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 34:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 35:
+                return PayViewController.b(injectorLike);
+            case 36:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 37:
+                return new PaymentSettingsPickerScreenDataFetcher(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), MailingAddressProtocolUtil.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 9170));
+            case 38:
+                return new PaymentSettingsPickerScreenOnActivityResultHandler();
+            case 39:
+                return new PaymentSettingsRowItemViewFactory(PaymentMethodsRowItemViewFactory.b(injectorLike), ShippingRowItemViewFactory.b(injectorLike), SimpleRowItemViewFactory.a(injectorLike));
+            case 40:
+                return new PaymentSettingsRowItemsGenerator((Context) injectorLike.getInstance(Context.class), SimplePickerScreenManager.a(injectorLike));
+            case 41:
+                return new PaymentSettingsSectionOrganizer();
+            case 42:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 43:
+                return new ShippingPickerScreenDataFetcher();
+            case 44:
+                return new ShippingPickerScreenDataMutator();
+            case 45:
+                return new ShippingPickerScreenOnActivityResultHandler();
+            case 46:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 47:
+                return new ShippingPickerScreenStyleRenderer(SimpleShippingManager.a(injectorLike));
+            case 48:
+                return ShippingRowItemViewFactory.b(injectorLike);
+            case 49:
+                return new ShippingRowItemsGenerator((Context) injectorLike.getInstance(Context.class), SimplePickerScreenManager.a(injectorLike));
+            case 50:
+                return new ShippingSectionOrganizer();
+            case 51:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 52:
+                return new SimpleShippingAddressMutator();
+            case 53:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 54:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 55:
+                return new SimpleShippingStyleRenderer();
+            case 56:
+                return new ShippingOptionPickerScreenDataFetcher();
+            case 57:
+                return new ShippingOptionPickerScreenOnActivityResultHandler();
+            case 58:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 59:
+                return new ShippingOptionPickerScreenStyleRenderer();
+            case 60:
+                return new ShippingOptionRowItemViewFactory();
+            case 61:
+                return new ShippingOptionSectionOrganizer();
+            case 62:
+                return new ShippingOptionsPickerScreenDataMutator();
+            case 63:
+                return new ShippingOptionsRowItemsGenerator(SimplePickerScreenManager.a(injectorLike));
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 65:
+                return MailingAddressCache.a(injectorLike);
+            case 66:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 67:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 68:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 69:
+                return new SimpleShippingStateInputValidator(ResourcesMethodAutoProvider.m6510a(injectorLike));
+            case 70:
+                return new SimpleShippingZipInputValidator(ResourcesMethodAutoProvider.m6510a(injectorLike), BillingZipInputValidator.b(injectorLike));
+            case 71:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 72:
+                return PerfToastProvider.a(injectorLike);
+            case 73:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 74:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 75:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 76:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 77:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 78:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 79:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 80:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 81:
+                return new AlbumCreatorController((Context) injectorLike.getInstance(Context.class), AlbumCreatorFlowLogger.b(injectorLike), PhotosFuturesGenerator.a(injectorLike), TasksManager.m14550b(injectorLike), ViewerContextMethodAutoProvider.m5006b(injectorLike), AlbumsEventBus.a(injectorLike));
+            case 82:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 83:
+                return AlbumCreatorIntentBuilder.b(injectorLike);
+            case 84:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 85:
+                return ProfilePicCoverPhotoEditHelper.b(injectorLike);
+            case 86:
+                return new VideoAlbumConfig(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 87:
+                return AlbumsEventBus.a(injectorLike);
+            case 88:
+                return AlbumsConverterFunction.a(injectorLike);
+            case 89:
+                return AlbumsFuturesGenerator.a(injectorLike);
+            case 90:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 91:
+                return DefaultPhotoFlowLogger.b(injectorLike);
+            case 92:
+                return MediaLogger.a(injectorLike);
+            case 93:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 94:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 95:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 96:
+                return PreFilledTagLogger.b(injectorLike);
+            case 97:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 98:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 99:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 100:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 101:
+                return WaterfallIdGenerator.a(injectorLike);
+            case 102:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 103:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 104:
+                return MediaItemCursorUtil.b(injectorLike);
+            case 105:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 106:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 107:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 108:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 109:
+                return TaggingHelper.a(injectorLike);
+            case 110:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 111:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 112:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 113:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 114:
+                return new CreativeCamPickerPreviewControllerImpl(TasksManager.m14550b(injectorLike), LocalMediaCursorMethodAutoProvider.b(injectorLike), C0055x2995691a.m1881a(injectorLike));
+            case 115:
+                return CreativeCamTopBarControllerImpl.a(injectorLike);
+            case 116:
+                return CreativeEditingAnalyticsLogger.a(injectorLike);
+            case 117:
+                return CreativeEditingLogger.b(injectorLike);
+            case 118:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 119:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 120:
+                return StickerEventBus.a(injectorLike);
+            case 121:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 122:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 123:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 124:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 125:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 126:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 127:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return SwipeableDraweeControllerGeneratorImpl.b(injectorLike);
+            case 129:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 130:
+                return new SwipeableRepeatedPostprocessor();
+            case 131:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 132:
+                return new SwipeableFilterAnimatingNuxViewController((Context) injectorLike.getInstance(Context.class), SpringAlphaAnimator.b(injectorLike));
+            case 133:
+                return new SwipeableFrameAnimatingNuxViewController((Context) injectorLike.getInstance(Context.class), SpringAlphaAnimator.b(injectorLike));
+            case 134:
+                return FramePromptsPromptPartDefinition.a(injectorLike);
+            case 135:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 136:
+                return FramePromptSmallPartDefinition.a(injectorLike);
+            case 137:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 138:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 139:
+                return CreativeEditingImageHelper.b(injectorLike);
+            case 140:
+                return MediaRotationHelper.b(injectorLike);
+            case 141:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 142:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 143:
+                return SpringAlphaAnimator.b(injectorLike);
+            case 144:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 145:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 146:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 147:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 148:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 149:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 150:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 151:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 152:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 153:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 154:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 155:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 156:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 157:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 158:
+                return FetchDefaultTagSuggestions.a(injectorLike);
+            case 159:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 160:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 161:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 162:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 163:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 164:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 165:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 166:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 167:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 168:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 169:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 170:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 171:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 172:
+                return FetchImageUtils.b(injectorLike);
+            case 173:
+                return new MediaSetFuturesGenerator(GraphQLQueryExecutor.m10435a(injectorLike), GraphQLImageHelper.m10139a(injectorLike), SizeAwareImageUtil.m10234a(injectorLike));
+            case 174:
+                return PhotosFuturesGenerator.a(injectorLike);
+            case 175:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 176:
+                return new FiltersRepeatedPostprocessor(FiltersEngine.a(injectorLike), ConstrainedListeningExecutorServiceFactory.m2127a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 177:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 178:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 179:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 180:
+                return PhotosViewIntentProvider.b(injectorLike);
+            case 181:
+                return LocalMediaCursorMethodAutoProvider.b(injectorLike);
+            case 182:
+                return LocalMediaCursorImp.a(injectorLike);
+            case 183:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 184:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 185:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 186:
+                return MediaGalleryLauncherParamsFactory.a(injectorLike);
+            case 187:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 188:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 189:
+                return MediaMutationGenerator.b(injectorLike);
+            case 190:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 191:
+                return DefaultMediaGalleryLauncher.a(injectorLike);
+            case 192:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 193:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 194:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 195:
+                return DefaultSuggestionController.a(injectorLike);
+            case 196:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 197:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 198:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 199:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 200:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 201:
+                return FrescoMediaGalleryActionsGenerator.a(injectorLike);
+            case 202:
+                return LegacyMediaGalleryActionsGenerator.a(injectorLike);
+            case 203:
+                return MediaGalleryActionsGeneratorMethodAutoProvider.a(injectorLike);
+            case 204:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 205:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 206:
+                return MediaGalleryMenuHelper.b(injectorLike);
+            case 207:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 208:
+                return new ViewerSuggestLocationInterstitialController(FbLocationStatusUtil.m8253a(injectorLike));
+            case 209:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 210:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 211:
+                return new MediaMetadataParcelUtil();
+            case 212:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 213:
+                return PandoraStoryMemoryCache.a(injectorLike);
+            case 214:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 215:
+                return PandoraEventBus.a(injectorLike);
+            case 216:
+                return PandoraFuturesGenerator.a(injectorLike);
+            case 217:
+                return PandoraGraphQLParamImageHelper.a(injectorLike);
+            case 218:
+                return PandoraMemoryCacheFunction.a(injectorLike);
+            case 219:
+                return PandoraRendererFunction.a(injectorLike);
+            case 220:
+                return PandoraResultConverterFunction.a(injectorLike);
+            case 221:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 222:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 223:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 224:
+                return PandoraRendererController.a(injectorLike);
+            case 225:
+                return PandoraRendererGridConfiguration.b(injectorLike);
+            case 226:
+                return new PandoraRendererMixedMediaGridConfiguration((PandoraRendererHighlightPhotosGridRowFactoryProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(PandoraRendererHighlightPhotosGridRowFactoryProvider.class));
+            case 227:
+                return MultiPhotoStoryModelRowBuilder.a(injectorLike);
+            case 228:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 229:
+                return PandoraRendererMultiMediaRowEntryCache.a(injectorLike);
+            case 230:
+                return PandoraRendererMultiPhotosRowEntryCache.a(injectorLike);
+            case 231:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 232:
+                return PandoraHighlightsCalculator.a(injectorLike);
+            case 233:
+                return PandoraGraphQLObjectExtractor.a(injectorLike);
+            case 234:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 235:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 236:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 237:
+                return PandoraAlbumMediaSetAdapter.b(injectorLike);
+            case 238:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 239:
+                return PandoraFooterPartDefinition.a(injectorLike);
+            case 240:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 241:
+                return PandoraTaggedPhotosAdapter.b(injectorLike);
+            case 242:
+                return new PandoraTaggedPhotosMainAdapter(String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike), IdBasedLazy.m1808a(injectorLike, 9401));
+            case 243:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 244:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 245:
+                return AlbumHeaderSetupController.b(injectorLike);
+            case 246:
+                return FbPhotoPickerController.a(injectorLike);
+            case 247:
+                return MediaPickerLaunchController.a(injectorLike);
+            case 248:
+                return PhotoSetOnActivityResultController.b(injectorLike);
+            case 249:
+                return PhotoSetConsumptionGalleryPhotoLauncher.b(injectorLike);
+            case 250:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 251:
+                return AlbumPermalinkTitleBarSupplier.a(injectorLike);
+            case 252:
+                return SecurityCodeFormattingTextWatcher.a(injectorLike);
+            case 253:
+                return PrivacyMapping.a(injectorLike);
+            case 254:
+                return AlbumPermalinkFuturesGenerator.a(injectorLike);
+            case 255:
+                return new ExperimentalImageFetcher(ImagePipelineMethodAutoProvider.m15546a(injectorLike), C0061x63d21d68.m2106b(injectorLike), STATICDI_MULTIBIND_PROVIDER$PrefetchListener.m16437a(injectorLike), (BackgroundHandoffHelperProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(BackgroundHandoffHelperProvider.class));
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4988u(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return RotationManager.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return RotationManager.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return SimpleCamera.b(injectorLike);
+            case 3:
+                return RotationManager.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return RotationManager.b(injectorLike);
+            case 5:
+                return RotationManager.b(injectorLike);
+            case 6:
+                return RotationManager.b(injectorLike);
+            case 7:
+                return new PickerSelectionUpdateUtil(ContentResolverMethodAutoProvider.m3641b(injectorLike));
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return RotationManager.b(injectorLike);
+            case 9:
+                return RotationManager.b(injectorLike);
+            case 10:
+                return RotationManager.b(injectorLike);
+            case 11:
+                return RotationManager.b(injectorLike);
+            case 12:
+                return new SimplePickerHDUploadInterstitialController(FbNetworkManager.m3811a(injectorLike), FbUriIntentHandler.m8626a(injectorLike), TipSeenTracker.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 4254));
+            case 13:
+                return new SimplePickerSlideshowInterstitialController((Context) injectorLike.getInstance(Context.class), TipSeenTracker.b(injectorLike), SlideshowLogger.b(injectorLike));
+            case 14:
+                return RotationManager.b(injectorLike);
+            case 15:
+                return new GifVideoPlayerGalleryDelegate(FbDraweeControllerBuilder.m19410b(injectorLike));
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return AutoTaggingHelper.b(injectorLike);
+            case 17:
+                return RotationManager.b(injectorLike);
+            case 18:
+                return FamilyTagTypeaheadUtil.a(injectorLike);
+            case 19:
+                return RotationManager.b(injectorLike);
+            case 20:
+                return RotationManager.b(injectorLike);
+            case 21:
+                return RotationManager.b(injectorLike);
+            case 22:
+                return RotationManager.b(injectorLike);
+            case 23:
+                return RotationManager.b(injectorLike);
+            case 24:
+                return RotationManager.b(injectorLike);
+            case 25:
+                return RotationManager.b(injectorLike);
+            case 26:
+                return TagStore.a(injectorLike);
+            case 27:
+                return RotationManager.b(injectorLike);
+            case 28:
+                return RotationManager.b(injectorLike);
+            case 29:
+                return RotationManager.b(injectorLike);
+            case 30:
+                return RotationManager.b(injectorLike);
+            case 31:
+                return RotationManager.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return new RealImageSampler();
+            case 33:
+                return ImmediateRetryTimingQEConfig.a(injectorLike);
+            case 34:
+                return RotationManager.b(injectorLike);
+            case 35:
+                return RotationManager.b(injectorLike);
+            case 36:
+                return CompostPendingPostStore.a(injectorLike);
+            case 37:
+                return RotationManager.b(injectorLike);
+            case 38:
+                return RotationManager.b(injectorLike);
+            case 39:
+                return RotationManager.b(injectorLike);
+            case 40:
+                return RotationManager.b(injectorLike);
+            case 41:
+                return RotationManager.b(injectorLike);
+            case 42:
+                return UploadTempFileManager.a(injectorLike);
+            case 43:
+                return RotationManager.b(injectorLike);
+            case 44:
+                return RotationManager.b(injectorLike);
+            case 45:
+                return RotationManager.b(injectorLike);
+            case 46:
+                return OptimisticVideoUploadHelper.a(injectorLike);
+            case 47:
+                return RotationManager.b(injectorLike);
+            case 48:
+                return RotationManager.b(injectorLike);
+            case 49:
+                return UploadNotificationManager.a(injectorLike);
+            case 50:
+                return RotationManager.b(injectorLike);
+            case 51:
+                return UploadOperationFactory.b(injectorLike);
+            case 52:
+                return UploadOperationHelper.b(injectorLike);
+            case 53:
+                return RotationManager.b(injectorLike);
+            case 54:
+                return RotationManager.b(injectorLike);
+            case 55:
+                return RotationManager.b(injectorLike);
+            case 56:
+                return MediaUploadActivityReceiver.a(injectorLike);
+            case 57:
+                return RotationManager.b(injectorLike);
+            case 58:
+                return new CompostSurveyController((Context) injectorLike.getInstance(Context.class), RapidFeedbackController.m14989b(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 59:
+                return RotationManager.b(injectorLike);
+            case 60:
+                return RotationManager.b(injectorLike);
+            case 61:
+                return RotationManager.b(injectorLike);
+            case 62:
+                return RotationManager.b(injectorLike);
+            case 63:
+                return RotationManager.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return RotationManager.b(injectorLike);
+            case 65:
+                return RotationManager.b(injectorLike);
+            case 66:
+                return RotationManager.b(injectorLike);
+            case 67:
+                return RotationManager.b(injectorLike);
+            case 68:
+                return RotationManager.b(injectorLike);
+            case 69:
+                return RotationManager.b(injectorLike);
+            case 70:
+                return RotationManager.b(injectorLike);
+            case 71:
+                return RotationManager.b(injectorLike);
+            case 72:
+                return RotationManager.b(injectorLike);
+            case 73:
+                return RotationManager.b(injectorLike);
+            case 74:
+                return RotationManager.b(injectorLike);
+            case 75:
+                return ImmediateRetryPolicyMethodAutoProvider.b(injectorLike);
+            case 76:
+                return RotationManager.b(injectorLike);
+            case 77:
+                return RotationManager.b(injectorLike);
+            case 78:
+                return RotationManager.b(injectorLike);
+            case 79:
+                return DirectPhotoUploader.b(injectorLike);
+            case 80:
+                return RotationManager.b(injectorLike);
+            case 81:
+                return RotationManager.b(injectorLike);
+            case 82:
+                return RotationManager.b(injectorLike);
+            case 83:
+                return PhotoPreprocessor.a(injectorLike);
+            case 84:
+                return RotationManager.b(injectorLike);
+            case 85:
+                return RotationManager.b(injectorLike);
+            case 86:
+                return RotationManager.b(injectorLike);
+            case 87:
+                return VideoUploader.b(injectorLike);
+            case 88:
+                return RotationManager.b(injectorLike);
+            case 89:
+                return DisturbingMediaTracker.a(injectorLike);
+            case 90:
+                return RotationManager.b(injectorLike);
+            case 91:
+                return RotationManager.b(injectorLike);
+            case 92:
+                return RotationManager.b(injectorLike);
+            case 93:
+                return RotationManager.b(injectorLike);
+            case 94:
+                return RotationManager.b(injectorLike);
+            case 95:
+                return RotationManager.b(injectorLike);
+            case 96:
+                return RotationManager.b(injectorLike);
+            case 97:
+                return RotationManager.b(injectorLike);
+            case 98:
+                return RotationManager.b(injectorLike);
+            case 99:
+                return RotationManager.b(injectorLike);
+            case 100:
+                return RotationManager.b(injectorLike);
+            case 101:
+                return PeopleToPlaceController.b(injectorLike);
+            case 102:
+                return RotationManager.b(injectorLike);
+            case 103:
+                return RotationManager.b(injectorLike);
+            case 104:
+                return PlacePickerLauncher.b(injectorLike);
+            case 105:
+                return RotationManager.b(injectorLike);
+            case 106:
+                return RotationManager.b(injectorLike);
+            case 107:
+                return RotationManager.b(injectorLike);
+            case 108:
+                return RotationManager.b(injectorLike);
+            case 109:
+                return new CheckinHistorySyncHelper(CheckinHistoryLoader.a(injectorLike));
+            case 110:
+                return RotationManager.b(injectorLike);
+            case 111:
+                return CheckinPrefetchRunner.a(injectorLike);
+            case 112:
+                return RotationManager.b(injectorLike);
+            case 113:
+                return CheckinSearchResultsLoader.b(injectorLike);
+            case 114:
+                return new FetchNearbyRegionsRunner(FqlQueryRunner.a(injectorLike), C0055x2995691a.m1881a(injectorLike));
+            case 115:
+                return RotationManager.b(injectorLike);
+            case 116:
+                return new FlagPlaceMethodRunner(new FlagPlaceMethod(SystemClockMethodAutoProvider.m1498a(injectorLike)), SingleMethodRunnerImpl.m11724a(injectorLike), C0055x2995691a.m1881a(injectorLike));
+            case 117:
+                return RotationManager.b(injectorLike);
+            case 118:
+                return RotationManager.b(injectorLike);
+            case 119:
+                return RotationManager.b(injectorLike);
+            case 120:
+                return PlacesAppStateReceiver.a(injectorLike);
+            case 121:
+                return RotationManager.b(injectorLike);
+            case 122:
+                return RotationManager.b(injectorLike);
+            case 123:
+                return RotationManager.b(injectorLike);
+            case 124:
+                return RotationManager.b(injectorLike);
+            case 125:
+                return RotationManager.b(injectorLike);
+            case 126:
+                return RotationManager.b(injectorLike);
+            case 127:
+                return RotationManager.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return RotationManager.b(injectorLike);
+            case 129:
+                return new CityPickerFragmentFactory();
+            case 130:
+                return RotationManager.b(injectorLike);
+            case 131:
+                return RotationManager.b(injectorLike);
+            case 132:
+                return RotationManager.b(injectorLike);
+            case 133:
+                return RotationManager.b(injectorLike);
+            case 134:
+                return RotationManager.b(injectorLike);
+            case 135:
+                return RotationManager.b(injectorLike);
+            case 136:
+                return RotationManager.b(injectorLike);
+            case 137:
+                return RotationManager.b(injectorLike);
+            case 138:
+                return RotationManager.b(injectorLike);
+            case 139:
+                return RotationManager.b(injectorLike);
+            case 140:
+                return RotationManager.b(injectorLike);
+            case 141:
+                return RotationManager.b(injectorLike);
+            case 142:
+                return RotationManager.b(injectorLike);
+            case 143:
+                return RotationManager.b(injectorLike);
+            case 144:
+                return RotationManager.b(injectorLike);
+            case 145:
+                return RotationManager.b(injectorLike);
+            case 146:
+                return RotationManager.b(injectorLike);
+            case 147:
+                return PlacesFeatures.a(injectorLike);
+            case 148:
+                return RotationManager.b(injectorLike);
+            case 149:
+                return RotationManager.b(injectorLike);
+            case 150:
+                return new CategoryPickerFragmentFactory();
+            case 151:
+                return RotationManager.b(injectorLike);
+            case 152:
+                return RotationManager.b(injectorLike);
+            case 153:
+                return RotationManager.b(injectorLike);
+            case 154:
+                return RotationManager.b(injectorLike);
+            case 155:
+                return RotationManager.b(injectorLike);
+            case 156:
+                return RotationManager.b(injectorLike);
+            case 157:
+                return RotationManager.b(injectorLike);
+            case 158:
+                return RotationManager.b(injectorLike);
+            case 159:
+                return PlaceSuggestionsIntentBuilder.a(injectorLike);
+            case 160:
+                return RotationManager.b(injectorLike);
+            case 161:
+                return RotationManager.b(injectorLike);
+            case 162:
+                return RotationManager.b(injectorLike);
+            case 163:
+                return new SuggestProfilePicMethod();
+            case 164:
+                return new UploadPictureView((Context) injectorLike.getInstance(Context.class), NotificationManagerMethodAutoProvider.b(injectorLike));
+            case 165:
+                return RotationManager.b(injectorLike);
+            case 166:
+                return RotationManager.b(injectorLike);
+            case 167:
+                return RotationManager.b(injectorLike);
+            case 168:
+                return RotationManager.b(injectorLike);
+            case 169:
+                return RotationManager.b(injectorLike);
+            case 170:
+                return new DefaultPlaceTipsGpsLocationProcessor(C0115xfdf5bd2.m3569a(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike), QuickPerformanceLoggerMethodAutoProvider.m2859a(injectorLike), LocationExtraDataRetriever.b(injectorLike), LocationAgeUtil.m8265a(injectorLike));
+            case 171:
+                return new LocationTriggerFetchProcessor((Context) injectorLike.getInstance(Context.class), GraphQLQueryExecutor.m10435a(injectorLike), LocationAgeUtil.m8265a(injectorLike), IdBasedSingletonScopeProvider.m1809a(injectorLike, 572), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 172:
+                return RotationManager.b(injectorLike);
+            case 173:
+                return RotationManager.b(injectorLike);
+            case 174:
+                return PlaceTipsGpsReceiverLogic.a(injectorLike);
+            case 175:
+                return PlaceTipsGpsSpecificAnalyticsLogger.a(injectorLike);
+            case 176:
+                return RotationManager.b(injectorLike);
+            case 177:
+                return RotationManager.b(injectorLike);
+            case 178:
+                return PulsarController.b(injectorLike);
+            case 179:
+                return new Accessor(FbSharedPreferencesImpl.m1826a(injectorLike), FbSharedObjectPreferencesImpl.m21242b(injectorLike));
+            case 180:
+                return new AccessorFuture(IdBasedLazy.m1808a(injectorLike, 9595), IdBasedSingletonScopeProvider.m1810b(injectorLike, 3077));
+            case 181:
+                return RotationManager.b(injectorLike);
+            case 182:
+                return RotationManager.b(injectorLike);
+            case 183:
+                return new PlaceTipsPulsarQeFuture();
+            case 184:
+                return RotationManager.b(injectorLike);
+            case 185:
+                return RotationManager.b(injectorLike);
+            case 186:
+                return RotationManager.b(injectorLike);
+            case 187:
+                return RotationManager.b(injectorLike);
+            case 188:
+                return DefaultBleScanProcessor.b(injectorLike);
+            case 189:
+                return RotationManager.b(injectorLike);
+            case 190:
+                return new BleScanResultBuilder(SystemClockMethodAutoProvider.m1498a(injectorLike), AwakeTimeSinceBootClockMethodAutoProvider.m1697a(injectorLike));
+            case 191:
+                return PulsarCoreModule.a(IdBasedProvider.m1811a(injectorLike, 9608), IdBasedProvider.m1811a(injectorLike, 9609));
+            case 192:
+                return BleScannerImpl.b(injectorLike);
+            case 193:
+                return new EmptyBleScanner();
+            case 194:
+                return BluetoothDiscoveryInterruptHandler.b(injectorLike);
+            case 195:
+                return PlaceTipsSettingsHelper.a(injectorLike);
+            case 196:
+                return new PlaceTipsBlacklistConfirmationFragmentFactory();
+            case 197:
+                return new PlaceTipsBlacklistPromptFragmentFactory();
+            case 198:
+                return new PlaceTipsBlacklistReasonFragmentFactory();
+            case 199:
+                return new PlaceTipsSettingsFragmentFactory();
+            case 200:
+                return RotationManager.b(injectorLike);
+            case 201:
+                return RotationManager.b(injectorLike);
+            case 202:
+                return OnLoginGmsLsUpsellInterstitialController.b(injectorLike);
+            case 203:
+                return new PlaceTipsUpsellBuilder((Context) injectorLike.getInstance(Context.class), DefaultSecureContextHelper.m4636a(injectorLike), Fb4aUriIntentMapper.m8640a(injectorLike));
+            case 204:
+                return RotationManager.b(injectorLike);
+            case 205:
+                return RotationManager.b(injectorLike);
+            case 206:
+                return new UpsellFragmentFactory();
+            case 207:
+                return RotationManager.b(injectorLike);
+            case 208:
+                return RotationManager.b(injectorLike);
+            case 209:
+                return new GetAccessTokenPlatformServiceRequest();
+            case 210:
+                return RotationManager.b(injectorLike);
+            case 211:
+                return RotationManager.b(injectorLike);
+            case 212:
+                return RotationManager.b(injectorLike);
+            case 213:
+                return PlatformIntentDemuxer.b(injectorLike);
+            case 214:
+                return RotationManager.b(injectorLike);
+            case 215:
+                return RotationManager.b(injectorLike);
+            case 216:
+                return RotationManager.b(injectorLike);
+            case 217:
+                return RotationManager.b(injectorLike);
+            case 218:
+                return new GetLikeStateServiceRequest();
+            case 219:
+                return new GetProtocolVersionsRequest();
+            case 220:
+                return RotationManager.b(injectorLike);
+            case 221:
+                return RotationManager.b(injectorLike);
+            case 222:
+                return PlatformPackageUtilities.b(injectorLike);
+            case 223:
+                return RotationManager.b(injectorLike);
+            case 224:
+                return RotationManager.b(injectorLike);
+            case 225:
+                return RotationManager.b(injectorLike);
+            case 226:
+                return RotationManager.b(injectorLike);
+            case 227:
+                return RotationManager.b(injectorLike);
+            case 228:
+                return RotationManager.b(injectorLike);
+            case 229:
+                return RotationManager.b(injectorLike);
+            case 230:
+                return RotationManager.b(injectorLike);
+            case 231:
+                return RotationManager.b(injectorLike);
+            case 232:
+                return RotationManager.b(injectorLike);
+            case 233:
+                return RotationManager.b(injectorLike);
+            case 234:
+                return RotationManager.b(injectorLike);
+            case 235:
+                return RotationManager.b(injectorLike);
+            case 236:
+                return RotationManager.b(injectorLike);
+            case 237:
+                return RotationManager.b(injectorLike);
+            case 238:
+                return RotationManager.b(injectorLike);
+            case 239:
+                return RotationManager.b(injectorLike);
+            case 240:
+                return RotationManager.b(injectorLike);
+            case 241:
+                return RotationManager.b(injectorLike);
+            case 242:
+                return RotationManager.b(injectorLike);
+            case 243:
+                return RotationManager.b(injectorLike);
+            case 244:
+                return RotationManager.b(injectorLike);
+            case 245:
+                return RotationManager.b(injectorLike);
+            case 246:
+                return RotationManager.b(injectorLike);
+            case 247:
+                return RotationManager.b(injectorLike);
+            case 248:
+                return RotationManager.b(injectorLike);
+            case 249:
+                return RotationManager.b(injectorLike);
+            case 250:
+                return NewsFeedPrefetchInvoker.b(injectorLike);
+            case 251:
+                return RotationManager.b(injectorLike);
+            case 252:
+                return RotationManager.b(injectorLike);
+            case 253:
+                return RotationManager.b(injectorLike);
+            case 254:
+                return RotationManager.b(injectorLike);
+            case 255:
+                return RotationManager.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4989v(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 3:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 5:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 6:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 7:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 9:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 10:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 11:
+                return PrivacyOperationsClient.a(injectorLike);
+            case 12:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 13:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 14:
+                return new PostPrivacyUpsellDialogController(ResourcesMethodAutoProvider.m6510a(injectorLike), PrivacyOperationsClient.a(injectorLike), QuickExperimentControllerImpl.m10166a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike), FbNetworkManager.m3811a(injectorLike), IdBasedProvider.m1811a(injectorLike, 741), IdBasedProvider.m1811a(injectorLike, 746), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 15:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 17:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 18:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 19:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 20:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 21:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 22:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 23:
+                return PhotoPrivacyFeedContentRowPartDefinition.a(injectorLike);
+            case 24:
+                return PhotoPrivacyFeedHeaderPartDefinition.a(injectorLike);
+            case 25:
+                return PhotoPrivacyFeedRootPartDefinition.a(injectorLike);
+            case 26:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 27:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 28:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 29:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 30:
+                return EditPrivacyIntentBuilder.b(injectorLike);
+            case 31:
+                return AudienceEducatorTooltipGenerator.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return new BulkEditAlbumPhotoPrivacyMethod();
+            case 33:
+                return new EditObjectsPrivacyMethod();
+            case 34:
+                return new EditReviewPrivacyMethod();
+            case 35:
+                return new ReportAAAOnlyMeActionMethod();
+            case 36:
+                return new ReportAAATuxActionMethod();
+            case 37:
+                return new ReportInlinePrivacySurveyActionMethod();
+            case 38:
+                return new ReportNASActionMethod();
+            case 39:
+                return new ReportPrivacyCheckupActionsMethod();
+            case 40:
+                return new ReportStickyGuardrailActionMethod();
+            case 41:
+                return new ReportStickyUpsellActionMethod();
+            case 42:
+                return new SetComposerStickyPrivacyMethod();
+            case 43:
+                return new SetPrivacyEducationStateMethod();
+            case 44:
+                return AudienceSelectorPerformanceLogger.a(injectorLike);
+            case 45:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 46:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 47:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 48:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 49:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 50:
+                return PrivacyIcons.a(injectorLike);
+            case 51:
+                return ClipboardPromptsPromptPartDefinition.a(injectorLike);
+            case 52:
+                return ProductionPromptsPromptPartDefinition.b(injectorLike);
+            case 53:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 54:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 55:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 56:
+                return ClipboardPromptSmallPartDefinition.a(injectorLike);
+            case 57:
+                return ProductionPromptSmallPartDefintion.a(injectorLike);
+            case 58:
+                return new InfoRequestFragmentFactory();
+            case 59:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 60:
+                return InfoRequestEventBus.a(injectorLike);
+            case 61:
+                return new DeleteInfoRequestMethod();
+            case 62:
+                return new InfoRequestMethod();
+            case 63:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return FriendsSupplier.a(injectorLike);
+            case 65:
+                return GroupMembersSupplier.a(injectorLike);
+            case 66:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 67:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 68:
+                return ADMPushPrefKeys.a(injectorLike);
+            case 69:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 70:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 71:
+                return PrimaryPushTokenHolder.b(injectorLike);
+            case 72:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 73:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 74:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 75:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 76:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 77:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 78:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 79:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 80:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 81:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 82:
+                return NNAPushPrefKeys.a(injectorLike);
+            case 83:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 84:
+                return NNARegistrar.a(injectorLike);
+            case 85:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 86:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 87:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 88:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 89:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 90:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 91:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 92:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 93:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 94:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 95:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 96:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 97:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 98:
+                return DefaultQuickPromotionActionHandler.a(injectorLike);
+            case 99:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 100:
+                return CustomRenderManager.a(injectorLike);
+            case 101:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 102:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 103:
+                return new AggregateImpressionsFilterPredicate(QuickPromotionCounters.m12575a(injectorLike));
+            case 104:
+                return new AndroidPermissionsAnyDisabledFilterPredicate(RuntimePermissionsUtil.m13589b(injectorLike));
+            case 105:
+                return new AppInstalledFilterPredicate(PackageManagerMethodAutoProvider.m2633a(injectorLike));
+            case 106:
+                return new AppNotInstalledFilterPredicate(PackageManagerMethodAutoProvider.m2633a(injectorLike));
+            case 107:
+                return new ApplicationInstallSpaceFilterPredicate(StatFsHelperMethodAutoProvider.m2307a(injectorLike));
+            case 108:
+                return new ApplicationMaxStorageSpaceFilterPredicate(StatFsHelperMethodAutoProvider.m2307a(injectorLike));
+            case 109:
+                return new ApplicationMaxVersionFilterPredicate(AppVersionInfoMethodAutoProvider.m2629a(injectorLike), VersionStringComparatorMethodAutoProvider.m8670a(injectorLike));
+            case 110:
+                return new ApplicationMinVersionFilterPredicate(AppVersionInfoMethodAutoProvider.m2629a(injectorLike), VersionStringComparatorMethodAutoProvider.m8670a(injectorLike));
+            case 111:
+                return new AssetsReadyFilter(QuickPromotionAssetManagerImpl.a(injectorLike));
+            case 112:
+                return new BatteryLowContextualFilterPredicate(SystemBatteryStateManager.m11461a(injectorLike));
+            case 113:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 114:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 115:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 116:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 117:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 118:
+                return new DirectInstallEnabledFilterPredicate();
+            case 119:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 120:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 121:
+                return new GoogleAccountContextualFilterPredicate(AccountManagerMethodAutoProvider.m8174b(injectorLike));
+            case 122:
+                return new GooglePlayContextualFilterPredicate(GooglePlayIntentHelper.m22732b(injectorLike));
+            case 123:
+                return new IsMeteredConnectionFilter(FbNetworkManager.m3811a(injectorLike));
+            case 124:
+                return new IsOtherBirthdayContextualFilterPredicate();
+            case 125:
+                return LocaleFilterPredicate.a(injectorLike);
+            case 126:
+                return ManualNewsfeedRefreshFilterPredicate.a(injectorLike);
+            case 127:
+                return MessagesSentOneAfterTheOtherPredicate.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return new MessengerInstalledContextualFilterPredicate(PackageManagerMethodAutoProvider.m2633a(injectorLike));
+            case 129:
+                return MobileNetworkAvailableFilterPredicate.a(injectorLike);
+            case 130:
+                return NetworkConnectivityFilterPredicate.a(injectorLike);
+            case 131:
+                return new OtherPromotionEventFilterPredicate(QuickPromotionCounters.m12575a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 132:
+                return new PreInstalledContextualFilterPredicate(ApplicationInfoMethodAutoProvider.m8676b(injectorLike));
+            case 133:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 134:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 135:
+                return new RtcPresenceContextualFilterPredicate(RtcPresenceHandler.b(injectorLike));
+            case 136:
+                return SecondsSinceMessageReceivedPredicate.a(injectorLike);
+            case 137:
+                return SecondsSinceMessageSentPredicate.a(injectorLike);
+            case 138:
+                return new SecondsSinceMeteredConnectionChangedFilter(QuickPromotionEventManager.a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 139:
+                return TimeOfDayAfterFilterPredicate.a(injectorLike);
+            case 140:
+                return TimeOfDayBeforeFilterPredicate.a(injectorLike);
+            case 141:
+                return new TimeSinceDismissFilter(QuickPromotionCounters.m12575a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 142:
+                return new TimeSinceForegroundFilterPredicate(AppStateManager.m2245a(injectorLike));
+            case 143:
+                return new TimeSinceImpressionFilter(QuickPromotionCounters.m12575a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 144:
+                return new UnknownContextualFilterPredicate();
+            case 145:
+                return new UserRankContextualFilterPredicate();
+            case 146:
+                return new WifiConnectedContextualFilterPredicate(DeviceConditionHelper.m5526a(injectorLike));
+            case 147:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 148:
+                return QuickPromotionDiveBarController.a(injectorLike);
+            case 149:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 150:
+                return QuickPromotionFragmentFactory.a(injectorLike);
+            case 151:
+                return new QuickPromotionTabFragmentFactory(QuickPromotionFragmentFactory.a(injectorLike));
+            case 152:
+                return QuickPromotionToastFooterController.a(injectorLike);
+            case 153:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 154:
+                return new QuickPromotionClientsideDynamicParametersValidator();
+            case 155:
+                return QuickPromotionContextualFilterValidator.a(injectorLike);
+            case 156:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 157:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 158:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 159:
+                return new RapidFeedbackNuxInterstitialController(IdBasedLazy.m1808a(injectorLike, 3253), IdBasedProvider.m1811a(injectorLike, 754));
+            case 160:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 161:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 162:
+                return ReactionPlaceTipsPostComposeManager.b(injectorLike);
+            case 163:
+                return ReactionSessionHelper.b(injectorLike);
+            case 164:
+                return ReactionSessionManager.a(injectorLike);
+            case 165:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 166:
+                return ReactionThemedContextHelper.a(injectorLike);
+            case 167:
+                return ReactionUtil.a(injectorLike);
+            case 168:
+                return PagesReactionManager.b(injectorLike);
+            case 169:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 170:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 171:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 172:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 173:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 174:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 175:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 176:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 177:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 178:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 179:
+                return ReactionUnitValidator.b(injectorLike);
+            case 180:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 181:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 182:
+                return ReactionEventBus.a(injectorLike);
+            case 183:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 184:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 185:
+                return ReactionRootPartDefinition.a(injectorLike);
+            case 186:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 187:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 188:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 189:
+                return ReactionDividerUnitComponentPartDefinition.a(injectorLike);
+            case 190:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 191:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 192:
+                return ReactionCoreButtonComponentPartDefinition.a(injectorLike);
+            case 193:
+                return ReactionCoreHorizontalListComponentPartDefinition.a(injectorLike);
+            case 194:
+                return ReactionCoreImageComponentPartDefinition.a(injectorLike);
+            case 195:
+                return ReactionCoreImageTextComponentPartDefinition.a(injectorLike);
+            case 196:
+                return ReactionCoreTextComponentPartDefinition.a(injectorLike);
+            case 197:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 198:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 199:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 200:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 201:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 202:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 203:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 204:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 205:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 206:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 207:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 208:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 209:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 210:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 211:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 212:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 213:
+                return ReactionPagesPinnedPostGroupPartDefinition.a(injectorLike);
+            case 214:
+                return ReactionCenterAlignedHeaderPartDefinition.a(injectorLike);
+            case 215:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 216:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 217:
+                return ReactionDescriptiveHeaderPartDefinition.a(injectorLike);
+            case 218:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 219:
+                return ReactionFacepileHeaderSelectorPartDefinition.a(injectorLike);
+            case 220:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 221:
+                return ReactionIconHeaderSelectorPartDefinition.a(injectorLike);
+            case 222:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 223:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 224:
+                return ReactionIconInlineActionHeaderSelectorPartDefinition.a(injectorLike);
+            case 225:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 226:
+                return ReactionIconPivotHeaderPartDefinition.a(injectorLike);
+            case 227:
+                return ReactionMultiActionFooterPartDefinition.a(injectorLike);
+            case 228:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 229:
+                return ReactionSingleActionFooterPartDefinition.a(injectorLike);
+            case 230:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 231:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 232:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 233:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 234:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 235:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 236:
+                return ReactionStoryUnitSelectorPartDefinition.a(injectorLike);
+            case 237:
+                return ReactionUnitStackPartDefinition.a(injectorLike);
+            case 238:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 239:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 240:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 241:
+                return ReactionEventBlocksAttachmentPartDefinition.a(injectorLike);
+            case 242:
+                return ReactionImageTextBlockAttachmentPartDefinition.a(injectorLike);
+            case 243:
+                return ReactionPageLikesAndVisitsAttachmentPartDefinition.a(injectorLike);
+            case 244:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 245:
+                return ReactionProfileStoryAttachmentSelectorPartDefinition.a(injectorLike);
+            case 246:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 247:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 248:
+                return ReactionSimpleLeftRightTextAttachmentPartDefinition.a(injectorLike);
+            case 249:
+                return ReactionSinglePhotoAttachmentPartDefinition.a(injectorLike);
+            case 250:
+                return ReactionTopicBlocksAttachmentPartDefinition.a(injectorLike);
+            case 251:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 252:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 253:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 254:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            case 255:
+                return IProvidePreferences_ForNewsfeedMethodAutoProvider.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4990w(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 3:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 5:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 6:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 7:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 9:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 10:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 11:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 12:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 13:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 14:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 15:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return ReactionActionListGroupPartDefinition.a(injectorLike);
+            case 17:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 18:
+                return ReactionArticleUnitComponentPartDefinition.a(injectorLike);
+            case 19:
+                return ReactionBannerHighlightableUnitComponentPartDefinition.a(injectorLike);
+            case 20:
+                return ReactionCenteredParagraphUnitComponentPartDefinition.a(injectorLike);
+            case 21:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 22:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 23:
+                return ReactionCollapsableIconMessageWithCaretUnitComponentPartDefinition.a(injectorLike);
+            case 24:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 25:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 26:
+                return ReactionCountsHorizontalUnitComponentPartDefinition.a(injectorLike);
+            case 27:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 28:
+                return ReactionEventRowWithCoverPhotoUnitComponentPartDefinition.a(injectorLike);
+            case 29:
+                return ReactionEventRowWithoutCoverPhotoUnitComponentPartDefinition.a(injectorLike);
+            case 30:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 31:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return ReactionExpandableUnitComponentGroupPartDefinition.a(injectorLike);
+            case 33:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 34:
+                return ReactionFacepileHScrollUnitComponentPartDefinition.a(injectorLike);
+            case 35:
+                return ReactionFigActionFooterGroupPartDefinition.a(injectorLike);
+            case 36:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 37:
+                return ReactionFigFooterGroupPartDefinition.a(injectorLike);
+            case 38:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 39:
+                return ReactionFigHeaderUnitComponentPartDefinition.a(injectorLike);
+            case 40:
+                return ReactionFooterUnitComponentPartDefinition.a(injectorLike);
+            case 41:
+                return ReactionFormattedParagraphUnitComponentPartDefinition.a(injectorLike);
+            case 42:
+                return ReactionFundraiserAmountRaisedUnitComponentPartDefinition.a(injectorLike);
+            case 43:
+                return ReactionGroupDescriptionPartDefinition.a(injectorLike);
+            case 44:
+                return ReactionHScrollGenericComponentsListPartDefinition.a(injectorLike);
+            case 45:
+                return ReactionHeaderUnitComponentPartDefinition.a(injectorLike);
+            case 46:
+                return ReactionHeaderWithVerifiedBadgeComponentPartDefinition.a(injectorLike);
+            case 47:
+                return ReactionIconMessageAutoActionUnitComponentPartDefinition.a(injectorLike);
+            case 48:
+                return ReactionIconMessageSmallTitleComponentPartDefinition.a(injectorLike);
+            case 49:
+                return ReactionIconMessageUnitComponentPartDefinition.a(injectorLike);
+            case 50:
+                return ReactionIconMessageUnitComponentSelector.a(injectorLike);
+            case 51:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 52:
+                return ReactionIconOverMessageUnitComponentPartDefinition.a(injectorLike);
+            case 53:
+                return ReactionImageBlockUnitComponentPartDefinition.a(injectorLike);
+            case 54:
+                return ReactionImageStoryBlockUnitComponentPartDefinition.a(injectorLike);
+            case 55:
+                return ReactionImageWithOverlayGridUnitComponentPartDefinition.a(injectorLike);
+            case 56:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 57:
+                return ReactionImageWithTextOverlayUnitComponentGroupPartDefinition.a(injectorLike);
+            case 58:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 59:
+                return ReactionInfoRowUnitComponentPartDefinition.a(injectorLike);
+            case 60:
+                return ReactionInfoRowWithRightIconUnitComponentPartDefinition.a(injectorLike);
+            case 61:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 62:
+                return ReactionMapWithBreadcrumbsHeaderUnitComponentPartDefinition.a(injectorLike);
+            case 63:
+                return ReactionMessageAndBreadcrumbsUnitComponentPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return ReactionPageMapWithNavigationUnitComponentPartDefinition.a(injectorLike);
+            case 65:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 66:
+                return ReactionPaginatedVScrollGenericComponentsListPartDefinition.a(injectorLike);
+            case 67:
+                return ReactionPhotoFullWidthCounterUnitComponentPartDefinition.a(injectorLike);
+            case 68:
+                return ReactionPhotoOneAspectRatioUnitComponentPartDefinition.a(injectorLike);
+            case 69:
+                return ReactionPhotoZeroAspectRatioUnitComponentPartDefinition.a(injectorLike);
+            case 70:
+                return ReactionPhotosUnitComponentPartDefinition.a(injectorLike);
+            case 71:
+                return ReactionPlaceInfoBlurbUnitComponentPartDefinition.a(injectorLike);
+            case 72:
+                return ReactionPlaceInfoBlurbWithBreadcrumbsUnitComponentPartDefinition.a(injectorLike);
+            case 73:
+                return ReactionPlaceWithMetadataUnitComponentPartDefinition.a(injectorLike);
+            case 74:
+                return ReactionPlaceholderPartDefinition.a(injectorLike);
+            case 75:
+                return ReactionPostPivotUnitComponentDefinition.a(injectorLike);
+            case 76:
+                return ReactionProfileFramePartDefinition.a(injectorLike);
+            case 77:
+                return ReactionProgressBarUnitComponentPartDefinition.a(injectorLike);
+            case 78:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 79:
+                return ReactionReviewComposerUnitComponentPartDefinition.a(injectorLike);
+            case 80:
+                return ReactionReviewUnitComponentPartDefinition.a(injectorLike);
+            case 81:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 82:
+                return ReactionSectionHeaderPartDefinition.a(injectorLike);
+            case 83:
+                return ReactionSimpleTextUnitComponentPartDefinition.a(injectorLike);
+            case 84:
+                return ReactionSingleButtonUnitComponentPartDefinition.a(injectorLike);
+            case 85:
+                return ReactionSingleImageUnitComponentPartDefinition.a(injectorLike);
+            case 86:
+                return ReactionStaticMapUnitComponentPartDefinition.a(injectorLike);
+            case 87:
+                return ReactionStoryBlockUnitComponentPartDefinition.a(injectorLike);
+            case 88:
+                return ReactionTabSwitcherPartDefinition.a(injectorLike);
+            case 89:
+                return ReactionTextWithInlineFacepileGroupPartDefinition.a(injectorLike);
+            case 90:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 91:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 92:
+                return ReactionVerticalActionWithComponentsPartDefinition.a(injectorLike);
+            case 93:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 94:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 95:
+                return ReactionVerticalComponentsNoBottomGapGroupPartDefinition.a(injectorLike);
+            case 96:
+                return ReactionVerticalComponentsSelectorPartDefinition.a(injectorLike);
+            case 97:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 98:
+                return ReactionVerticalListUnitComponentGroupPartDefinition.a(injectorLike);
+            case 99:
+                return ReactionVideoUnitComponentPartDefinition.a(injectorLike);
+            case 100:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 101:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 102:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 103:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 104:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 105:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 106:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 107:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 108:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 109:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 110:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 111:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 112:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 113:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 114:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 115:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 116:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 117:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 118:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 119:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 120:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 121:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 122:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 123:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 124:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 125:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 126:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 127:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 129:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 130:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 131:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 132:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 133:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 134:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 135:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 136:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 137:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 138:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 139:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 140:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 141:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 142:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 143:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 144:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 145:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 146:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 147:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 148:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 149:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 150:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 151:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 152:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 153:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 154:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 155:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 156:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 157:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 158:
+                return ReactionIntentLauncher.a(injectorLike);
+            case 159:
+                return ReactionReviewUpdateHandler.a(injectorLike);
+            case 160:
+                return new ReactionAdminedPagesListHandler(ReactionIntentLauncher.a(injectorLike), ReactionIntentFactory.a(injectorLike));
+            case 161:
+                return new ReactionBoostedLocalAwarenessHandler(ReactionIntentLauncher.a(injectorLike));
+            case 162:
+                return new ReactionCriticReviewHscrollHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionUtil.a(injectorLike));
+            case 163:
+                return new ReactionEventBlocksHandler(EventsDashboardTimeFormatUtil.a(injectorLike), ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 164:
+                return new ReactionEventHScrollLargeHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionUtil.a(injectorLike), ReactionEventsCardLargeViewHelper.b(injectorLike));
+            case 165:
+                return new ReactionEventLargeHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionEventsCardLargeViewHelper.b(injectorLike));
+            case 166:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 167:
+                return new ReactionFacepileHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 168:
+                return new ReactionFacepileHscrollHandler(IdBasedProvider.m1811a(injectorLike, 3727), ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 169:
+                return new ReactionFriendYouMayInviteToLikePageHandler(IdBasedLazy.m1808a(injectorLike, 517), IdBasedLazy.m1808a(injectorLike, 1144), ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionUtil.a(injectorLike), IdBasedLazy.m1808a(injectorLike, 3588));
+            case 170:
+                return new ReactionImageTextBlockHandler(ReactionIntentLauncher.a(injectorLike));
+            case 171:
+                return ReactionOGObjectBlocksHandler.c(injectorLike);
+            case 172:
+                return new ReactionPageAttributionHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 173:
+                return new ReactionPageCommerceProductHandler(ReactionIntentLauncher.a(injectorLike), ReactionIntentFactory.a(injectorLike));
+            case 174:
+                return new ReactionPageLikesAndVisitsHandler(ReactionIntentLauncher.a(injectorLike));
+            case 175:
+                return new ReactionPageResidenceHandler(ReactionIntentLauncher.a(injectorLike));
+            case 176:
+                return new ReactionPageServiceItemHandler(ReactionIntentLauncher.a(injectorLike), ReactionIntentFactory.a(injectorLike));
+            case 177:
+                return new ReactionPageYouMayLikeHscrollHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionUtil.a(injectorLike), RawLikeHelper.b(injectorLike));
+            case 178:
+                return new ReactionPlaceQuestionHorizontalAttachmentHandler(PlaceQuestionViewController.b(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 179:
+                return new ReactionPlaceQuestionThankyouAttachmentHandler(ReactionIntentLauncher.a(injectorLike));
+            case 180:
+                return new ReactionPlaceQuestionVerticalAttachmentHandler(PlaceQuestionViewController.b(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 181:
+                return ReactionPopularProductHandler.b(injectorLike);
+            case 182:
+                return ReactionProfileHandler.a(injectorLike);
+            case 183:
+                return new ReactionProfileHscrollHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionUtil.a(injectorLike));
+            case 184:
+                return new ReactionProfileStoryHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 185:
+                return new ReactionSimpleLeftRightTextHandler(ReactionIntentLauncher.a(injectorLike));
+            case 186:
+                return new ReactionSimpleTextHandler(ReactionIntentLauncher.a(injectorLike));
+            case 187:
+                return new ReactionSinglePhotoHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionMediaGalleryUtil.b(injectorLike));
+            case 188:
+                return new ReactionTodayGenericProfileHandler(GlyphColorizer.m11486a(injectorLike), ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), RawLikeHelper.b(injectorLike));
+            case 189:
+                return new ReactionTopicBlocksHandler(ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike));
+            case 190:
+                return new ReactionVideoHscrollHandler(DialtoneControllerImpl.m8272a(injectorLike), ReactionIntentFactory.a(injectorLike), ReactionIntentLauncher.a(injectorLike), ReactionUtil.a(injectorLike));
+            case 191:
+                return new ReactionAdminedPagesListAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10088));
+            case 192:
+                return new ReactionBoostedLocalAwarenessAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10089));
+            case 193:
+                return new ReactionCriticReviewHscrollAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10090));
+            case 194:
+                return new ReactionEventBlocksAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10091), IdBasedLazy.m1808a(injectorLike, 9913));
+            case 195:
+                return new ReactionEventHScrollLargeAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10092));
+            case 196:
+                return new ReactionEventLargeAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10093));
+            case 197:
+                return new ReactionFacepileAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10095));
+            case 198:
+                return new ReactionFacepileHscrollAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10096));
+            case 199:
+                return new ReactionFriendYouMayInviteToLikePageAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10097));
+            case 200:
+                return new ReactionImageTextBlockAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10098), IdBasedLazy.m1808a(injectorLike, 9914));
+            case 201:
+                return new ReactionOGObjectBlocksAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10099));
+            case 202:
+                return new ReactionPageAttributionAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10100));
+            case 203:
+                return new ReactionPageCommerceAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10101));
+            case 204:
+                return new ReactionPageLikesAndVisitsAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10102), IdBasedLazy.m1808a(injectorLike, 9915));
+            case 205:
+                return new ReactionPageResidenceAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10103));
+            case 206:
+                return new ReactionPageServiceListAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10104));
+            case 207:
+                return new ReactionPageYouMayLikeHscrollAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10105));
+            case 208:
+                return new ReactionPhotosAttachmentStyle((ReactionDefaultPhotosHandlerProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(ReactionDefaultPhotosHandlerProvider.class));
+            case 209:
+                return new ReactionPhotosLargeAttachmentStyle((ReactionDefaultPhotosHandlerProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(ReactionDefaultPhotosHandlerProvider.class));
+            case 210:
+                return new ReactionPhotosWithAttributionAttachmentStyle((ReactionPhotosWithAttributionHandlerProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(ReactionPhotosWithAttributionHandlerProvider.class));
+            case 211:
+                return new ReactionPlaceQuestionHorizontalAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10106));
+            case 212:
+                return new ReactionPlaceQuestionThankyouAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10107));
+            case 213:
+                return new ReactionPlaceQuestionVerticalAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10108));
+            case 214:
+                return new ReactionPopularProductAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10109));
+            case 215:
+                return new ReactionProfileAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10110));
+            case 216:
+                return new ReactionProfileHscrollAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10111));
+            case 217:
+                return new ReactionProfileStoryAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10112), IdBasedLazy.m1808a(injectorLike, 9917));
+            case 218:
+                return new ReactionSimpleLeftRightTextAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10113), IdBasedLazy.m1808a(injectorLike, 9920));
+            case 219:
+                return new ReactionSimpleTextAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10114));
+            case 220:
+                return new ReactionSinglePhotoAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 9921), IdBasedProvider.m1811a(injectorLike, 10115));
+            case 221:
+                return new ReactionTodayGenericMLEImageBlocksAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10116));
+            case 222:
+                return new ReactionTopicBlocksAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10117), IdBasedLazy.m1808a(injectorLike, 9922));
+            case 223:
+                return new ReactionVideoHscrollAttachmentStyle(IdBasedProvider.m1811a(injectorLike, 10118));
+            case 224:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 225:
+                return new ReactionDialogFragmentFactory();
+            case 226:
+                return new ShowMoreAttachmentsFragmentFactory();
+            case 227:
+                return new ShowMoreComponentsFragmentFactory();
+            case 228:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 229:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 230:
+                return new RedSpaceComposerListener(RedSpaceLogger.a(injectorLike));
+            case 231:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 232:
+                return new RedSpaceGridOpenListener(RedSpaceLogger.a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 233:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 234:
+                return RedSpaceLogger.a(injectorLike);
+            case 235:
+                RedSpaceTimeLogger redSpaceTimeLogger = new RedSpaceTimeLogger();
+                redSpaceTimeLogger.a = IdBasedSingletonScopeProvider.m1810b(injectorLike, 609);
+                return redSpaceTimeLogger;
+            case 236:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 237:
+                return RedSpaceTabUnseenCountFetcher.a(injectorLike);
+            case 238:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 239:
+                return RedSpaceFeedProfileUnreadStoriesHelper.a(injectorLike);
+            case 240:
+                return RedSpaceFriendsCacheHelper.a(injectorLike);
+            case 241:
+                return RedSpaceFriendsCollection.a(injectorLike);
+            case 242:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 243:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 244:
+                return RedSpaceMutationsExecutor.a(injectorLike);
+            case 245:
+                return RedSpaceNewsFeedTitle.a(injectorLike);
+            case 246:
+                return RedSpaceSelfProfileDataStore.a(injectorLike);
+            case 247:
+                RedSpaceSelfViewMutator redSpaceSelfViewMutator = new RedSpaceSelfViewMutator();
+                String b = String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike);
+                redSpaceSelfViewMutator.a = GraphQLQueryExecutor.m10435a(injectorLike);
+                redSpaceSelfViewMutator.b = b;
+                return redSpaceSelfViewMutator;
+            case 248:
+                RedSpaceTimeHelper redSpaceTimeHelper = new RedSpaceTimeHelper();
+                Lazy b2 = IdBasedSingletonScopeProvider.m1810b(injectorLike, 609);
+                Lazy b3 = IdBasedSingletonScopeProvider.m1810b(injectorLike, 30);
+                Lazy b4 = IdBasedSingletonScopeProvider.m1810b(injectorLike, 610);
+                redSpaceTimeHelper.a = b2;
+                redSpaceTimeHelper.b = b3;
+                redSpaceTimeHelper.c = b4;
+                return redSpaceTimeHelper;
+            case 249:
+                return ReactionExtendedWidthPartDefinition.a(injectorLike);
+            case 250:
+                return new RedSpaceWallItemDebugWriter(FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+            case 251:
+                return RedSpaceMemoryFriendsCache.a(injectorLike);
+            case 252:
+                return RedSpaceFriendsDebugWriter.a(injectorLike);
+            case 253:
+                return RedSpaceStoriesDebugWriter.a(injectorLike);
+            case 254:
+                return RedSpaceEntryDescriptionHelper.a(injectorLike);
+            case 255:
+                return RedSpaceEventBus.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4991x(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return RedSpaceBatchFetcher.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return RedSpaceBatchRequests.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 3:
+                return RedSpaceRequests.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                RedSpaceViewerProfileFetcher redSpaceViewerProfileFetcher = new RedSpaceViewerProfileFetcher();
+                GraphQLQueryExecutor a = GraphQLQueryExecutor.m10435a(injectorLike);
+                RedSpaceRequests a2 = RedSpaceRequests.a(injectorLike);
+                TasksManager b = TasksManager.m14550b(injectorLike);
+                redSpaceViewerProfileFetcher.a = String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike);
+                redSpaceViewerProfileFetcher.b = a;
+                redSpaceViewerProfileFetcher.c = a2;
+                redSpaceViewerProfileFetcher.d = b;
+                return redSpaceViewerProfileFetcher;
+            case 5:
+                return RedSpaceViewerProfileHelper.a(injectorLike);
+            case 6:
+                return new RedSpaceFriendsOverflowFragmentFactory();
+            case 7:
+                return RedSpaceHomeFragmentFactory.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 9:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 10:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 11:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 12:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 13:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 14:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 15:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 17:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 18:
+                RedSpaceDivebarInterstitialController redSpaceDivebarInterstitialController = new RedSpaceDivebarInterstitialController();
+                GatekeeperStoreImpl a3 = GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike);
+                redSpaceDivebarInterstitialController.b = IdBasedLazy.m1808a(injectorLike, 3264);
+                redSpaceDivebarInterstitialController.c = a3;
+                return redSpaceDivebarInterstitialController;
+            case 19:
+                return RedSpaceInterstitialController.b(injectorLike);
+            case 20:
+                return ArgbEvaluatorCompat.a(injectorLike);
+            case 21:
+                return RedSpaceFeedRootGroupPartDefinition.a(injectorLike);
+            case 22:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 23:
+                return RedSpaceNewsFeedTitlePartDefinition.a(injectorLike);
+            case 24:
+                return RedSpaceProfileNavigationPartDefinition.a(injectorLike);
+            case 25:
+                return RedSpaceHeaderGroupPartDefinition.a(injectorLike);
+            case 26:
+                return RedSpaceHeaderTitlePartDefinition.a(injectorLike);
+            case 27:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 28:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 29:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 30:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 31:
+                return RedSpaceSharedActivitiesGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 33:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 34:
+                return RedSpaceVisitorsPartDefinition.a(injectorLike);
+            case 35:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 36:
+                return RedSpaceFriendOptionsHelper.a(injectorLike);
+            case 37:
+                RedSpaceGridEqualSpacingDecorator redSpaceGridEqualSpacingDecorator = new RedSpaceGridEqualSpacingDecorator();
+                Resources a4 = ResourcesMethodAutoProvider.m6510a(injectorLike);
+                redSpaceGridEqualSpacingDecorator.a = ScreenUtil.m8695a(injectorLike);
+                redSpaceGridEqualSpacingDecorator.b = a4;
+                return redSpaceGridEqualSpacingDecorator;
+            case 38:
+                RedSpaceAnimations redSpaceAnimations = new RedSpaceAnimations();
+                redSpaceAnimations.a = IdBasedSingletonScopeProvider.m1809a(injectorLike, 30);
+                return redSpaceAnimations;
+            case 39:
+                return RedSpaceFriendsItemHelper.a(injectorLike);
+            case 40:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 41:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 42:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 43:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 44:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 45:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 46:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 47:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 48:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 49:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 50:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 51:
+                return new FbBitmapDecoder(ImageResizerMethodAutoProvider.b(injectorLike));
+            case 52:
+                return new FbBugReportMetadata(StatFsHelperMethodAutoProvider.m2307a(injectorLike), PackageManagerMethodAutoProvider.m2633a(injectorLike), FbNetworkManager.m3811a(injectorLike));
+            case 53:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 54:
+                return new FbBugReportUploader(SingleMethodRunnerImpl.m11724a(injectorLike), new FbBugReportUploadMethod());
+            case 55:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 56:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 57:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 58:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 59:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 60:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 61:
+                return LanguagePackDownloader.a(injectorLike);
+            case 62:
+                return new LanguagePrefetchConditionalWorker(LanguagePrefetcher.a(injectorLike));
+            case 63:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return new PlacesToReviewSection(new UserReviewsListSeeMoreFooter());
+            case 65:
+                return new SingleReviewSection((RootFeedbackEventSubscriberProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(RootFeedbackEventSubscriberProvider.class));
+            case 66:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 67:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 68:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 69:
+                return new UserReviewsSection((RootFeedbackEventSubscriberProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(RootFeedbackEventSubscriberProvider.class), new UserReviewsInfiniteScrollFooter());
+            case 70:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 71:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 72:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 73:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 74:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 75:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 76:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 77:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 78:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 79:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 80:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 81:
+                return ReviewEventBus.a(injectorLike);
+            case 82:
+                return ReviewsFeedComposerLauncherAndHandler.b(injectorLike);
+            case 83:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 84:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 85:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 86:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 87:
+                return new DeleteReviewHandler(DefaultBlueServiceOperationFactory.m3782b(injectorLike), PageReviewLoader.a(injectorLike), ReviewEventBus.a(injectorLike), ReviewsLogger.a(injectorLike), TasksManager.m14550b(injectorLike), Toaster.m6454b(injectorLike));
+            case 88:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 89:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 90:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 91:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 92:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 93:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 94:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 95:
+                return new PageReviewsFragmentFactory();
+            case 96:
+                return new UserReviewsFragmentFactory();
+            case 97:
+                return PageReviewLoader.a(injectorLike);
+            case 98:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 99:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 100:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 101:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 102:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 103:
+                return ReviewComposerLauncherAndHandler.a(injectorLike);
+            case 104:
+                return StoryReviewComposerLauncherAndHandler.a(injectorLike);
+            case 105:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 106:
+                return new FetchPlacesToReviewGraphQLRequest(GraphQLQueryExecutor.m10435a(injectorLike), ReviewsImageHelper.a(injectorLike));
+            case 107:
+                return new FetchSingleReviewGraphQLRequest(GraphQLQueryExecutor.m10435a(injectorLike));
+            case 108:
+                return new FetchUpdatedPlaceReviewContextQueryRequest(GraphQLQueryExecutor.m10435a(injectorLike), ReviewsImageHelper.a(injectorLike));
+            case 109:
+                return new FetchUpdatedUserReviewForPageGraphQLRequest(GraphQLQueryExecutor.m10435a(injectorLike), ReviewsImageHelper.a(injectorLike));
+            case 110:
+                return new FetchUserReviewsGraphQLRequest(GraphQLQueryExecutor.m10435a(injectorLike), ReviewsImageHelper.a(injectorLike));
+            case 111:
+                return RichDocumentInfo.a(injectorLike);
+            case 112:
+                return ThirdPartyTrackerHandler.a(injectorLike);
+            case 113:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 114:
+                return RichDocumentEventBus.a(injectorLike);
+            case 115:
+                return RichDocumentSessionEventBus.a(injectorLike);
+            case 116:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 117:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 118:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 119:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 120:
+                return FontCache.a(injectorLike);
+            case 121:
+                return FontResourceCache.a(injectorLike);
+            case 122:
+                return FontsDownloader.a(injectorLike);
+            case 123:
+                return RichDocumentFontManager.a(injectorLike);
+            case 124:
+                return RichDocumentFonts.a(injectorLike);
+            case 125:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 126:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 127:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 129:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 130:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 131:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 132:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 133:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 134:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 135:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 136:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 137:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 138:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 139:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 140:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 141:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 142:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 143:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 144:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 145:
+                return HamDimensions.a(injectorLike);
+            case 146:
+                return HamViewUtils.a(injectorLike);
+            case 147:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 148:
+                return ImagePerfLogger.a(injectorLike);
+            case 149:
+                return NativeAdsPerfInfoLogger.a(injectorLike);
+            case 150:
+                return RichDocumentAnalyticsLogger.a(injectorLike);
+            case 151:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 152:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 153:
+                return RichDocumentLoggingUtils.a(injectorLike);
+            case 154:
+                return RichDocumentLongClickTracker.a(injectorLike);
+            case 155:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 156:
+                return RichDocumentScrollDepthLogger.a(injectorLike);
+            case 157:
+                return RichDocumentSessionTracker.a(injectorLike);
+            case 158:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 159:
+                return WebViewPerfInfoLogger.a(injectorLike);
+            case 160:
+                return new InstantArticleIconInterstitialController(FbSharedPreferencesImpl.m1826a(injectorLike), SystemClockMethodAutoProvider.m1498a(injectorLike));
+            case 161:
+                return PageLikeActionHelper.b(injectorLike);
+            case 162:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 163:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 164:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 165:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 166:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 167:
+                return BlockViewUtil.a(injectorLike);
+            case 168:
+                return IncrementalUiIdleJobManager.a(injectorLike);
+            case 169:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 170:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 171:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 172:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 173:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 174:
+                return CompositeRecyclableViewFactory.a(injectorLike);
+            case 175:
+                return RichDocumentLayoutDirection.a(injectorLike);
+            case 176:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 177:
+                return ExpandedMediaHolder.a(injectorLike);
+            case 178:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 179:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 180:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 181:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 182:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 183:
+                return RtcCampOnManager.a(injectorLike);
+            case 184:
+                return RtcMergedAudioVideoDialogHelper.b(injectorLike);
+            case 185:
+                return WebrtcGroupDialogBuilder.b(injectorLike);
+            case 186:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 187:
+                return VoipStatusHandler.a(injectorLike);
+            case 188:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 189:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 190:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 191:
+                return WebrtcUiHandler.a(injectorLike);
+            case 192:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 193:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 194:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 195:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 196:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 197:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 198:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 199:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 200:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 201:
+                return null;
+            case 202:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 203:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 204:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 205:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 206:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 207:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 208:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 209:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 210:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 211:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 212:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 213:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 214:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 215:
+                return DownloadVideoBookmarksNuxInterstitialController.a(injectorLike);
+            case 216:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 217:
+                return UpdateSavedStateMethod.b(injectorLike);
+            case 218:
+                return UpdateSavedStateUtils.a(injectorLike);
+            case 219:
+                return SavedEventHandler.b(injectorLike);
+            case 220:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 221:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 222:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 223:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 224:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 225:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 226:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 227:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 228:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 229:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 230:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 231:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 232:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 233:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 234:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 235:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 236:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 237:
+                return new SavedFragmentFactory(GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike));
+            case 238:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 239:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 240:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 241:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 242:
+                return SavedSectionHelper.a(injectorLike);
+            case 243:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 244:
+                return new SavedDashboardInterstitialController(FbSharedPreferencesImpl.m1826a(injectorLike));
+            case 245:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 246:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 247:
+                return SavedDashboardDataFetcher.b(injectorLike);
+            case 248:
+                return SavedDashboardEarlyFetcher.a(injectorLike);
+            case 249:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 250:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 251:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 252:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 253:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 254:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            case 255:
+                return RedSpaceFriendsImageSizeResolver.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4992y(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return Saved2NetworkController.b(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return Saved2NetworkController.b(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return Saved2ContextMenuFactory.b(injectorLike);
+            case 3:
+                return Saved2NetworkController.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return Saved2NetworkController.b(injectorLike);
+            case 5:
+                return Saved2NetworkController.b(injectorLike);
+            case 6:
+                return Saved2NetworkController.b(injectorLike);
+            case 7:
+                return Saved2NetworkController.b(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return Saved2NetworkController.b(injectorLike);
+            case 9:
+                return new Saved2ItemClickHandler(SaveAnalyticsLogger.m13117a(injectorLike), IdBasedLazy.m1808a(injectorLike, 11563), IdBasedSingletonScopeProvider.m1810b(injectorLike, 2374), IdBasedSingletonScopeProvider.m1810b(injectorLike, 968), IdBasedSingletonScopeProvider.m1810b(injectorLike, 616));
+            case 10:
+                return Saved2DbMutator.b(injectorLike);
+            case 11:
+                return Saved2NetworkController.b(injectorLike);
+            case 12:
+                return Saved2NetworkController.b(injectorLike);
+            case 13:
+                FetchGraphSearchTypeaheadApiMethod fetchGraphSearchTypeaheadApiMethod = new FetchGraphSearchTypeaheadApiMethod(SearchTypeaheadApiMethodUtil.a(injectorLike), FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+                EdgeRoutingConfig b = EdgeRoutingConfig.m27381b(injectorLike);
+                fetchGraphSearchTypeaheadApiMethod.e = QeInternalImplMethodAutoProvider.m3744a(injectorLike);
+                fetchGraphSearchTypeaheadApiMethod.f = b;
+                return fetchGraphSearchTypeaheadApiMethod;
+            case 14:
+                return FetchSimpleSearchTypeaheadApiMethod.b(injectorLike);
+            case 15:
+                return Saved2NetworkController.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return PendingBootstrapEntitiesManager.a(injectorLike);
+            case 17:
+                return NormalizedTokenHelper.b(injectorLike);
+            case 18:
+                return Saved2NetworkController.b(injectorLike);
+            case 19:
+                return new BootstrapEntityConverter(NormalizedTokenHelper.b(injectorLike));
+            case 20:
+                BootstrapKeywordConverter bootstrapKeywordConverter = new BootstrapKeywordConverter();
+                bootstrapKeywordConverter.a = NormalizedTokenHelper.b(injectorLike);
+                return bootstrapKeywordConverter;
+            case 21:
+                return DbBootstrapPerformanceLogger.a(injectorLike);
+            case 22:
+                return BootstrapDatabaseSupplier.a(injectorLike);
+            case 23:
+                return new BootstrapDbCacheWarmer(BootstrapDatabaseSupplier.a(injectorLike), C0087xd695ba9d.m2486a(injectorLike), DbBootstrapPerformanceLogger.a(injectorLike), BootstrapDbCacheWarmerTimer.a(injectorLike));
+            case 24:
+                return Saved2NetworkController.b(injectorLike);
+            case 25:
+                return BootstrapDbFetchHelper.b(injectorLike);
+            case 26:
+                return BootstrapDbInsertHelper.a(injectorLike);
+            case 27:
+                return BootstrapDbPropertyUtil.b(injectorLike);
+            case 28:
+                return Saved2NetworkController.b(injectorLike);
+            case 29:
+                return Saved2NetworkController.b(injectorLike);
+            case 30:
+                return Saved2NetworkController.b(injectorLike);
+            case 31:
+                return Saved2NetworkController.b(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return Saved2NetworkController.b(injectorLike);
+            case 33:
+                return Saved2NetworkController.b(injectorLike);
+            case 34:
+                return Saved2NetworkController.b(injectorLike);
+            case 35:
+                return BootstrapEntitiesLoader.a(injectorLike);
+            case 36:
+                return BootstrapKeywordsLoader.a(injectorLike);
+            case 37:
+                return new BootstrapSyncConditionalWorker(IdBasedSingletonScopeProvider.m1810b(injectorLike, 10475), IdBasedSingletonScopeProvider.m1810b(injectorLike, 10476));
+            case 38:
+                return FriendshipEventSubscriber.a(injectorLike);
+            case 39:
+                return Saved2NetworkController.b(injectorLike);
+            case 40:
+                return new EntitiesFragmentFactory();
+            case 41:
+                return new FeedFragmentFactory(GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike));
+            case 42:
+                return new FilterTypeaheadFragmentFactory();
+            case 43:
+                return new GraphSearchFragmentFactory(ProductMethodAutoProvider.m4524b(injectorLike), SearchResultsIntentBuilder.m26283a(injectorLike), SearchPerfLoggerMethodAutoProvider.b(injectorLike));
+            case 44:
+                return new LiveFeedFragmentFactory();
+            case 45:
+                return new PandoraPhotosFragmentFactory();
+            case 46:
+                return new PlacesFragmentFactory();
+            case 47:
+                return new ResultsFragmentFactory();
+            case 48:
+                return new SearchFilterTypeaheadIntentBuilder(IdBasedProvider.m1811a(injectorLike, 12));
+            case 49:
+                return Saved2NetworkController.b(injectorLike);
+            case 50:
+                return Saved2NetworkController.b(injectorLike);
+            case 51:
+                return SearchResultsLogger.a(injectorLike);
+            case 52:
+                return SearchResultsPerformanceLogger.a(injectorLike);
+            case 53:
+                return Saved2NetworkController.b(injectorLike);
+            case 54:
+                return SuggestionsTypeaheadAnalyticHelper.b(injectorLike);
+            case 55:
+                return Saved2NetworkController.b(injectorLike);
+            case 56:
+                return SearchPerfLoggerMethodAutoProvider.b(injectorLike);
+            case 57:
+                return SearchPerfLoggerImpl.a(injectorLike);
+            case 58:
+                return SearchPerfNoOpLogger.a(injectorLike);
+            case 59:
+                return Saved2NetworkController.b(injectorLike);
+            case 60:
+                return TypeaheadSuggestionsCache.a(injectorLike);
+            case 61:
+                return Saved2NetworkController.b(injectorLike);
+            case 62:
+                return Saved2NetworkController.b(injectorLike);
+            case 63:
+                return Saved2NetworkController.b(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return Saved2NetworkController.b(injectorLike);
+            case 65:
+                return Saved2NetworkController.b(injectorLike);
+            case 66:
+                return SearchSpotlightGraphQLModelConverter.a(injectorLike);
+            case 67:
+                return Saved2NetworkController.b(injectorLike);
+            case 68:
+                return Saved2NetworkController.b(injectorLike);
+            case 69:
+                return Saved2NetworkController.b(injectorLike);
+            case 70:
+                return Saved2NetworkController.b(injectorLike);
+            case 71:
+                return Saved2NetworkController.b(injectorLike);
+            case 72:
+                return Saved2NetworkController.b(injectorLike);
+            case 73:
+                return Saved2NetworkController.b(injectorLike);
+            case 74:
+                return Saved2NetworkController.b(injectorLike);
+            case 75:
+                return new QuickPromotionSearchMegaphoneController((QuickPromotionControllerDelegateProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(QuickPromotionControllerDelegateProvider.class));
+            case 76:
+                return new ScopedSearchGroupsNuxController((Context) injectorLike.getInstance(Context.class), GraphSearchConfig.a(injectorLike));
+            case 77:
+                return new SearchAwarenessFormattedTooltip((Context) injectorLike.getInstance(Context.class), DefaultAndroidThreadUtil.m1646b(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike), Boolean_IsTabletMethodAutoProvider.m7864a(injectorLike));
+            case 78:
+                return Saved2NetworkController.b(injectorLike);
+            case 79:
+                return new SearchAwarenessLearningNuxConfigurationLoader(FbSharedPreferencesImpl.m1826a(injectorLike), TasksManager.m14550b(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike));
+            case 80:
+                return SearchAwarenessOptOutController.a(injectorLike);
+            case 81:
+                SearchAwarenessTutorialNuxConfigurationLoader searchAwarenessTutorialNuxConfigurationLoader = new SearchAwarenessTutorialNuxConfigurationLoader(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike));
+                searchAwarenessTutorialNuxConfigurationLoader.a = IdBasedSingletonScopeProvider.m1809a(injectorLike, 3078);
+                return searchAwarenessTutorialNuxConfigurationLoader;
+            case 82:
+                return new SearchAwarenessTutorialNuxConfigurationValidator(FbErrorReporterImpl.m2317a(injectorLike));
+            case 83:
+                return SearchAwarenessTutorialNuxController.a(injectorLike);
+            case 84:
+                return Saved2NetworkController.b(injectorLike);
+            case 85:
+                return new SearchSpotlightConfigurationValidator(FbErrorReporterImpl.m2317a(injectorLike));
+            case 86:
+                return new SearchTrendingAwarenessNuxInterstitialController(SearchResultsIntentBuilder.m26283a(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike), IdBasedProvider.m1811a(injectorLike, 12), IdBasedSingletonScopeProvider.m1809a(injectorLike, 10491), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 87:
+                return new TutorialNuxInterstitialController(SearchAwarenessTutorialNuxController.a(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike));
+            case 88:
+                return Saved2NetworkController.b(injectorLike);
+            case 89:
+                return Saved2NetworkController.b(injectorLike);
+            case 90:
+                return Saved2NetworkController.b(injectorLike);
+            case 91:
+                return GraphSearchAnnotationUnitFactory.a(injectorLike);
+            case 92:
+                return GraphSearchAttachmentCollectionUnitFactory.a(injectorLike);
+            case 93:
+                return new GraphSearchCentralEntityWikiUnitFactory();
+            case 94:
+                return GraphSearchCommerceCollectionUnitFactory.a(injectorLike);
+            case 95:
+                return GraphSearchComposerUnitFactory.a(injectorLike);
+            case 96:
+                return GraphSearchEmptyEntityUnitFactory.a(injectorLike);
+            case 97:
+                return GraphSearchEmptyUnitFactory.a(injectorLike);
+            case 98:
+                return GraphSearchEntityPivotCollectionUnitFactory.a(injectorLike);
+            case 99:
+                return new GraphSearchEntityUnitFactory();
+            case 100:
+                return GraphSearchFeedUnitMetaFactory.a(injectorLike);
+            case 101:
+                return GraphSearchForSalePostsFactory.a(injectorLike);
+            case 102:
+                return GraphSearchNewsContextUnitFactory.a(injectorLike);
+            case 103:
+                return GraphSearchNodesCollectionUnitFactory.a(injectorLike);
+            case 104:
+                return GraphSearchPulseContextUnitFactory.a(injectorLike);
+            case 105:
+                return GraphSearchPulsePhrasesCollectionUnitFactory.a(injectorLike);
+            case 106:
+                return GraphSearchPulseQuotesCollectionUnitFactory.a(injectorLike);
+            case 107:
+                return GraphSearchPulseSentimentUnitFactory.a(injectorLike);
+            case 108:
+                return GraphSearchPulseStoriesFactory.a(injectorLike);
+            case 109:
+                return GraphSearchPulseTopicMetadataUnitFactory.a(injectorLike);
+            case 110:
+                return new GraphSearchReactionUnitFactory();
+            case 111:
+                return GraphSearchResultsBridgeMetaFactory.a(injectorLike);
+            case 112:
+                return GraphSearchSeeMoreUnitFactory.a(injectorLike);
+            case 113:
+                return GraphSearchSportsTeamCollectionUnitFactory.a(injectorLike);
+            case 114:
+                return GraphSearchSportsUnitFactory.a(injectorLike);
+            case 115:
+                return GraphSearchStoriesFactory.a(injectorLike);
+            case 116:
+                return GraphSearchStoryCollectionUnitFactory.a(injectorLike);
+            case 117:
+                return GraphSearchUnsupportedUnitFactory.a(injectorLike);
+            case 118:
+                return GraphSearchVideoUnitFactory.a(injectorLike);
+            case 119:
+                return GraphSearchVideosModuleFactory.a(injectorLike);
+            case 120:
+                return TimeUnitFactory.a(injectorLike);
+            case 121:
+                return Saved2NetworkController.b(injectorLike);
+            case 122:
+                return Saved2NetworkController.b(injectorLike);
+            case 123:
+                return SearchResultPageFilterController.b(injectorLike);
+            case 124:
+                return SearchResultPageDistanceFilterDefinition.a(injectorLike);
+            case 125:
+                return Saved2NetworkController.b(injectorLike);
+            case 126:
+                return SearchResultPagePriceFilterDefinition.a(injectorLike);
+            case 127:
+                return SearchResultPageRadioGroupFilterDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return SearchResultPageUnsupportedFilterDefinition.a(injectorLike);
+            case 129:
+                return Saved2NetworkController.b(injectorLike);
+            case 130:
+                return Saved2NetworkController.b(injectorLike);
+            case 131:
+                return SearchResultPageMainFilterConverter.a(injectorLike);
+            case 132:
+                return Saved2NetworkController.b(injectorLike);
+            case 133:
+                return Saved2NetworkController.b(injectorLike);
+            case 134:
+                return Saved2NetworkController.b(injectorLike);
+            case 135:
+                return Saved2NetworkController.b(injectorLike);
+            case 136:
+                return Saved2NetworkController.b(injectorLike);
+            case 137:
+                return new SeeMoreResultsListAdapter(EntitySuggestionViewBinder.a(injectorLike), TextResultsViewBinder.a(injectorLike), LayoutInflaterMethodAutoProvider.m14787b(injectorLike), SnippetsUtil.a(injectorLike));
+            case 138:
+                return AppsFragmentSpec.a(injectorLike);
+            case 139:
+                return BlendedVideosFragmentSpec.a(injectorLike);
+            case 140:
+                return EventsFragmentSpec.a(injectorLike);
+            case 141:
+                return GraphSearchResultFragmentSpecificationRegistry.a(injectorLike);
+            case 142:
+                return GroupsFragmentSpec.a(injectorLike);
+            case 143:
+                return LatestFragmentSpec.a(injectorLike);
+            case 144:
+                return MarketplaceFragmentSpec.a(injectorLike);
+            case 145:
+                return PagesFragmentSpec.a(injectorLike);
+            case 146:
+                return PeopleFragmentSpec.a(injectorLike);
+            case 147:
+                return PhotosFragmentSpec.a(injectorLike);
+            case 148:
+                return PlacesFragmentSpec.a(injectorLike);
+            case 149:
+                return PostsFragmentSpec.a(injectorLike);
+            case 150:
+                return TopEntitiesFragmentSpec.a(injectorLike);
+            case 151:
+                return TopFragmentSpec.a(injectorLike);
+            case 152:
+                return TopReactionFragmentSpec.a(injectorLike);
+            case 153:
+                return VideoChannelsFragmentSpec.a(injectorLike);
+            case 154:
+                return VideosFragmentSpec.a(injectorLike);
+            case 155:
+                return Saved2NetworkController.b(injectorLike);
+            case 156:
+                return Saved2NetworkController.b(injectorLike);
+            case 157:
+                return new LiveFeedRefreshController(SystemClockMethodAutoProvider.m1498a(injectorLike), (LiveFeedDataLoaderProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(LiveFeedDataLoaderProvider.class), Handler_ForUiThreadMethodAutoProvider.m1701b(injectorLike), FbNetworkManager.m3811a(injectorLike));
+            case 158:
+                return Saved2NetworkController.b(injectorLike);
+            case 159:
+                return Saved2NetworkController.b(injectorLike);
+            case 160:
+                return Saved2NetworkController.b(injectorLike);
+            case 161:
+                return new SearchResultsObjectInitializer(C0275x5d33d28.m10458a(injectorLike), SearchResultsCollectionGraphQLConverter.b(injectorLike));
+            case 162:
+                return Saved2NetworkController.b(injectorLike);
+            case 163:
+                return SearchResultsFeedModulesDataLoader.a(injectorLike);
+            case 164:
+                return Saved2NetworkController.b(injectorLike);
+            case 165:
+                return Saved2NetworkController.b(injectorLike);
+            case 166:
+                return Saved2NetworkController.b(injectorLike);
+            case 167:
+                return new SearchResultsStoryLikeMutator(FeedStoryMutator.m10586b(injectorLike), GraphQLActorCacheImpl.m14532a(injectorLike));
+            case 168:
+                return Saved2NetworkController.b(injectorLike);
+            case 169:
+                return SearchResultsBridgePartDefinition.a(injectorLike);
+            case 170:
+                return SearchResultsFeedRootPartDefinition.a(injectorLike);
+            case 171:
+                return Saved2NetworkController.b(injectorLike);
+            case 172:
+                return SearchResultsRootPartDefinition.a(injectorLike);
+            case 173:
+                return SearchResultsRowSelectorPartDefinition.a(injectorLike);
+            case 174:
+                return Saved2NetworkController.b(injectorLike);
+            case 175:
+                return Saved2NetworkController.b(injectorLike);
+            case 176:
+                return SearchResultsCollectionGroupPartDefinition.a(injectorLike);
+            case 177:
+                return SearchResultsTopModuleSelectorPartDefinition.a(injectorLike);
+            case 178:
+                return SearchResultsTimeGroupPartDefinition.a(injectorLike);
+            case 179:
+                return Saved2NetworkController.b(injectorLike);
+            case 180:
+                return Saved2NetworkController.b(injectorLike);
+            case 181:
+                return SearchResultsCentralEntityPhotoPartDefinition.a(injectorLike);
+            case 182:
+                return Saved2NetworkController.b(injectorLike);
+            case 183:
+                return Saved2NetworkController.b(injectorLike);
+            case 184:
+                return Saved2NetworkController.b(injectorLike);
+            case 185:
+                return Saved2NetworkController.b(injectorLike);
+            case 186:
+                return SearchResultsCentralEntityWikiConvertedGroupPartDefinition.a(injectorLike);
+            case 187:
+                return SearchResultsCentralEntityWikiGroupPartDefinition.a(injectorLike);
+            case 188:
+                return Saved2NetworkController.b(injectorLike);
+            case 189:
+                return Saved2NetworkController.b(injectorLike);
+            case 190:
+                return Saved2NetworkController.b(injectorLike);
+            case 191:
+                return Saved2NetworkController.b(injectorLike);
+            case 192:
+                return OldSearchResultsGroupPartDefinition.a(injectorLike);
+            case 193:
+                return Saved2NetworkController.b(injectorLike);
+            case 194:
+                return Saved2NetworkController.b(injectorLike);
+            case 195:
+                return SearchResultsAwarenessNodePartDefinition.a(injectorLike);
+            case 196:
+                return Saved2NetworkController.b(injectorLike);
+            case 197:
+                return Saved2NetworkController.b(injectorLike);
+            case 198:
+                return Saved2NetworkController.b(injectorLike);
+            case 199:
+                return Saved2NetworkController.b(injectorLike);
+            case 200:
+                return Saved2NetworkController.b(injectorLike);
+            case 201:
+                return Saved2NetworkController.b(injectorLike);
+            case 202:
+                return Saved2NetworkController.b(injectorLike);
+            case 203:
+                return Saved2NetworkController.b(injectorLike);
+            case 204:
+                return Saved2NetworkController.b(injectorLike);
+            case 205:
+                return Saved2NetworkController.b(injectorLike);
+            case 206:
+                return Saved2NetworkController.b(injectorLike);
+            case 207:
+                return Saved2NetworkController.b(injectorLike);
+            case 208:
+                return Saved2NetworkController.b(injectorLike);
+            case 209:
+                return SearchResultsStoryCollectionGroupPartDefinition.a(injectorLike);
+            case 210:
+                return Saved2NetworkController.b(injectorLike);
+            case 211:
+                return Saved2NetworkController.b(injectorLike);
+            case 212:
+                return Saved2NetworkController.b(injectorLike);
+            case 213:
+                return Saved2NetworkController.b(injectorLike);
+            case 214:
+                return Saved2NetworkController.b(injectorLike);
+            case 215:
+                return Saved2NetworkController.b(injectorLike);
+            case 216:
+                return Saved2NetworkController.b(injectorLike);
+            case 217:
+                return Saved2NetworkController.b(injectorLike);
+            case 218:
+                return Saved2NetworkController.b(injectorLike);
+            case 219:
+                return Saved2NetworkController.b(injectorLike);
+            case 220:
+                return Saved2NetworkController.b(injectorLike);
+            case 221:
+                return Saved2NetworkController.b(injectorLike);
+            case 222:
+                return Saved2NetworkController.b(injectorLike);
+            case 223:
+                return SearchResultsCommerceGroupPartDefinition.a(injectorLike);
+            case 224:
+                return Saved2NetworkController.b(injectorLike);
+            case 225:
+                return Saved2NetworkController.b(injectorLike);
+            case 226:
+                return Saved2NetworkController.b(injectorLike);
+            case 227:
+                return SearchResultsAnnotationSelectorPartDefinition.a(injectorLike);
+            case 228:
+                return Saved2NetworkController.b(injectorLike);
+            case 229:
+                return SearchResultsPostsHeaderPartDefinition.a(injectorLike);
+            case 230:
+                return Saved2NetworkController.b(injectorLike);
+            case 231:
+                return Saved2NetworkController.b(injectorLike);
+            case 232:
+                return SearchResultsSeeMoreClickListenerPartDefinition.a(injectorLike);
+            case 233:
+                return SearchResultsTabSwitchPartDefinition.a(injectorLike);
+            case 234:
+                return SearchComposerSinglePartDefinition.a(injectorLike);
+            case 235:
+                return DerpSuperDenseHeaderNoAttachmentPartDefinition.a(injectorLike);
+            case 236:
+                return Saved2NetworkController.b(injectorLike);
+            case 237:
+                return DerpSuperDenseStoryPartDefinition.a(injectorLike);
+            case 238:
+                return SmallPhotoShareAttachmentWithMarginPartDefinition.a(injectorLike);
+            case 239:
+                return Saved2NetworkController.b(injectorLike);
+            case 240:
+                return Saved2NetworkController.b(injectorLike);
+            case 241:
+                return Saved2NetworkController.b(injectorLike);
+            case 242:
+                return Saved2NetworkController.b(injectorLike);
+            case 243:
+                return Saved2NetworkController.b(injectorLike);
+            case 244:
+                return Saved2NetworkController.b(injectorLike);
+            case 245:
+                return Saved2NetworkController.b(injectorLike);
+            case 246:
+                return SearchResultsEntitiesRootGroupPartDefinition.a(injectorLike);
+            case 247:
+                return Saved2NetworkController.b(injectorLike);
+            case 248:
+                return Saved2NetworkController.b(injectorLike);
+            case 249:
+                return Saved2NetworkController.b(injectorLike);
+            case 250:
+                return Saved2NetworkController.b(injectorLike);
+            case 251:
+                return SearchResultsEntityLargeRowPartDefinition.a(injectorLike);
+            case 252:
+                return Saved2NetworkController.b(injectorLike);
+            case 253:
+                return SearchResultsEntityPivotsGroupPartDefinition.a(injectorLike);
+            case 254:
+                return Saved2NetworkController.b(injectorLike);
+            case 255:
+                return Saved2NetworkController.b(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4993z(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 3:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return SearchResultsSingleEntityNodePartDefinition.a(injectorLike);
+            case 5:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 6:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 7:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return SearchResultsEyewitnessGroupPartDefinition.a(injectorLike);
+            case 9:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 10:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 11:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 12:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 13:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 14:
+                return SearchResultsGametimeFanFavoriteGroupPartDefinition.a(injectorLike);
+            case 15:
+                return GroupCommerceWrapperGroupPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 17:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 18:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 19:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 20:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 21:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 22:
+                return SearchResultsSectionHeaderModulePartDefinition.a(injectorLike);
+            case 23:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 24:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 25:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 26:
+                return SearchResultsWayfinderPartDefinition.a(injectorLike);
+            case 27:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 28:
+                return LiveFeedCompactStoryPartDefinition.a(injectorLike);
+            case 29:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 30:
+                return LiveFeedGroupPartDefinition.a(injectorLike);
+            case 31:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 33:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 34:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 35:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 36:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 37:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 38:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 39:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 40:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 41:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 42:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 43:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 44:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 45:
+                return SearchResultsLiveVideosModuleGroupPartDefinition.a(injectorLike);
+            case 46:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 47:
+                return SearchResultsPlacePartDefinition.a(injectorLike);
+            case 48:
+                return SearchResultsPlacesMapPartDefinition.a(injectorLike);
+            case 49:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 50:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 51:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 52:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 53:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 54:
+                return SearchResultsNewsContextSelectorPartDefinition.a(injectorLike);
+            case 55:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 56:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 57:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 58:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 59:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 60:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 61:
+                return SearchResultsEmptyEntityModuleGroupPartDefinition.a(injectorLike);
+            case 62:
+                return SearchResultsEmptyUnitPartDefinition.a(injectorLike);
+            case 63:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return SearchResultsNoResultsGroupPartDefinition.a(injectorLike);
+            case 65:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 66:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 67:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 68:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 69:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 70:
+                return PulseContextConvertedGroupPartDefinition.a(injectorLike);
+            case 71:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 72:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 73:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 74:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 75:
+                return PulseContextGroupPartDefinition.a(injectorLike);
+            case 76:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 77:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 78:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 79:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 80:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 81:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 82:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 83:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 84:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 85:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 86:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 87:
+                return PulseSentimentGroupPartDefinition.a(injectorLike);
+            case 88:
+                return PulseStoriesGroupPartDefinition.a(injectorLike);
+            case 89:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 90:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 91:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 92:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 93:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 94:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 95:
+                return SearchResultsSeeMoreGroupPartDefinition.a(injectorLike);
+            case 96:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 97:
+                return SearchResultsSeeMoreQueryPartDefinition.a(injectorLike);
+            case 98:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 99:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 100:
+                return SearchResultsSpellCorrectionGroupPartDefinition.a(injectorLike);
+            case 101:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 102:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 103:
+                return SportsGroupPartDefinition.a(injectorLike);
+            case 104:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 105:
+                return SearchResultsStoryGroupPartDefinition.a(injectorLike);
+            case 106:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 107:
+                return SearchResultsUnsupportedResultPartDefinition.a(injectorLike);
+            case 108:
+                return UnsupportedModuleGroupPartDefinition.a(injectorLike);
+            case 109:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 110:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 111:
+                return SearchResultsFeedVideosModuleGroupPartDefinition.a(injectorLike);
+            case 112:
+                return SearchResultsGrammarVideosModuleGroupPartDefinition.a(injectorLike);
+            case 113:
+                return SearchResultsLiveVideoPagePartDefinition.a(injectorLike);
+            case 114:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 115:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 116:
+                return SearchResultsTopVideosModuleGroupPartDefinition.a(injectorLike);
+            case 117:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 118:
+                return SearchResultsVideoChannelLargeRowPartDefinition.a(injectorLike);
+            case 119:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 120:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 121:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 122:
+                return SearchResultsVideoPartDefinition.a(injectorLike);
+            case 123:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 124:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 125:
+                return SearchResultsVideosHScrollPartDefinition.a(injectorLike);
+            case 126:
+                return SearchResultsVideosModuleGroupPartDefinition.a(injectorLike);
+            case 127:
+                return SearchResultsWebVideoPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return SearchResultsWebVideosModuleGroupPartDefinition.a(injectorLike);
+            case 129:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 130:
+                return SearchResultsInlineVideoPagePartDefinition.a(injectorLike);
+            case 131:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 132:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 133:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 134:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 135:
+                return TopVideoModuleGroupPartDefinition.a(injectorLike);
+            case 136:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 137:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 138:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 139:
+                return GraphSearchTitleSearchBoxSupplier.a(injectorLike);
+            case 140:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 141:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 142:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 143:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 144:
+                return new QueryTextSuggestionFilter(TypeaheadTextMatcherFactory.b(injectorLike), GetTitleOfTypeaheadSuggestionVisitor.a(injectorLike), GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike));
+            case 145:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 146:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 147:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 148:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 149:
+                return RemoteTypeaheadLoader.a(injectorLike);
+            case 150:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 151:
+                return LogSelectedSuggestionToActivityLogHelper.b(injectorLike);
+            case 152:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 153:
+                return new SuggestionsLoggingViewportEventListener();
+            case 154:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 155:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 156:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 157:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 158:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 159:
+                return DefaultSearchNullStateListSupplier.a(injectorLike);
+            case 160:
+                return NullStatePartDefinitionInitializer.a(injectorLike);
+            case 161:
+                return new NullStateSyncConditionalWorker(SearchNullStateListSupplier.a(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 162:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 163:
+                return new ScopedNullStateSupplier(ResourcesMethodAutoProvider.m6510a(injectorLike), SuggestionsListRowItemFactory.a(injectorLike), RemoteTypeaheadFetcher.b(injectorLike));
+            case 164:
+                return new TabbedSearchNullStateListSupplier(IdBasedSingletonScopeProvider.m1809a(injectorLike, 3399));
+            case 165:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 166:
+                return new RecentSearchCacheMutator((AddRecentSearchCacheVisitorProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(AddRecentSearchCacheVisitorProvider.class), C0115xfdf5bd2.m3569a(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike), GraphQLCacheManager.m14847a(injectorLike), GraphQLQueryScheduler.m10388a(injectorLike));
+            case 167:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 168:
+                return LocalTypeaheadLoader.a(injectorLike);
+            case 169:
+                return RemoteCombinedTypeaheadFetcher.b(injectorLike);
+            case 170:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 171:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 172:
+                return RemoteTypeaheadFetcher.b(injectorLike);
+            case 173:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 174:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 175:
+                return SimpleSearchSuggestionsTypeaheadController.b(injectorLike);
+            case 176:
+                return new VideoScopedSuggestionsFilter();
+            case 177:
+                return new FlipOnceKeywordSearchTypeaheadSystem(ResourcesMethodAutoProvider.m6510a(injectorLike), SuggestionsListRowItemFactory.a(injectorLike), GraphSearchTitleSearchBoxSupplier.a(injectorLike), Locales.m2604a(injectorLike));
+            case 178:
+                return KeywordsOnTopSearchTypeaheadSystem.b(injectorLike);
+            case 179:
+                return NeueSingleStateSearchTypeaheadSystem.a(injectorLike);
+            case 180:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 181:
+                return new ScopedSearchTypeaheadSystem(ResourcesMethodAutoProvider.m6510a(injectorLike), SuggestionsListRowItemFactory.a(injectorLike), GraphSearchTitleSearchBoxSupplier.a(injectorLike));
+            case 182:
+                return new SearchKeywordsEntitiesTypeaheadSystem(GraphSearchTitleSearchBoxSupplier.a(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 183:
+                return new SearchKeywordsOnlyTypeaheadSystem(GraphSearchTitleSearchBoxSupplier.a(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 184:
+                return SearchTypeaheadSystemFactory.b(injectorLike);
+            case 185:
+                return new SimpleSearchTypeaheadSystem(GraphSearchTitleSearchBoxSupplier.a(injectorLike), GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 186:
+                return SingleStateSearchTypeaheadSystem.a(injectorLike);
+            case 187:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 188:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 189:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 190:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 191:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 192:
+                return GraphSearchIntentLauncher.a(injectorLike);
+            case 193:
+                return GraphSearchTitleBarController.a(injectorLike);
+            case 194:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 195:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 196:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 197:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 198:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 199:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 200:
+                return SearchHScrollRecyclerRecentPartDefinition.a(injectorLike);
+            case 201:
+                return SearchNeueTypeaheadPartDefinition.a(injectorLike);
+            case 202:
+                return SearchSpotlightHScrollRecyclerPartDefinition.a(injectorLike);
+            case 203:
+                return SearchTypeaheadDividerPartDefinition.a(injectorLike);
+            case 204:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 205:
+                return SearchTypeaheadEmptyScopedNullStateSelectorPartDefinition.a(injectorLike);
+            case 206:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 207:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 208:
+                return SearchTypeaheadEntityComponentPartDefinition.a(injectorLike);
+            case 209:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 210:
+                return SearchTypeaheadEntityPartDefinition.a(injectorLike);
+            case 211:
+                return SearchTypeaheadFindMorePartDefinition.a(injectorLike);
+            case 212:
+                return SearchTypeaheadGapPartDefinition.a(injectorLike);
+            case 213:
+                return SearchTypeaheadHeaderPartDefinition.a(injectorLike);
+            case 214:
+                return SearchTypeaheadHorizontalRecentPartDefinition.a(injectorLike);
+            case 215:
+                return SearchTypeaheadKeywordPartDefinition.a(injectorLike);
+            case 216:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 217:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 218:
+                return SearchTypeaheadNearbyPartDefinition.a(injectorLike);
+            case 219:
+                return SearchTypeaheadNeueTrendingEntityPartDefinition.a(injectorLike);
+            case 220:
+                return SearchTypeaheadNullStateSuggestionPartDefinition.a(injectorLike);
+            case 221:
+                return SearchTypeaheadPlaceTipsPartDefinition.a(injectorLike);
+            case 222:
+                return SearchTypeaheadQRCodePartDefinition.a(injectorLike);
+            case 223:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 224:
+                return SearchTypeaheadRootGroupPartDefinition.a(injectorLike);
+            case 225:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 226:
+                return SearchTypeaheadShortcutPartDefinition.a(injectorLike);
+            case 227:
+                return SearchTypeaheadSimpleEntityPartDefinition.a(injectorLike);
+            case 228:
+                return SearchTypeaheadSimpleKeywordPartDefinition.a(injectorLike);
+            case 229:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 230:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 231:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 232:
+                return UnsupportedSearchTypeaheadPartDefinition.a(injectorLike);
+            case 233:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 234:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 235:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 236:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 237:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 238:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 239:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 240:
+                return NullStateSeeMorePartDefinition.a(injectorLike);
+            case 241:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 242:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 243:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 244:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 245:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 246:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 247:
+                return TypeaheadRowTitleFormatter.a(injectorLike);
+            case 248:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 249:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 250:
+                return KeywordSuggestionHighlightingUtil.a(injectorLike);
+            case 251:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 252:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 253:
+                return TextToPhoneticAndNormalizedTokensUtil.b(injectorLike);
+            case 254:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            case 255:
+                return SearchResultsEntityTitlePartDefinition.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4964A(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return SecurityCheckupLogger.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return SecurityCheckupLogger.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 3:
+                return new SecurityCheckupPasswordChangeFragmentFactory();
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 5:
+                return PackageValidator.b(injectorLike);
+            case 6:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 7:
+                return SecurityCheckupLogger.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return SelfUpdateNotifier.a(injectorLike);
+            case 9:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 10:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 11:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 12:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 13:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 14:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 15:
+                return SecurityCheckupLogger.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 17:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 18:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 19:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 20:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 21:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 22:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 23:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 24:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 25:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 26:
+                return new FundraiserDonationFragmentFactory();
+            case 27:
+                return new FundraiserPageFragmentFactory();
+            case 28:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 29:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 30:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 31:
+                return new FundraiserGuestListFragmentFactory();
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return new FundraiserMessageGuestsFragmentFactory();
+            case 33:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 34:
+                return new FundraiserPageInviterFragmentFactory();
+            case 35:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 36:
+                return SocialGoodUtil.a(injectorLike);
+            case 37:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 38:
+                return SoundPlayer.b(injectorLike);
+            case 39:
+                return SoundResourceStoreMethodAutoProvider.a(injectorLike);
+            case 40:
+                return AudioConfigDataMethodAutoProvider.a(injectorLike);
+            case 41:
+                return AudioConfigRegistry.a(injectorLike);
+            case 42:
+                return Fb4aSoundUtil.a(injectorLike);
+            case 43:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 44:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 45:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 46:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 47:
+                return new SpringCurve(DefaultChoreographerWrapper.m11555a(injectorLike));
+            case 48:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 49:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 50:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 51:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 52:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 53:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 54:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 55:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 56:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 57:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 58:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 59:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 60:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 61:
+                return new RootCAReporter(AnalyticsLoggerMethodAutoProvider.m3509a(injectorLike), XConfigReader.m2681a(injectorLike), FbTrustManagerFactory.m13569a(injectorLike));
+            case 62:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 63:
+                return SecurityCheckupLogger.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 65:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 66:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 67:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 68:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 69:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 70:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 71:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 72:
+                return StickerToPackMetadataLoader.b(injectorLike);
+            case 73:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 74:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 75:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 76:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 77:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 78:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 79:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 80:
+                StickerAssetsHandler stickerAssetsHandler = new StickerAssetsHandler(StickerCache.a(injectorLike), StickerDbStorageImpl.a(injectorLike), StickerAssetDownloader.a(injectorLike), FbNetworkManager.m3811a(injectorLike), StickerAssetsDownloadUtil.a(injectorLike), GatekeeperStoreImplMethodAutoProvider.m2131a(injectorLike), IdBasedProvider.m1811a(injectorLike, 4342));
+                stickerAssetsHandler.j = IdBasedLazy.m1808a(injectorLike, 3477);
+                return stickerAssetsHandler;
+            case 81:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 82:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 83:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 84:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 85:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 86:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 87:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 88:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 89:
+                return StoryTeller.b(injectorLike);
+            case 90:
+                return StoryTellerConfig.a(injectorLike);
+            case 91:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 92:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 93:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 94:
+                return SurveyNotificationHelper.b(injectorLike);
+            case 95:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 96:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 97:
+                return new SurveyDialogInterstitialController();
+            case 98:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 99:
+                return MessageSyncAnalyticsLogger.b(injectorLike);
+            case 100:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 101:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 102:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 103:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 104:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 105:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 106:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 107:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 108:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 109:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 110:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 111:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 112:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 113:
+                return ExponentialBackoffHelperFactory.a(injectorLike);
+            case 114:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 115:
+                return FbMainLooperTracer.a(injectorLike);
+            case 116:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 117:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 118:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 119:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 120:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 121:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 122:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 123:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 124:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 125:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 126:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 127:
+                return SecurityCheckupLogger.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 129:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 130:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 131:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 132:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 133:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 134:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 135:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 136:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 137:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 138:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 139:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 140:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 141:
+                return new UserIncludingSelfTokenMatcher(ContactIterators.a(injectorLike), DefaultAndroidThreadUtil.m1646b(injectorLike), ContactLinkType_ContactLinkQueryTypeMethodAutoProvider.b(injectorLike));
+            case 142:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 143:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 144:
+                return TaggingProfiles.b(injectorLike);
+            case 145:
+                return UberbarDataSource.b(injectorLike);
+            case 146:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 147:
+                return ContactsDbTaggingDataSource.a(injectorLike);
+            case 148:
+                return GoodFriendsTaggingTypeaheadDataSource.b(injectorLike);
+            case 149:
+                return GraphQLTaggingDataSource.a(injectorLike);
+            case 150:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 151:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 152:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 153:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 154:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 155:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 156:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 157:
+                return FrescoTextWithImageFetcher.a(injectorLike);
+            case 158:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 159:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 160:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 161:
+                return TigonHttpClientAdapterImpl.b(injectorLike);
+            case 162:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 163:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 164:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 165:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 166:
+                return new CoverPhotoFragmentFactory();
+            case 167:
+                return new ProfileNuxModalRunnableHelper(IdBasedSingletonScopeProvider.m1809a(injectorLike, 968));
+            case 168:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 169:
+                return TimelineFetchFutures.a(injectorLike);
+            case 170:
+                return TimelineFragmentFactory.a(injectorLike);
+            case 171:
+                return new CollectionsCollectionFragmentFactory();
+            case 172:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 173:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 174:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 175:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 176:
+                return new CollectionsSectionFragmentFactory();
+            case 177:
+                return new CollectionsSummaryFragmentFactory();
+            case 178:
+                return CollectionsUriIntentBuilder.a(injectorLike);
+            case 179:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 180:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 181:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 182:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 183:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 184:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 185:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 186:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 187:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 188:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 189:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 190:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 191:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 192:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 193:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 194:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 195:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 196:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 197:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 198:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 199:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 200:
+                return TimelineActionBarControllerDummy.a(injectorLike);
+            case 201:
+                return TimelineActionBarManageButtonNuxController.b(injectorLike);
+            case 202:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 203:
+                return TimelineUserDataCleaner.a(injectorLike);
+            case 204:
+                return TimelineDatabaseSupplier.a(injectorLike);
+            case 205:
+                return TimelineDbCache.a(injectorLike);
+            case 206:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 207:
+                return TimelineDeletedRowsAnalyticsLogger.a(injectorLike);
+            case 208:
+                return TimelineDbCachePeriodicReporter.a(injectorLike);
+            case 209:
+                return TimelineAboutProtilePresenter.a(injectorLike);
+            case 210:
+                return TimelineContextListItemPresenter.b(injectorLike);
+            case 211:
+                return TimelineContextualInfoControllerDummy.a(injectorLike);
+            case 212:
+                return TimelineIntroCardAboutItemsPresenter.a(injectorLike);
+            case 213:
+                return new TimelineContactCacheController(DefaultAndroidThreadUtil.m1646b(injectorLike), IdBasedSingletonScopeProvider.m1810b(injectorLike, 494), (FetchContactCacheTaskProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(FetchContactCacheTaskProvider.class));
+            case 214:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 215:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 216:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 217:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 218:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 219:
+                return new Fb4aPageFirstUnitsQueryExecutor(GraphQLQueryExecutor.m10435a(injectorLike), TimelineFirstUnitsQueryBuilder.a(injectorLike));
+            case 220:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 221:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 222:
+                return TimelineContextItemQueryExecutor.a(injectorLike);
+            case 223:
+                return TimelineEarlyFetcher.a(injectorLike);
+            case 224:
+                return TimelineFirstUnitsEarlyFetcher.a(injectorLike);
+            case 225:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 226:
+                return TimelineHeaderCacheKeySerializer.a(injectorLike);
+            case 227:
+                return TimelineHeaderParallelQueryExecutor.a(injectorLike);
+            case 228:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 229:
+                return TimelineHeaderRequestFactory.a(injectorLike);
+            case 230:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 231:
+                return TimelineNonSelfFirstUnitsQueryExecutor.a(injectorLike);
+            case 232:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 233:
+                return TimelineSectionQueryExecutor.b(injectorLike);
+            case 234:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 235:
+                return TimelineSelfFirstUnitsQueryExecutor.a(injectorLike);
+            case 236:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 237:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 238:
+                return new TimelineVisitedController(GraphQLQueryExecutor.m10435a(injectorLike), TimelineVisitedEventBus.a(injectorLike));
+            case 239:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 240:
+                return TimelineFragmentHeaderFetchCallbackDelegate.a(injectorLike);
+            case 241:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 242:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 243:
+                return NullStateCameraSectionPartDefinition.a(injectorLike);
+            case 244:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 245:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 246:
+                return NullStateRecentSectionPartDefinition.a(injectorLike);
+            case 247:
+                return NullStateRootGroupPartDefinition.a(injectorLike);
+            case 248:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 249:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 250:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 251:
+                return NullStateSuggestedPagesSectionPartDefinition.a(injectorLike);
+            case 252:
+                return NullStateSuggestedPhotosSectionPartDefinition.a(injectorLike);
+            case 253:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 254:
+                return SecurityCheckupLogger.a(injectorLike);
+            case 255:
+                return SecurityCheckupLogger.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4965B(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 3:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return new SaveFeaturedContainerController(GraphQLQueryExecutor.m10435a(injectorLike));
+            case 5:
+                return new UploadFeaturedPhotoController(DirectPhotoUploader.b(injectorLike), MediaUploadCancelHandler.b(injectorLike), IdBasedProvider.m1811a(injectorLike, 9251), C0115xfdf5bd2.m3569a(injectorLike));
+            case 6:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 7:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return TimelineHeaderEventBus.a(injectorLike);
+            case 9:
+                return TimelineStoryEventBus.a(injectorLike);
+            case 10:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 11:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 12:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 13:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 14:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 15:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return CameraSectionPartDefinition.a(injectorLike);
+            case 17:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 18:
+                return FavoriteMediaPickerRootGroupPartDefinition.a(injectorLike);
+            case 19:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 20:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 21:
+                return SuggestedForYouLabelPartDefinition.a(injectorLike);
+            case 22:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 23:
+                return SuggestedMediasetSectionPartDefinition.a(injectorLike);
+            case 24:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 25:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 26:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 27:
+                return TimelineFeedUnitRootPartDefinition.a(injectorLike);
+            case 28:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 29:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 30:
+                return TimelineLoadingIndicatorRootPartDefinition.a(injectorLike);
+            case 31:
+                return TimelineNoStoriesPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return TimelinePostsLabelPartDefinition.a(injectorLike);
+            case 33:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 34:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 35:
+                return TimelineScrubberRootPartDefinition.a(injectorLike);
+            case 36:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 37:
+                return new ProfileNuxEntryViewBinder(ProfileRefresherLauncher.a(injectorLike), IdBasedProvider.m1811a(injectorLike, 11365), IdBasedProvider.m1811a(injectorLike, 11247), IdBasedProvider.m1811a(injectorLike, 11246), IdBasedSingletonScopeProvider.m1809a(injectorLike, 11366));
+            case 38:
+                return new ProfileNuxFlowStartedMutationController(GraphQLQueryExecutor.m10435a(injectorLike));
+            case 39:
+                return new ProfileNuxViewMutationController(GraphQLQueryExecutor.m10435a(injectorLike));
+            case 40:
+                return new ProfileVideoTrimmerNuxInterstitialController();
+            case 41:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 42:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 43:
+                return TimelineHeaderComposerBinder.a(injectorLike);
+            case 44:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 45:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 46:
+                return TimelineHeaderUpdateDispatcher.a(injectorLike);
+            case 47:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 48:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 49:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 50:
+                return TimelineHeaderPerfControllerDummy.a(injectorLike);
+            case 51:
+                return new TimelineHeaderSuggestedBioBinder((Context) injectorLike.getInstance(Context.class), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 52:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 53:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 54:
+                return TimelineHeaderImagesController.a(injectorLike);
+            case 55:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 56:
+                return TimelineCoverPhotoControllerDummy.a(injectorLike);
+            case 57:
+                return TimelineProfileImageControllerDummy.a(injectorLike);
+            case 58:
+                return TimelineCoverPhotoLoggingHelper.b(injectorLike);
+            case 59:
+                return new ExpirePhotoMutationClient(String_LoggedInUserIdMethodAutoProvider.m4329b(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike));
+            case 60:
+                return IntroCardExternalLinkViewBinder.a(injectorLike);
+            case 61:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 62:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 63:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 65:
+                return new TimelineHeaderFavPhotosPostToFeedNuxInterstitialController();
+            case 66:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 67:
+                return new TimelineHeaderSuggestedPhotosBinder(FbErrorReporterImpl.m2317a(injectorLike), TimelineHeaderFeaturedPhotosMosaicBinder.b(injectorLike), QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 68:
+                return FetchFavoritePhotoController.a(injectorLike);
+            case 69:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 70:
+                return new UploadFavoritePhotoController(C0115xfdf5bd2.m3569a(injectorLike), IdBasedProvider.m1811a(injectorLike, 372), DirectPhotoUploader.b(injectorLike));
+            case 71:
+                return BioQueryExecutor.a(injectorLike);
+            case 72:
+                return FavPhotosQueryExecutor.a(injectorLike);
+            case 73:
+                return TimelineCoverPhotoMenuBuilder.a(injectorLike);
+            case 74:
+                return new TimelineFriendPopoverHelper((Context) injectorLike.getInstance(Context.class), DefaultFeedIntentBuilder.m26214a(injectorLike), TimelineHeaderEventBus.a(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike), ActivityMethodAutoProvider.m6475b(injectorLike));
+            case 75:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 76:
+                return new TimelineProfileVideoViewportListener();
+            case 77:
+                return NuxBorderDrawingHelper.a(injectorLike);
+            case 78:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 79:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 80:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 81:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 82:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 83:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 84:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 85:
+                return TimelineAnalyticsLogger.a(injectorLike);
+            case 86:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 87:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 88:
+                return TimelineNavtileControllerDummy.a(injectorLike);
+            case 89:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 90:
+                return TimelineConfig.a(injectorLike);
+            case 91:
+                return ProfileMediaChangeBroadcaster.a(injectorLike);
+            case 92:
+                return ProfileMediaOptimisticPostingController.a(injectorLike);
+            case 93:
+                return new ProfilePicCropHandler(PhotosFuturesGenerator.a(injectorLike), ProfileMediaChangeBroadcaster.a(injectorLike), ProfileMediaOptimisticPostingController.a(injectorLike), Toaster.m6454b(injectorLike), ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike));
+            case 94:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 95:
+                return ProfileMediaUploadReceiver.a(injectorLike);
+            case 96:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 97:
+                return ProfilePicUploadHandler.b(injectorLike);
+            case 98:
+                return SetCoverPhotoHandler.b(injectorLike);
+            case 99:
+                return SetCoverPhotoMethod.a(injectorLike);
+            case 100:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 101:
+                return FetchTimelineHeaderParamsFactory.a(injectorLike);
+            case 102:
+                return new HideTimelineStoryMethod();
+            case 103:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 104:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 105:
+                return ProfileVideoSessionTracker.a(injectorLike);
+            case 106:
+                return new ProfileVideoCannotCreateFilter(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 107:
+                return new ProfileVideoCannotViewFilter(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 108:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 109:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 110:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 111:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 112:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 113:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 114:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 115:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 116:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 117:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 118:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 119:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 120:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 121:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 122:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 123:
+                return ProtilesLoadingIndicatorPartDefinition.a(injectorLike);
+            case 124:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 125:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 126:
+                return ProtilesRootGroupPartDefinition.a(injectorLike);
+            case 127:
+                return ProtilesRootPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 129:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 130:
+                return TimelinePendingFriendRequestsPartDefinition.a(injectorLike);
+            case 131:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 132:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 133:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 134:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 135:
+                return ProtilesQueryBuilder.a(injectorLike);
+            case 136:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 137:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 138:
+                return TimelinePublishControllerDummy.a(injectorLike);
+            case 139:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 140:
+                return OpenPublisherBarWithStatusButtonsPartDefinition.a(injectorLike);
+            case 141:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 142:
+                return PublisherRootGroupPartDefinition.a(injectorLike);
+            case 143:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 144:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 145:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 146:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 147:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 148:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 149:
+                return PeopleYouMayKnowGroupPartDefinition.a(injectorLike);
+            case 150:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 151:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 152:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 153:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 154:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 155:
+                return PeopleYouMayKnowSelectorPartDefinition.a(injectorLike);
+            case 156:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 157:
+                return new ProfileNuxRefresherDismissController(GraphQLQueryExecutor.m10435a(injectorLike));
+            case 158:
+                return ProfileRefresherAnalyticsLogger.a(injectorLike);
+            case 159:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 160:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 161:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 162:
+                return ProfileRefresherLauncher.a(injectorLike);
+            case 163:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 164:
+                return TimelineGraphQLStorySelectorPartDefinition.a(injectorLike);
+            case 165:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 166:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 167:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 168:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 169:
+                return TimelineViewTypeMapper.a(injectorLike);
+            case 170:
+                return new TimelineBootstrapEntitiesManager(IdBasedSingletonScopeProvider.m1809a(injectorLike, 10456));
+            case 171:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 172:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 173:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 174:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 175:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 176:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 177:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 178:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 179:
+                return ProfileContextItemNavigationHandler.a(injectorLike);
+            case 180:
+                return ProfileServicesCallbackHelper.a(injectorLike);
+            case 181:
+                return ProfileServicesIntentBuilder.a(injectorLike);
+            case 182:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 183:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 184:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 185:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 186:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 187:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 188:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 189:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 190:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 191:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 192:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 193:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 194:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 195:
+                return new FeaturedHeaderNuxInterstitialController();
+            case 196:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 197:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 198:
+                return TimelineActionBarItemFactory.a(injectorLike);
+            case 199:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 200:
+                return new TodayFragmentFactory(TodayExperimentController.m8720a(injectorLike), IdBasedLazy.m1808a(injectorLike, 11414));
+            case 201:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 202:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 203:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 204:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 205:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 206:
+                return new TodayFragmentArgumentsBuilder((Context) injectorLike.getInstance(Context.class));
+            case 207:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 208:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 209:
+                return EventDescriptionUnitComponentPartDefinition.a(injectorLike);
+            case 210:
+                return LargeMapUnitComponentPartDefinition.a(injectorLike);
+            case 211:
+                return MessageBlockUnitComponentPartDefinition.a(injectorLike);
+            case 212:
+                return PhotoGridPartDefinition.a(injectorLike);
+            case 213:
+                return ReactionFeedCommentUnitComponentPartDefinition.a(injectorLike);
+            case 214:
+                return ReactionTopLevelCommentComposerUnitComponentPartDefinition.a(injectorLike);
+            case 215:
+                return VerticalListInnerCardUnitComponentPartDefinition.a(injectorLike);
+            case 216:
+                return NotificationsListGroupPartDefinition.a(injectorLike);
+            case 217:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 218:
+                return new TopicCustomizationFragmentFactory();
+            case 219:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 220:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 221:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 222:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 223:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 224:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 225:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 226:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 227:
+                return DebugTracer.a(injectorLike);
+            case 228:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 229:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 230:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 231:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 232:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 233:
+                return new UnigramModelAlgorithm(new HindiUnicodeUtil());
+            case 234:
+                return new UnigramModelDataManager(DataManagerUtil.b(injectorLike), FbObjectMapperMethodAutoProvider.m6609a(injectorLike));
+            case 235:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 236:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 237:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 238:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 239:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 240:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 241:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 242:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 243:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 244:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 245:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 246:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 247:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 248:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 249:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 250:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 251:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 252:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 253:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 254:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            case 255:
+                return HasRowKeyImplEmpty.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4966C(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return ActorProfilesLoader.a(injectorLike);
+            case 3:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return ActorProfilesLoader.a(injectorLike);
+            case 5:
+                return ActorProfilesLoader.a(injectorLike);
+            case 6:
+                return ProfileListPopoverLauncher.a(injectorLike);
+            case 7:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return ActorProfilesLoader.a(injectorLike);
+            case 9:
+                return ActorProfilesLoader.a(injectorLike);
+            case 10:
+                return ActorProfilesLoader.a(injectorLike);
+            case 11:
+                return ActorProfilesLoader.a(injectorLike);
+            case 12:
+                return ActorProfilesLoader.a(injectorLike);
+            case 13:
+                return ActorProfilesLoader.a(injectorLike);
+            case 14:
+                return ActorProfilesLoader.a(injectorLike);
+            case 15:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return CommentMenuHelper.b(injectorLike);
+            case 17:
+                return ActorProfilesLoader.a(injectorLike);
+            case 18:
+                return ActorProfilesLoader.a(injectorLike);
+            case 19:
+                return ActorProfilesLoader.a(injectorLike);
+            case 20:
+                return ActorProfilesLoader.a(injectorLike);
+            case 21:
+                return ViewHelperViewAnimatorFactory.a(injectorLike);
+            case 22:
+                return ActorProfilesLoader.a(injectorLike);
+            case 23:
+                return ActorProfilesLoader.a(injectorLike);
+            case 24:
+                return ActorProfilesLoader.a(injectorLike);
+            case 25:
+                return ActorProfilesLoader.a(injectorLike);
+            case 26:
+                return ActorProfilesLoader.a(injectorLike);
+            case 27:
+                return ActorProfilesLoader.a(injectorLike);
+            case 28:
+                return ActorProfilesLoader.a(injectorLike);
+            case 29:
+                return ActorProfilesLoader.a(injectorLike);
+            case 30:
+                return ActorProfilesLoader.a(injectorLike);
+            case 31:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return ActorProfilesLoader.a(injectorLike);
+            case 33:
+                return ActorProfilesLoader.a(injectorLike);
+            case 34:
+                return ActorProfilesLoader.a(injectorLike);
+            case 35:
+                return ActorProfilesLoader.a(injectorLike);
+            case 36:
+                return ActorProfilesLoader.a(injectorLike);
+            case 37:
+                return BigEmojisMethodAutoProvider.m27893a(injectorLike);
+            case 38:
+                return ActorProfilesLoader.a(injectorLike);
+            case 39:
+                return ActorProfilesLoader.a(injectorLike);
+            case 40:
+                return ActorProfilesLoader.a(injectorLike);
+            case 41:
+                return ActorProfilesLoader.a(injectorLike);
+            case 42:
+                return ActorProfilesLoader.a(injectorLike);
+            case 43:
+                return FeatureAwareImageAccessLogger.a(injectorLike);
+            case 44:
+                return ActorProfilesLoader.a(injectorLike);
+            case 45:
+                return ActorProfilesLoader.a(injectorLike);
+            case 46:
+                return ActorProfilesLoader.a(injectorLike);
+            case 47:
+                return ToastThreadUtil.b(injectorLike);
+            case 48:
+                return ActorProfilesLoader.a(injectorLike);
+            case 49:
+                return ActorProfilesLoader.a(injectorLike);
+            case 50:
+                return new DefaultTypeaheadDispatchStrategy((TypeaheadSuggestionListUtilProvider) injectorLike.getOnDemandAssistedProviderForStaticDi(TypeaheadSuggestionListUtilProvider.class), (TypeaheadSuggestionDeduper) GraphSearchTypeaheadSuggestionDeduper.a(injectorLike));
+            case 51:
+                return ActorProfilesLoader.a(injectorLike);
+            case 52:
+                return ActorProfilesLoader.a(injectorLike);
+            case 53:
+                return ActorProfilesLoader.a(injectorLike);
+            case 54:
+                return ActorProfilesLoader.a(injectorLike);
+            case 55:
+                return ActorProfilesLoader.a(injectorLike);
+            case 56:
+                return ActorProfilesLoader.a(injectorLike);
+            case 57:
+                return ActorProfilesLoader.a(injectorLike);
+            case 58:
+                return ActorProfilesLoader.a(injectorLike);
+            case 59:
+                return new TypeaheadQueryCache();
+            case 60:
+                return ActorProfilesLoader.a(injectorLike);
+            case 61:
+                return ActorProfilesLoader.a(injectorLike);
+            case 62:
+                return ActorProfilesLoader.a(injectorLike);
+            case 63:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return ActorProfilesLoader.a(injectorLike);
+            case 65:
+                return ActorProfilesLoader.a(injectorLike);
+            case 66:
+                return ActorProfilesLoader.a(injectorLike);
+            case 67:
+                return ActorProfilesLoader.a(injectorLike);
+            case 68:
+                return ActorProfilesLoader.a(injectorLike);
+            case 69:
+                return new UserInfoBroadcaster(LocalFbBroadcastManager.m2946a(injectorLike));
+            case 70:
+                return new HanziToPinyin(FbErrorReporterImpl.m2317a(injectorLike));
+            case 71:
+                return ActorProfilesLoader.a(injectorLike);
+            case 72:
+                return ActorProfilesLoader.a(injectorLike);
+            case 73:
+                return UserTokenMatcher.b(injectorLike);
+            case 74:
+                return ActorProfilesLoader.a(injectorLike);
+            case 75:
+                return ActorProfilesLoader.a(injectorLike);
+            case 76:
+                return ActorProfilesLoader.a(injectorLike);
+            case 77:
+                return ActorProfilesLoader.a(injectorLike);
+            case 78:
+                return ActorProfilesLoader.a(injectorLike);
+            case 79:
+                return ActorProfilesLoader.a(injectorLike);
+            case 80:
+                return ActorProfilesLoader.a(injectorLike);
+            case 81:
+                return ActorProfilesLoader.a(injectorLike);
+            case 82:
+                return ActorProfilesLoader.a(injectorLike);
+            case 83:
+                return ActorProfilesLoader.a(injectorLike);
+            case 84:
+                return ActorProfilesLoader.a(injectorLike);
+            case 85:
+                return new MomentsUpsellPromotionFragmentFactory();
+            case 86:
+                return ActorProfilesLoader.a(injectorLike);
+            case 87:
+                return ActorProfilesLoader.a(injectorLike);
+            case 88:
+                return ActorProfilesLoader.a(injectorLike);
+            case 89:
+                return ActorProfilesLoader.a(injectorLike);
+            case 90:
+                return ActorProfilesLoader.a(injectorLike);
+            case 91:
+                return ActorProfilesLoader.a(injectorLike);
+            case 92:
+                return ActorProfilesLoader.a(injectorLike);
+            case 93:
+                return new VaultEnabledDataFetcher(VaultTable.a(injectorLike), VaultHelpers.b(injectorLike));
+            case 94:
+                return ActorProfilesLoader.a(injectorLike);
+            case 95:
+                return ActorProfilesLoader.a(injectorLike);
+            case 96:
+                return ActorProfilesLoader.a(injectorLike);
+            case 97:
+                return ActorProfilesLoader.a(injectorLike);
+            case 98:
+                return new VideoQEConfig(QeInternalImplMethodAutoProvider.m3744a(injectorLike));
+            case 99:
+                return FullscreenVideoPlayerLauncher.b(injectorLike);
+            case 100:
+                return VideoCachePeriodicReporter.a(injectorLike);
+            case 101:
+                return ActorProfilesLoader.a(injectorLike);
+            case 102:
+                return ActorProfilesLoader.a(injectorLike);
+            case 103:
+                return ActorProfilesLoader.a(injectorLike);
+            case 104:
+                return ActorProfilesLoader.a(injectorLike);
+            case 105:
+                return ActorProfilesLoader.a(injectorLike);
+            case 106:
+                return ActorProfilesLoader.a(injectorLike);
+            case 107:
+                return ActorProfilesLoader.a(injectorLike);
+            case 108:
+                return ActorProfilesLoader.a(injectorLike);
+            case 109:
+                return ActorProfilesLoader.a(injectorLike);
+            case 110:
+                return ActorProfilesLoader.a(injectorLike);
+            case 111:
+                return ActorProfilesLoader.a(injectorLike);
+            case 112:
+                return ActorProfilesLoader.a(injectorLike);
+            case 113:
+                return ActorProfilesLoader.a(injectorLike);
+            case 114:
+                return ActorProfilesLoader.a(injectorLike);
+            case 115:
+                return ActorProfilesLoader.a(injectorLike);
+            case 116:
+                return ActorProfilesLoader.a(injectorLike);
+            case 117:
+                return ActorProfilesLoader.a(injectorLike);
+            case 118:
+                return ActorProfilesLoader.a(injectorLike);
+            case 119:
+                return ActorProfilesLoader.a(injectorLike);
+            case 120:
+                return ActorProfilesLoader.a(injectorLike);
+            case 121:
+                return ActorProfilesLoader.a(injectorLike);
+            case 122:
+                return ChannelFeedInflater.a(injectorLike);
+            case 123:
+                return ActorProfilesLoader.a(injectorLike);
+            case 124:
+                return ActorProfilesLoader.a(injectorLike);
+            case 125:
+                return ChannelFeedRootPartDefinition.a(injectorLike);
+            case 126:
+                return ActorProfilesLoader.a(injectorLike);
+            case 127:
+                return ActorProfilesLoader.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return ActorProfilesLoader.a(injectorLike);
+            case 129:
+                return ActorProfilesLoader.a(injectorLike);
+            case 130:
+                return ActorProfilesLoader.a(injectorLike);
+            case 131:
+                return ActorProfilesLoader.a(injectorLike);
+            case 132:
+                return ActorProfilesLoader.a(injectorLike);
+            case 133:
+                return ActorProfilesLoader.a(injectorLike);
+            case 134:
+                return ActorProfilesLoader.a(injectorLike);
+            case 135:
+                return ActorProfilesLoader.a(injectorLike);
+            case 136:
+                return ActorProfilesLoader.a(injectorLike);
+            case 137:
+                return ActorProfilesLoader.a(injectorLike);
+            case 138:
+                return ActorProfilesLoader.a(injectorLike);
+            case 139:
+                return ActorProfilesLoader.a(injectorLike);
+            case 140:
+                return ActorProfilesLoader.a(injectorLike);
+            case 141:
+                return ActorProfilesLoader.a(injectorLike);
+            case 142:
+                return ActorProfilesLoader.a(injectorLike);
+            case 143:
+                return ActorProfilesLoader.a(injectorLike);
+            case 144:
+                return ActorProfilesLoader.a(injectorLike);
+            case 145:
+                return ActorProfilesLoader.a(injectorLike);
+            case 146:
+                return ActorProfilesLoader.a(injectorLike);
+            case 147:
+                return ActorProfilesLoader.a(injectorLike);
+            case 148:
+                return ActorProfilesLoader.a(injectorLike);
+            case 149:
+                return VideoCastManager.a(injectorLike);
+            case 150:
+                return ActorProfilesLoader.a(injectorLike);
+            case 151:
+                return ActorProfilesLoader.a(injectorLike);
+            case 152:
+                return ActorProfilesLoader.a(injectorLike);
+            case 153:
+                return ActorProfilesLoader.a(injectorLike);
+            case 154:
+                return ActorProfilesLoader.a(injectorLike);
+            case 155:
+                return ActorProfilesLoader.a(injectorLike);
+            case 156:
+                return ActorProfilesLoader.a(injectorLike);
+            case 157:
+                return ActorProfilesLoader.a(injectorLike);
+            case 158:
+                return DownloadManager.a(injectorLike);
+            case 159:
+                return ActorProfilesLoader.a(injectorLike);
+            case 160:
+                return ActorProfilesLoader.a(injectorLike);
+            case 161:
+                return ActorProfilesLoader.a(injectorLike);
+            case 162:
+                return ActorProfilesLoader.a(injectorLike);
+            case 163:
+                return ActorProfilesLoader.a(injectorLike);
+            case 164:
+                return ActorProfilesLoader.a(injectorLike);
+            case 165:
+                return ActorProfilesLoader.a(injectorLike);
+            case 166:
+                return ActorProfilesLoader.a(injectorLike);
+            case 167:
+                return ActorProfilesLoader.a(injectorLike);
+            case 168:
+                return ActorProfilesLoader.a(injectorLike);
+            case 169:
+                return ActorProfilesLoader.a(injectorLike);
+            case 170:
+                return ActorProfilesLoader.a(injectorLike);
+            case 171:
+                return new LiveMapFragmentFactory();
+            case 172:
+                return ActorProfilesLoader.a(injectorLike);
+            case 173:
+                return ActorProfilesLoader.a(injectorLike);
+            case 174:
+                return ActorProfilesLoader.a(injectorLike);
+            case 175:
+                return ActorProfilesLoader.a(injectorLike);
+            case 176:
+                return VideoPerformancePeriodicReporter.a(injectorLike);
+            case 177:
+                return PlayerReadableCacheMethodAutoProvider.a(injectorLike);
+            case 178:
+                return ActorProfilesLoader.a(injectorLike);
+            case 179:
+                return new AutoplayRolloutNuxController(C0759x3db8deda.m26896a(injectorLike), DefaultSecureContextHelper.m4636a(injectorLike), FbSharedPreferencesImpl.m1826a(injectorLike));
+            case 180:
+                return ActorProfilesLoader.a(injectorLike);
+            case 181:
+                return VideoHomeInlineAudioManager.a(injectorLike);
+            case 182:
+                return ActorProfilesLoader.a(injectorLike);
+            case 183:
+                return ActorProfilesLoader.a(injectorLike);
+            case 184:
+                return ActorProfilesLoader.a(injectorLike);
+            case 185:
+                return ActorProfilesLoader.a(injectorLike);
+            case 186:
+                return ActorProfilesLoader.a(injectorLike);
+            case 187:
+                return ActorProfilesLoader.a(injectorLike);
+            case 188:
+                return ActorProfilesLoader.a(injectorLike);
+            case 189:
+                return ActorProfilesLoader.a(injectorLike);
+            case 190:
+                return ActorProfilesLoader.a(injectorLike);
+            case 191:
+                return ActorProfilesLoader.a(injectorLike);
+            case 192:
+                return new VideoHomeFragmentFactory(IdBasedSingletonScopeProvider.m1810b(injectorLike, 11702));
+            case 193:
+                return new VideoHomeGuideFragmentFactory();
+            case 194:
+                return ActorProfilesLoader.a(injectorLike);
+            case 195:
+                return new VideoHomeBadgeUpdater(JewelCounters.m6558a(injectorLike), VideoHomeConfig.m14005a(injectorLike));
+            case 196:
+                return ActorProfilesLoader.a(injectorLike);
+            case 197:
+                return ActorProfilesLoader.a(injectorLike);
+            case 198:
+                return ActorProfilesLoader.a(injectorLike);
+            case 199:
+                return ActorProfilesLoader.a(injectorLike);
+            case 200:
+                return ActorProfilesLoader.a(injectorLike);
+            case 201:
+                return ActorProfilesLoader.a(injectorLike);
+            case 202:
+                return ActorProfilesLoader.a(injectorLike);
+            case 203:
+                return VideoHomeComposerPartDefinition.a(injectorLike);
+            case 204:
+                return ActorProfilesLoader.a(injectorLike);
+            case 205:
+                return VideoHomeExploreFeedRecommendationUnitPartDefinition.a(injectorLike);
+            case 206:
+                return ActorProfilesLoader.a(injectorLike);
+            case 207:
+                return ActorProfilesLoader.a(injectorLike);
+            case 208:
+                return ActorProfilesLoader.a(injectorLike);
+            case 209:
+                return VideoHomeItemSelectorPartDefinition.a(injectorLike);
+            case 210:
+                return ActorProfilesLoader.a(injectorLike);
+            case 211:
+                return ActorProfilesLoader.a(injectorLike);
+            case 212:
+                return VideoHomePaginatedHscrollLiveVideoComponentListPartDefinition.a(injectorLike);
+            case 213:
+                return ActorProfilesLoader.a(injectorLike);
+            case 214:
+                return VideoHomeRootPartDefinition.a(injectorLike);
+            case 215:
+                return ActorProfilesLoader.a(injectorLike);
+            case 216:
+                return VideoHomeSectionHeaderPartDefinition.a(injectorLike);
+            case 217:
+                return VideoHomeSeeMorePartDefinition.a(injectorLike);
+            case 218:
+                return VideoHomeShortcutPartDefinition.a(injectorLike);
+            case 219:
+                return ActorProfilesLoader.a(injectorLike);
+            case 220:
+                return VideoHomeSpinnerPartDefinition.a(injectorLike);
+            case 221:
+                return ActorProfilesLoader.a(injectorLike);
+            case 222:
+                return ActorProfilesLoader.a(injectorLike);
+            case 223:
+                return ActorProfilesLoader.a(injectorLike);
+            case 224:
+                return ActorProfilesLoader.a(injectorLike);
+            case 225:
+                return VideoHomeUnitPartDefinition.a(injectorLike);
+            case 226:
+                return ActorProfilesLoader.a(injectorLike);
+            case 227:
+                return ActorProfilesLoader.a(injectorLike);
+            case 228:
+                return ActorProfilesLoader.a(injectorLike);
+            case 229:
+                return ActorProfilesLoader.a(injectorLike);
+            case 230:
+                return VideoHomeVideoChannelFeedUnitGroupPartDefinition.a(injectorLike);
+            case 231:
+                return ActorProfilesLoader.a(injectorLike);
+            case 232:
+                return VideoHomeVideoChannelFeedUnitSquareGroupPartDefinition.a(injectorLike);
+            case 233:
+                return ActorProfilesLoader.a(injectorLike);
+            case 234:
+                return VideoHomeVideoChannelRecommendationSquarePartDefinition.a(injectorLike);
+            case 235:
+                return ActorProfilesLoader.a(injectorLike);
+            case 236:
+                return ActorProfilesLoader.a(injectorLike);
+            case 237:
+                return ActorProfilesLoader.a(injectorLike);
+            case 238:
+                return VideoHomeReactionSessionHelper.a(injectorLike);
+            case 239:
+                return ActorProfilesLoader.a(injectorLike);
+            case 240:
+                return new VideoHomeQueryGraphQLHelper(ListeningScheduledExecutorService_ForUiThreadMethodAutoProvider.m1951a(injectorLike), GraphQLQueryExecutor.m10435a(injectorLike));
+            case 241:
+                return ActorProfilesLoader.a(injectorLike);
+            case 242:
+                return ActorProfilesLoader.a(injectorLike);
+            case 243:
+                return ActorProfilesLoader.a(injectorLike);
+            case 244:
+                return ActorProfilesLoader.a(injectorLike);
+            case 245:
+                return ActorProfilesLoader.a(injectorLike);
+            case 246:
+                return ActorProfilesLoader.a(injectorLike);
+            case 247:
+                return ActorProfilesLoader.a(injectorLike);
+            case 248:
+                return ActorProfilesLoader.a(injectorLike);
+            case 249:
+                return ActorProfilesLoader.a(injectorLike);
+            case 250:
+                return ActorProfilesLoader.a(injectorLike);
+            case 251:
+                return ActorProfilesLoader.a(injectorLike);
+            case 252:
+                return ActorProfilesLoader.a(injectorLike);
+            case 253:
+                return ActorProfilesLoader.a(injectorLike);
+            case 254:
+                return VideoWatchAndBrowseInflator.a(injectorLike);
+            case 255:
+                return ActorProfilesLoader.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+
+    private static Object m4967D(InjectorLike injectorLike, int i) {
+        switch (i) {
+            case 0:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_HEADER_BYTE_FLUSHED /*1*/:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.FIRST_BODY_BYTE_FLUSHED /*2*/:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 3:
+                return SystemVideoMetadataExtractor.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_FLUSHED /*4*/:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 5:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 6:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 7:
+                return FFMpegVideoMetadataExtractor.a(injectorLike);
+            case HTTPTransportCallback.LAST_BODY_BYTE_ACKED /*8*/:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 9:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 10:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 11:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 12:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 13:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 14:
+                return new VideoResizeOperation((Context) injectorLike.getInstance(Context.class), (VideoMetadataExtractor) DefaultVideoMetadataExtractor.b(injectorLike), VideoTrackExtractor.a(injectorLike), CodecMuxerMethodAutoProvider.a(injectorLike), new VideoTranscodeHandlerFactory(IdBasedProvider.m1811a(injectorLike, 11737), IdBasedProvider.m1811a(injectorLike, 11738)), DefaultAndroidThreadUtil.m1646b(injectorLike), FbErrorReporterImpl.m2317a(injectorLike));
+            case 15:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_GENERATED /*16*/:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 17:
+                return VideoTranscoderJBMR2.b(injectorLike);
+            case 18:
+                return VideoTranscoderOnGPU.b(injectorLike);
+            case 19:
+                return VideoTrimOperation.b(injectorLike);
+            case 20:
+                return VideoTrimmer.a(injectorLike);
+            case 21:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 22:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 23:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 24:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 25:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 26:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 27:
+                return WebViewUriRedirector.a(injectorLike);
+            case 28:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 29:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 30:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 31:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.HEADER_BYTES_RECEIVED /*32*/:
+                return BottomSheetDialog.b(injectorLike);
+            case 33:
+                return ShareSheetIntentLauncher.b(injectorLike);
+            case 34:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 35:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 36:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 37:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 38:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 39:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 40:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 41:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 42:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 43:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 44:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 45:
+                return ThreadTileDrawableController.b(injectorLike);
+            case 46:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 47:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 48:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 49:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 50:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 51:
+                return ContactChipSpanFactory.b(injectorLike);
+            case 52:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 53:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 54:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 55:
+                return DummyWorkBookmarksQuery.a(injectorLike);
+            case 56:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 57:
+                return DefaultMultiCompanyGroupIconProvider.a(injectorLike);
+            case 58:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 59:
+                return WorkComposerGroupsQuery.a(injectorLike);
+            case 60:
+                return PostLoginNuxManager.b(injectorLike);
+            case 61:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 62:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 63:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_GENERATED /*64*/:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 65:
+                return DefaultMessageCapAccessor.a(injectorLike);
+            case 66:
+                return DefaultZeroDeltaHandler.a(injectorLike);
+            case 67:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 68:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 69:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 70:
+                return MessageCapKeyboardGuardController.b(injectorLike);
+            case 71:
+                return MessageCapLogger.b(injectorLike);
+            case 72:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 73:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 74:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 75:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 76:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 77:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 78:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 79:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 80:
+                return CarrierManagerFragmentFactory.a(injectorLike);
+            case 81:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 82:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 83:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 84:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 85:
+                return ZeroDataCheckerRequestMaker.a(injectorLike);
+            case 86:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 87:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 88:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 89:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 90:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 91:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 92:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 93:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 94:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 95:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 96:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 97:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 98:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 99:
+                return ZeroInterstitialController.b(injectorLike);
+            case 100:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 101:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 102:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 103:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 104:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 105:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 106:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 107:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 108:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 109:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 110:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 111:
+                return AssistedOnboardingLogger.b(injectorLike);
+            case 112:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 113:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 114:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 115:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 116:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 117:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 118:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 119:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 120:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 121:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 122:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 123:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 124:
+                return ZeroHeaderRequestConditionalWorker.b(injectorLike);
+            case 125:
+                return ZeroInterstitialEligibilityConditionalWorker.b(injectorLike);
+            case 126:
+                return ZeroTokenConditionalWorker.b(injectorLike);
+            case 127:
+                return ZeroUpdateStatusManager.a(injectorLike);
+            case HTTPTransportCallback.BODY_BYTES_RECEIVED /*128*/:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 129:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 130:
+                return NoDataControlNoUpsellDialogProvider.a(injectorLike);
+            case 131:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 132:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 133:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 134:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 135:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 136:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 137:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 138:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 139:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 140:
+                return VpnCallToHandleController.b(injectorLike);
+            case 141:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            case 142:
+                return WatchAndShopProductItemPartDefinition.a(injectorLike);
+            default:
+                throw new IllegalArgumentException("Invalid Static DI binding id");
+        }
+    }
+}

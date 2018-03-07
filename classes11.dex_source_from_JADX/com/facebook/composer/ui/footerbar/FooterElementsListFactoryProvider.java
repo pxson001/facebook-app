@@ -1,0 +1,44 @@
+package com.facebook.composer.ui.footerbar;
+
+import android.view.ViewGroup;
+import com.facebook.common.android.ResourcesMethodAutoProvider;
+import com.facebook.common.android.WindowManagerMethodAutoProvider;
+import com.facebook.composer.attachments.ComposerAttachment.ProvidesAttachments;
+import com.facebook.composer.capability.ComposerPhotoCapability.ProvidesCapability;
+import com.facebook.composer.tip.TipManager;
+import com.facebook.composer.ui.footerbar.ComposerMinutiaeFooterBarController.MinutiaeFooterBarDataProvider;
+import com.facebook.composer.ui.footerbar.ComposerPhotoFooterBarController.Listener;
+import com.facebook.config.application.ProductMethodAutoProvider;
+import com.facebook.facecastdisplay.FacecastUtil;
+import com.facebook.inject.AbstractAssistedProvider;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsAlbumPillSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsAttachToAlbumSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsCheckinSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsCustomPublishModeSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsFacecastSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsImplicitLocationSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsPagePublishModePillSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsPostCompositionViewSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsTagPeopleSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesIsTransliterationSupported;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesSessionId;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesShouldShowNoLocationBadge;
+import com.facebook.ipc.composer.dataaccessor.ComposerBasicDataProviders.ProvidesTargetAlbum;
+import com.facebook.ipc.composer.intent.ComposerConfigurationSpec.ProvidesConfiguration;
+import com.facebook.ipc.composer.intent.ComposerTargetData.ProvidesTargetData;
+import com.facebook.ipc.composer.model.ComposerContentType.ProvidesContentType;
+import com.facebook.ipc.composer.model.ComposerDateInfo.ProvidesDateInfo;
+import com.facebook.ipc.composer.model.ComposerFacecastInfo.ProvidesFacecastInfo;
+import com.facebook.ipc.composer.model.ComposerLocationInfo.ProvidesLocationInfo;
+import com.facebook.ipc.composer.model.ComposerTaggedUser.ProvidesTaggedUsers;
+import com.facebook.ipc.composer.plugin.ComposerPluginGetters.ProvidesPluginIsDatePickerSupportedGetter;
+import com.facebook.qe.api.QeAccessor;
+import com.facebook.qe.module.QeInternalImplMethodAutoProvider;
+import javax.annotation.Nonnull;
+
+/* compiled from: fb_dialogs_web_login_dialog_complete */
+public class FooterElementsListFactoryProvider extends AbstractAssistedProvider<FooterElementsListFactory> {
+    public final <DataProvider extends ProvidesAttachments & ProvidesIsAlbumPillSupported & ProvidesIsAttachToAlbumSupported & ProvidesIsCheckinSupported & ProvidesIsCustomPublishModeSupported & ProvidesIsFacecastSupported & ProvidesIsImplicitLocationSupported & ProvidesIsPagePublishModePillSupported & ProvidesIsPostCompositionViewSupported & ProvidesIsTagPeopleSupported & ProvidesIsTransliterationSupported & ProvidesSessionId & ProvidesShouldShowNoLocationBadge & ProvidesTargetAlbum & ProvidesConfiguration & ProvidesContentType & ProvidesDateInfo & ProvidesFacecastInfo & ProvidesLocationInfo & ProvidesCapability & ProvidesPluginIsDatePickerSupportedGetter & ProvidesTaggedUsers & ProvidesTargetData> FooterElementsListFactory<DataProvider> m8350a(@Nonnull TipManager tipManager, @Nonnull Listener listener, @Nonnull ComposerAlbumFooterBarController.Listener listener2, @Nonnull ComposerTagPeopleFooterBarController.Listener listener3, @Nonnull ComposerMinutiaeFooterBarController.Listener listener4, @Nonnull ComposerCheckInFooterBarController.Listener listener5, @Nonnull ComposerPickDateFooterBarController.Listener listener6, @Nonnull ComposerPublishModeFooterBarController.Listener listener7, ComposerTransliterationFooterBarController.Listener listener8, @Nonnull ComposerFacecastFooterBarController.Listener listener9, @Nonnull ViewGroup viewGroup, @Nonnull MinutiaeFooterBarDataProvider minutiaeFooterBarDataProvider, @Nonnull DataProvider dataProvider) {
+        return new FooterElementsListFactory(tipManager, listener, listener2, listener3, listener4, listener5, listener6, listener7, listener8, listener9, viewGroup, minutiaeFooterBarDataProvider, (ProvidesAttachments) dataProvider, (ComposerPhotoFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerPhotoFooterBarControllerProvider.class), (ComposerAlbumFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerAlbumFooterBarControllerProvider.class), (ComposerTagPeopleFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerTagPeopleFooterBarControllerProvider.class), (ComposerMinutiaeFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerMinutiaeFooterBarControllerProvider.class), (ComposerCheckInFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerCheckInFooterBarControllerProvider.class), (ComposerPickDateFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerPickDateFooterBarControllerProvider.class), (ComposerImplicitLocationFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerImplicitLocationFooterBarControllerProvider.class), (ComposerPublishModeFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerPublishModeFooterBarControllerProvider.class), (ComposerTransliterationFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerTransliterationFooterBarControllerProvider.class), (ComposerFacecastFooterBarControllerProvider) getOnDemandAssistedProviderForStaticDi(ComposerFacecastFooterBarControllerProvider.class), WindowManagerMethodAutoProvider.a(this), ResourcesMethodAutoProvider.a(this), ProductMethodAutoProvider.a(this), (QeAccessor) QeInternalImplMethodAutoProvider.a(this), FacecastUtil.a(this));
+    }
+}

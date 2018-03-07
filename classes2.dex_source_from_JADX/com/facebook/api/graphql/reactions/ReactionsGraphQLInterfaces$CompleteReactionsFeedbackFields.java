@@ -1,0 +1,4 @@
+package com.facebook.api.graphql.reactions;
+
+public interface ReactionsGraphQLInterfaces$CompleteReactionsFeedbackFields extends ReactionsGraphQLInterfaces$ViewerReactionsFeedbackFields {
+}

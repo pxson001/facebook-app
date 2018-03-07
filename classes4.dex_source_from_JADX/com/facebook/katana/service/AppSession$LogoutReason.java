@@ -1,0 +1,12 @@
+package com.facebook.katana.service;
+
+/* compiled from: unexpected exception */
+public enum AppSession$LogoutReason {
+    FACEWEB_NONSPECIFIC,
+    ACCOUNT_REMOVED,
+    USER_INITIATED,
+    FORCED_ERROR_INVALID_SESSION,
+    FORCED_FACEWEB_AUTHENTICATION_FAILED,
+    FORCED_FACEWEB_COMPONENTS_STORE_ERROR,
+    FORCED_SYNC_ADAPTER_SERVICE_SESSION_ERROR
+}

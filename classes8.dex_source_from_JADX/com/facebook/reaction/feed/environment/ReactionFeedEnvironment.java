@@ -1,0 +1,4 @@
+package com.facebook.reaction.feed.environment;
+
+public interface ReactionFeedEnvironment extends CanAddReactionComponents, CanHandleHScrollPageChangedEvents, CanLaunchReactionIntent, HasReactionAnalyticsParams, HasReactionCardBackground, HasReactionCardContainer, HasReactionInteractionTracker, HasReactionSession {
+}

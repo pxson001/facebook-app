@@ -1,0 +1,79 @@
+package com.facebook.quickpromotion.model;
+
+import com.facebook.common.json.AutoGenJsonDeserializer;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import java.util.Locale;
+
+@AutoGenJsonDeserializer
+@JsonDeserialize(using = QuickPromotionDefinition_ContextualFilter_TypeDeserializer.class)
+/* compiled from: reaction_forward_scroll */
+public enum QuickPromotionDefinition$ContextualFilter$Type {
+    WIFI_CONNECTED,
+    NETWORK_CONNECTIVITY,
+    MOBILE_NETWORK_AVAILABLE,
+    ANDROID_PERMISSIONS_ANY_DISABLED,
+    AVAILABLE_APP_STORAGE_KB,
+    MAX_AVAILABLE_APP_STORAGE_KB,
+    FACEBOOK_MESSENGER_INSTALLED,
+    TIME_OF_DAY_BEFORE,
+    TIME_OF_DAY_AFTER,
+    APP_MIN_VERSION,
+    APP_MAX_VERSION,
+    SECONDS_SINCE_LAST_IMPRESSION,
+    GOOGLE_PLAY_AVAILABLE,
+    PREINSTALLED_APP,
+    SECONDS_SINCE_FOREGROUND,
+    GOOGLE_ACCOUNT_AVAILABLE,
+    AGGREGATE_CAP,
+    PREFETCH_ALL_ASSETS,
+    SECONDS_SINCE_MESSAGE_RECEIVED,
+    SECONDS_SINCE_MESSAGE_SENT,
+    APP_INSTALLED,
+    APP_NOT_INSTALLED,
+    METERED_CONNECTION,
+    SECONDS_SINCE_METERED_CONNECTION_CHANGED_LT,
+    MIN_MANUAL_NEWSFEED_REFRESHES,
+    REMAINING_BATTERY_LEVEL,
+    OTHER_PROMOTION_EVENT,
+    CI_CONT_SYNC_CONSENT,
+    CI_CONSENT,
+    CONTACTS_UPLOAD_ENABLED,
+    SMS_TAKEOVER_RECENT_READ_ONLY_THREAD_VIEW_BANNER_ELIGIBLE,
+    SMS_TAKEOVER_DELAYED_READ_ONLY_THREAD_VIEW_BANNER_ELIGIBLE,
+    SMS_TAKEOVER_FULL_READ_ONLY_THREAD_VIEW_BANNER_ELIGIBLE,
+    CLOCK_SKEW,
+    DIRECT_INSTALL_ENABLED,
+    DIALTONE_ACTIVE,
+    WALLFEED_ACTIVATION,
+    DIALTONE_AVAILABLE,
+    UNREAD_MESSAGES,
+    NEW_VERSION_TO_INSTALL,
+    OTHER_PROFILE_RTC_PRESENCE,
+    OTHER_PROFILE_COMMUNICATION_COEFFICIENT,
+    OMNISTORE_KEY_JUST_WRITTEN,
+    HAS_MADE_RTC_CALL,
+    OTHER_PROFILE_IS_BIRTHDAY,
+    MESSAGES_SENT_ONE_AFTER_THE_OTHER,
+    SECONDS_SINCE_LAST_DISMISSAL,
+    CANNOT_VIEW_CONTEXT_PROFILE_VIDEO,
+    CANNOT_CREATE_PROFILE_VIDEO,
+    LOCALE,
+    CONTACT_LOGS_UPLOAD_ENABLED,
+    MESSENGER_PHOTO_MAGIC_EVER_ENABLED,
+    MESSENGER_PHOTO_MAGIC_NUX_ELIGIBLE,
+    IS_MISSING_PROFILE_PICTURE,
+    UNKNOWN;
+
+    @JsonCreator
+    public static QuickPromotionDefinition$ContextualFilter$Type fromString(String str) {
+        if (str != null) {
+            return valueOf(str.toUpperCase(Locale.US));
+        }
+        try {
+            return UNKNOWN;
+        } catch (IllegalArgumentException e) {
+            return UNKNOWN;
+        }
+    }
+}

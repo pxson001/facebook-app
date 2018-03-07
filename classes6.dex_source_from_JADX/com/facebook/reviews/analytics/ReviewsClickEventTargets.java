@@ -1,0 +1,24 @@
+package com.facebook.reviews.analytics;
+
+/* compiled from: f5bf3c81880626ab8bf8c17911983df2 */
+public enum ReviewsClickEventTargets {
+    DELETE_DIALOG_CONFIRMATION_BUTTON,
+    CRITIC_REVIEW_PUBLISHER_CONTAINER,
+    CRITIC_REVIEW,
+    REVIEW_CHEVRON,
+    REVIEW_CREATOR_NAME,
+    REVIEW_CREATOR_PROFILE_PICTURE,
+    REVIEW_DELETE_MENU_OPTION,
+    REVIEW_EDIT_MENU_OPTION,
+    REVIEW_REPORT_MENU_OPTION,
+    REVIEW_ROW_VIEW,
+    REVIEW_PAGE_NAME,
+    REVIEW_TEXT_EXPAND,
+    REVIEW_TEXT_COLLAPSE,
+    PLACE_REVIEW_ATTACHMENT,
+    USER_REVIEWS_ATTACHMENT_SAVE;
+
+    public final String toString() {
+        return name().toLowerCase();
+    }
+}

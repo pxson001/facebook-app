@@ -1,0 +1,27 @@
+package com.facebook.messaging.notify;
+
+/* compiled from: shareable */
+public enum MessagingNotification$Type {
+    NEW_MESSAGE,
+    LOGGED_OUT_MESSAGE,
+    FRIEND_INSTALL,
+    FAILED_TO_SEND,
+    READ_THREAD,
+    NEW_BUILD,
+    P2P_PAYMENT,
+    PROMOTION,
+    STALE,
+    INTERNAL,
+    MISSED_CALL,
+    RTC_CALLEE_READY,
+    MESSAGE_REQUEST,
+    TINCAN_MESSAGE_REQUEST,
+    PRE_REG_PUSH,
+    LOCAL,
+    CONTACTS_UPLOAD,
+    MULTIPLE_ACCOUNTS_NEW_MESSAGES,
+    USER_LOGGED_OUT,
+    INCOMING_CALL,
+    JOIN_REQUEST,
+    SWITCH_TO_FB_ACCOUNT
+}
